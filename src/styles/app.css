@@ -100,7 +100,7 @@
 
 .figura { position: relative; height: 392px; margin-top: 4px; }
 .figura > svg, .figura > .retrato-img { position: absolute; left: 50%; top: 0; width: 200px; height: 392px; transform: translateX(-50%); }
-.retrato-img { object-fit: contain; object-position: center bottom; -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent); mask-image: linear-gradient(180deg, #000 70%, transparent); }
+.retrato-img { object-fit: cover; object-position: center 20%; -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent); mask-image: linear-gradient(180deg, #000 70%, transparent); }
 .figura .camara { position: absolute; right: 60px; top: 2px; z-index: 1; }
 .eq-izq, .eq-dcha { position: absolute; top: 8px; display: flex; flex-direction: column; gap: 8px; z-index: 1; }
 .eq-izq { left: 6px; }

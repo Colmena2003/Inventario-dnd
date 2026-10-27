@@ -33,7 +33,7 @@
 .equipo { position: absolute; left: 580px; top: 90px; width: 660px; height: 970px; }
 .equipo-aura { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 55% at 50% 42%, color-mix(in srgb, var(--tinte) 25%, transparent), transparent 70%); pointer-events: none; }
 .equipo-fig, .equipo-img { position: absolute; left: 150px; top: 70px; width: 360px; height: 720px; }
-.equipo-img { object-fit: contain; object-position: center bottom; -webkit-mask-image: linear-gradient(180deg, #000 75%, transparent); mask-image: linear-gradient(180deg, #000 75%, transparent); }
+.equipo-img { object-fit: cover; object-position: center 20%; -webkit-mask-image: linear-gradient(180deg, #000 75%, transparent); mask-image: linear-gradient(180deg, #000 75%, transparent); }
 .sintonia { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 1; }
 .sintonia > span { font: 13px var(--f-titulo); letter-spacing: .1em; color: #c9b88f; white-space: nowrap; }
 .sintonia b { color: #f1dfb0; }
