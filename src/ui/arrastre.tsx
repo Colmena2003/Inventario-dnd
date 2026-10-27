@@ -1,5 +1,6 @@
 // Arrastrar y soltar con eventos de puntero. Los destinos se marcan con data-drop:
 //   "alijo" · "pj:<id>" (inventario) · "pj:<id>:<ranura>:<indice>" (ranura de equipo)
+//   · "comer:<id>" (fila de la despensa: el personaje se come lo que se suelta; no tiene Destino)
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode, type PointerEvent as RPE } from 'react';
 import { createPortal } from 'react-dom';
@@ -7,7 +8,7 @@ import type { Destino } from '../domain/reglas';
 import type { Objeto, TipoRanura } from '../domain/tipos';
 import { Ranura } from './piezas';
 
-export type Objetivo = { clave: string; destino: Destino };
+export type Objetivo = { clave: string; destino: Destino | null };
 
 export interface Arrastre {
   objeto: Objeto;
@@ -42,12 +43,13 @@ function objetivoEn(x: number, y: number): { objetivo: Objetivo | null; celda: E
   const zona = el?.closest('[data-drop]');
   const clave = zona?.getAttribute('data-drop');
   const destino = clave ? parsearDestino(clave) : null;
-  return { objetivo: clave && destino ? { clave, destino } : null, celda: el };
+  const valido = !!clave && (!!destino || clave.startsWith('comer:'));
+  return { objetivo: valido ? { clave: clave!, destino } : null, celda: el };
 }
 
 export function ArrastreProvider({ escala, onSoltar, children }: {
   escala: number;
-  onSoltar: (objeto: Objeto, destino: Destino, dividir: boolean) => void;
+  onSoltar: (objeto: Objeto, objetivo: Objetivo, dividir: boolean) => void;
   children: ReactNode;
 }) {
   const [arrastre, setArrastre] = useState<Arrastre | null>(null);
@@ -74,7 +76,7 @@ export function ArrastreProvider({ escala, onSoltar, children }: {
       limpiar();
       const a = ref.current;
       fijar(null);
-      if (activo && a?.objetivo) soltarRef.current(a.objeto, a.objetivo.destino, ev.shiftKey);
+      if (activo && a?.objetivo) soltarRef.current(a.objeto, a.objetivo, ev.shiftKey);
     };
     const tecla = (ev: KeyboardEvent) => {
       if (ev.key === 'Escape') {

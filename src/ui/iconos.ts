@@ -31,6 +31,11 @@ export const ICONOS = {
   torch: 'M10 21l-1-10h6l-1 10zM12 11c-2.5-1.5-3-4-1-7 0 2 2 2.5 2 4 1-1 1.5-2 1.5-3 1.5 2 1 5-2.5 6z',
   drop: 'M12 3c3 4.5 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-6.5 6-11z',
   mushroom: 'M4 12a8 7 0 0 1 16 0zM10 12v7a2 2 0 0 0 4 0v-7',
+  // Comida (diseno/Despensa.dc.html)
+  bowl: 'M3 11h18a9 9 0 0 1-18 0zM8.5 8c0-1 1-1.2 1-2.2S8.5 4.5 8.5 3.5M12 8c0-1 1-1.2 1-2.2S12 4.5 12 3.5M15.5 8c0-1 1-1.2 1-2.2s-1-1.3-1-2.3',
+  pie: 'M3 14h18l-2 5H5zM4 14c1-5 4.5-8 8-8s7 3 8 8M9 10l1 2M14 9l-1 3',
+  cheese: 'M3 17l8-11 10 6v5zM3 17h18M8 13h.01M14 14h.01M16 11h.01',
+  sack: 'M8 4h8l-1 3c3 1.5 5 4.5 5 8a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6c0-3.5 2-6.5 5-8z',
 } as const;
 
 export type ClaveIcono = keyof typeof ICONOS;

@@ -29,11 +29,13 @@ Hecho:
 
 - Estadísticas: tarjeta por personaje (características, ataques, resistencias, condiciones —incluidos hambre y carga cuando tienen efecto— y valor, peso y objetos por rareza), radar de características con leyenda que oculta personajes, y barras de valor del inventario y de carga sobre el máximo. «Objetos» cuenta pilas, no unidades.
 
-Pendiente: crafteo, despensa, añadir personajes y objetos, y Supabase.
+- Despensa: hambre de cada personaje con su efecto, botón «Comer» con la comida elegida o arrastrando comida sobre la fila del personaje, y la comida de toda la party agrupada en raciones, platos e ingredientes. Comer gasta 1 unidad: primero de lo que lleva quien come, después del alijo y por último de otro personaje. «Reservas» calcula los días de comida y «Pasar un día» resta 25 de saciedad a todos (este botón no está en el diseño).
+
+Pendiente: crafteo, añadir personajes y objetos, y Supabase.
 
 ## Datos
 
-De momento todo vive en el navegador (`localStorage`), empezando por los datos de ejemplo de `src/data/semilla.ts`, que amplían `datos-ejemplo.json` con los objetos del diseño. Para volver a empezar, borra los datos del sitio en el navegador.
+De momento todo vive en el navegador (`localStorage`), empezando por los datos de ejemplo de `src/data/semilla.ts`, que amplían `datos-ejemplo.json` con los objetos del diseño. Para volver a empezar, borra los datos del sitio en el navegador (hace falta para ver los platos de la despensa que se añadieron a los datos de ejemplo).
 
 Toda la lectura y escritura pasa por `src/store/cofre.tsx`, que es lo que habrá que cambiar para usar Supabase. Las reglas están en `src/domain/reglas.ts` como funciones puras.
 

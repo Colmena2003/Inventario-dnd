@@ -6,6 +6,7 @@ import { estadoInicial } from '../data/semilla';
 import {
   alternarSintonia, moverObjeto, validarMovimiento, type Destino, type ResultadoSintonia, type Validacion,
 } from '../domain/reglas';
+import { comer as comerComida, pasarDia as pasarDiaViaje } from '../domain/despensa';
 import { aplicarMonedas, type Cambio, type ResultadoMonedas } from '../domain/monedas';
 import type { Estado } from '../domain/tipos';
 
@@ -39,6 +40,8 @@ interface Cofre {
   mover: (objetoId: string, destino: Destino, cantidad?: number) => Validacion;
   sintonizar: (objetoId: string, sustituir?: string) => SinEstado<ResultadoSintonia>;
   monedas: (cambios: Cambio[], descripcion: string) => SinEstado<ResultadoMonedas>;
+  comer: (personajeId: string, claveComida: string) => { ok: true; texto: string } | { ok: false; motivo: string };
+  pasarDia: () => void;
   cambiarImagen: (personajeId: string, url: string) => void;
   restablecer: () => void;
 }
@@ -90,6 +93,18 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     [estado, actor],
   );
 
+  const comer = useCallback(
+    (personajeId: string, claveComida: string) => {
+      const r = comerComida(estado, personajeId, claveComida);
+      if (!r.ok) return r;
+      setEstado(r.estado);
+      return { ok: true as const, texto: r.texto };
+    },
+    [estado],
+  );
+
+  const pasarDia = useCallback(() => setEstado((e) => pasarDiaViaje(e)), []);
+
   const cambiarImagen = useCallback((personajeId: string, url: string) => {
     setEstado((e) => ({ ...e, personajes: e.personajes.map((p) => (p.id === personajeId ? { ...p, imagenUrl: url } : p)) }));
   }, []);
@@ -97,8 +112,8 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   const restablecer = useCallback(() => setEstado(estadoInicial()), []);
 
   const valor = useMemo(
-    () => ({ estado, actor, setActor, validar, mover, sintonizar, monedas, cambiarImagen, restablecer }),
-    [estado, actor, setActor, validar, mover, sintonizar, monedas, cambiarImagen, restablecer],
+    () => ({ estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, restablecer }),
+    [estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, restablecer],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }

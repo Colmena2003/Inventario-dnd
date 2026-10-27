@@ -7,6 +7,7 @@ import './styles/app.css';
 import './styles/individual.css';
 import './styles/monedas.css';
 import './styles/estadisticas.css';
+import './styles/despensa.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

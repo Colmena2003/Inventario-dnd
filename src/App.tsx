@@ -2,9 +2,11 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import type { Destino } from './domain/reglas';
 import type { Objeto } from './domain/tipos';
 import { useCofre } from './store/cofre';
-import { ArrastreProvider } from './ui/arrastre';
+import { claveComida } from './domain/despensa';
+import { ArrastreProvider, type Objetivo } from './ui/arrastre';
 import { DividirPila, QuienEres, SintoniaProvider } from './ui/Dialogos';
 import { AvisoActual, Grupal, PieGrupal, type Aviso } from './ui/Grupal';
+import { Despensa } from './ui/Despensa';
 import { Estadisticas } from './ui/Estadisticas';
 import { Individual } from './ui/Individual';
 import { PantallaMonedas } from './ui/Monedas';
@@ -26,7 +28,7 @@ function useEscala() {
 }
 
 export default function App() {
-  const { estado, actor, mover } = useCofre();
+  const { estado, actor, mover, comer } = useCofre();
   const escala = useEscala();
   const lienzo = useRef<HTMLDivElement>(null);
   const [pestana, setPestana] = useState<Pestana>('grupal');
@@ -53,7 +55,14 @@ export default function App() {
     setAviso({ id: Date.now(), tipo: error ? 'error' : 'info', texto });
   }, []);
 
-  const soltar = useCallback((objeto: Objeto, destino: Destino, conMayus: boolean) => {
+  const soltar = useCallback((objeto: Objeto, objetivo: Objetivo, conMayus: boolean) => {
+    if (objetivo.clave.startsWith('comer:')) {
+      const r = comer(objetivo.clave.slice(6), claveComida(objeto));
+      setAviso({ id: Date.now(), tipo: r.ok ? 'info' : 'error', texto: r.ok ? r.texto : r.motivo });
+      return;
+    }
+    const destino = objetivo.destino;
+    if (!destino) return;
     const mismoSitio =
       !destino.equipar && !objeto.equipadoEn &&
       JSON.stringify(destino.propietario) === JSON.stringify(objeto.propietario);
@@ -64,7 +73,7 @@ export default function App() {
     }
     const v = mover(objeto.id, destino);
     if (!v.ok) setAviso({ id: Date.now(), tipo: 'error', texto: v.motivo });
-  }, [mover]);
+  }, [mover, comer]);
 
   const titulo = PESTANAS.find((t) => t.id === pestana)?.label ?? '';
 
@@ -103,6 +112,11 @@ export default function App() {
               </>
             ) : pestana === 'estadisticas' ? (
               <Estadisticas />
+            ) : pestana === 'despensa' ? (
+              <>
+                <Despensa busqueda={busqueda} avisar={avisar} />
+                <div className="avisos-flot abajo"><AvisoActual aviso={aviso} /></div>
+              </>
             ) : (
               <section className="pronto">
                 <h2>{titulo}</h2>
