@@ -1,0 +1,155 @@
+// Diálogos: dividir pila (pantalla 3 del diseño) y elegir quién usa la app.
+
+import { useEffect, useState } from 'react';
+import { cargaMaxKg, pesoPersonajeKg, type Destino } from '../domain/reglas';
+import type { Objeto } from '../domain/tipos';
+import { useCofre } from '../store/cofre';
+import { UI } from './iconos';
+import { Esquinas, fmt1, Icono, iniciales, Ranura } from './piezas';
+
+function Separador() {
+  return (
+    <svg viewBox="0 0 330 10" width="300" height="10" aria-hidden="true">
+      <path d="M0 5h150M180 5h150" stroke="#4d3e25" />
+      <path d="M165 1l4 4-4 4-4-4z" fill="#b89a55" />
+    </svg>
+  );
+}
+
+function useEscape(f: () => void) {
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => e.key === 'Escape' && f();
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [f]);
+}
+
+export function DividirPila({ objeto, destino, onCancelar, onMover }: {
+  objeto: Objeto;
+  destino: Destino;
+  onCancelar: () => void;
+  onMover: (cantidad: number) => void;
+}) {
+  const { estado, validar } = useCofre();
+  const max = objeto.cantidad;
+  const [n, setN] = useState(Math.max(1, Math.floor(max / 2)));
+  const fijar = (x: number) => setN(Math.max(1, Math.min(max, x)));
+  useEscape(onCancelar);
+
+  const pj = destino.propietario.tipo === 'personaje' ? estado.personajes.find((p) => p.id === (destino.propietario as { id: string }).id) : undefined;
+  const v = validar(objeto.id, destino, n);
+  const anade = objeto.pesoKg * n;
+  const base = pj ? pesoPersonajeKg(estado, pj) : 0;
+  const cap = pj ? cargaMaxKg(pj.fue) : 0;
+  const origenPj = objeto.propietario.tipo === 'personaje' ? estado.personajes.find((p) => p.id === (objeto.propietario as { id: string }).id) : undefined;
+  const nombreOrigen = origenPj ? origenPj.nombre.split(' ')[0] : 'alijo';
+
+  return (
+    <>
+      <div className="velo" onClick={onCancelar} />
+      <section role="dialog" aria-modal="true" aria-labelledby="dp-t" className="panel dialogo">
+        <Esquinas />
+        <header>
+          <h2 id="dp-t">Dividir pila</h2>
+          <Separador />
+        </header>
+        <div className="dp-par">
+          <div>
+            <Ranura objeto={{ ...objeto, cantidad: max - n }} aria-hidden="true" style={{ cursor: 'default' }} />
+            <div className="info">
+              <span>{objeto.nombre}</span>
+              <span>{objeto.propietario.tipo === 'alijo' ? 'Del ' : 'De '}<b style={{ color: origenPj?.color }}>{nombreOrigen}</b> · quedan {max - n}</span>
+            </div>
+          </div>
+          <svg viewBox="0 0 40 20" width="40" height="20" aria-hidden="true"><path d={UI.flecha} fill="none" stroke="#b89a55" strokeWidth="1.6" /></svg>
+          <div>
+            <div className="info">
+              <span>{pj?.nombre ?? 'Alijo de la party'}</span>
+              <span>recibirá {n}</span>
+            </div>
+            <div className="dp-dest" style={{ '--c': pj?.color ?? '#b89a55' } as React.CSSProperties}>
+              {pj?.imagenUrl ? <img src={pj.imagenUrl} alt="" /> : pj ? iniciales(pj.nombre) : <Icono d={UI.cofre} size={26} />}
+            </div>
+          </div>
+        </div>
+
+        <div className="dp-cant">
+          <label htmlFor="dp-r">¿Cuántas unidades de {objeto.nombre.toLowerCase()} mover?</label>
+          <div>
+            <button type="button" className="step" aria-label="Una menos" onClick={() => fijar(n - 1)}><Icono d={UI.menos} /></button>
+            <output aria-live="polite">{n}</output>
+            <button type="button" className="step" aria-label="Una más" onClick={() => fijar(n + 1)}><Icono d={UI.mas} /></button>
+          </div>
+          <input id="dp-r" type="range" min={1} max={max} value={n} onChange={(e) => fijar(Number(e.target.value))} />
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button type="button" className="chip" onClick={() => fijar(1)}>1</button>
+            <button type="button" className="chip" onClick={() => fijar(Math.floor(max / 2))}>Mitad</button>
+            <button type="button" className="chip" onClick={() => fijar(max)}>Todas</button>
+          </div>
+        </div>
+
+        {pj && (
+          <div className="dp-carga">
+            <div>
+              <span style={{ color: 'var(--texto-2)' }}>Carga de {pj.nombre.split(' ')[0]} tras mover</span>
+              <span>
+                <b>{fmt1(base + anade)}</b> / {cap} kg{' '}
+                <span style={{ color: v.ok ? '#9cc95e' : 'var(--no)' }}>(+{fmt1(anade)} kg)</span>
+              </span>
+            </div>
+            <div className="barra-carga">
+              <div style={{ height: 8, width: `${Math.min(100, (base / cap) * 100)}%`, background: '#c9a65a' }} />
+              <div style={{ position: 'absolute', top: 0, height: 8, left: `${Math.min(100, (base / cap) * 100)}%`, width: `${Math.max(0, Math.min(100 - (base / cap) * 100, (anade / cap) * 100))}%`, background: v.ok ? '#9cc95e' : 'var(--no)', boxShadow: '0 0 8px rgba(156,201,94,.6)' }} />
+              <span className="tic" style={{ left: '33.3%' }} />
+              <span className="tic" style={{ left: '66.6%' }} />
+            </div>
+            {!v.ok && <span style={{ color: '#ffd6d3', fontSize: 14 }}>{v.motivo}</span>}
+          </div>
+        )}
+
+        <div className="acciones">
+          <button type="button" className="btn sec" onClick={onCancelar}>Cancelar</button>
+          <button type="button" className="btn pri" disabled={!v.ok} aria-disabled={!v.ok} onClick={() => onMover(n)}>
+            Mover {n}
+          </button>
+        </div>
+      </section>
+    </>
+  );
+}
+
+/** Sin cuentas: cada jugador dice quién es para firmar sus movimientos en el historial. */
+export function QuienEres({ onCerrar }: { onCerrar: () => void }) {
+  const { estado, actor, setActor } = useCofre();
+  const [libre, setLibre] = useState('');
+  const elegir = (nombre: string) => {
+    if (!nombre.trim()) return;
+    setActor(nombre.trim());
+    onCerrar();
+  };
+  return (
+    <>
+      <div className="velo" />
+      <section role="dialog" aria-modal="true" aria-labelledby="qe-t" className="panel dialogo">
+        <Esquinas />
+        <header>
+          <h2 id="qe-t">¿Quién eres?</h2>
+          <Separador />
+        </header>
+        <p>Tu nombre aparecerá en el historial cuando muevas objetos. No hace falta cuenta.</p>
+        <div className="quien">
+          {estado.personajes.map((p) => (
+            <button key={p.id} type="button" className={`chip ${actor === p.nombre.split(' ')[0] ? 'on' : ''}`} style={{ borderColor: p.color }} onClick={() => elegir(p.nombre.split(' ')[0])}>
+              {p.nombre}
+            </button>
+          ))}
+          <button type="button" className={`chip ${actor === 'DM' ? 'on' : ''}`} onClick={() => elegir('DM')}>Soy el DM</button>
+        </div>
+        <form className="quien-libre" onSubmit={(e) => { e.preventDefault(); elegir(libre); }}>
+          <input aria-label="Otro nombre" placeholder="Otro nombre…" value={libre} onChange={(e) => setLibre(e.target.value)} />
+          <button type="submit" className="btn sec" style={{ height: 40 }}>Entrar</button>
+        </form>
+      </section>
+    </>
+  );
+}
