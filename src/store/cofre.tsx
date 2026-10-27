@@ -4,11 +4,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { estadoInicial } from '../data/semilla';
 import {
-  alternarSintonia, moverObjeto, validarMovimiento, type Destino, type ResultadoSintonia, type Validacion,
+  alternarSintonia, moverObjeto, nuevoId, ordenarInventario, validarMovimiento, type CriterioOrden, type Destino, type ResultadoSintonia, type Validacion,
 } from '../domain/reglas';
+import { crearObjeto as crear, editarObjeto as editar, eliminarObjeto as eliminar, type DatosObjeto } from '../domain/objetos';
 import { comer as comerComida, pasarDia as pasarDiaViaje } from '../domain/despensa';
 import { aplicarMonedas, type Cambio, type ResultadoMonedas } from '../domain/monedas';
-import type { Estado } from '../domain/tipos';
+import type { Estado, Personaje, Propietario } from '../domain/tipos';
 
 type SinEstado<T> = T extends { estado: Estado } ? Omit<T, 'estado'> : T;
 
@@ -43,8 +44,17 @@ interface Cofre {
   comer: (personajeId: string, claveComida: string) => { ok: true; texto: string } | { ok: false; motivo: string };
   pasarDia: () => void;
   cambiarImagen: (personajeId: string, url: string) => void;
+  crearObjeto: (datos: DatosObjeto) => Resultado;
+  editarObjeto: (id: string, datos: DatosObjeto) => Resultado;
+  eliminarObjeto: (id: string) => void;
+  ordenar: (dueno: Propietario, criterio: CriterioOrden) => void;
+  editarPersonaje: (id: string, cambios: Partial<Personaje>) => void;
+  crearPersonaje: (datos: Omit<Personaje, 'id'>) => void;
+  eliminarPersonaje: (id: string) => void;
   restablecer: () => void;
 }
+
+type Resultado = { ok: true } | { ok: false; motivo: string };
 
 const Ctx = createContext<Cofre | null>(null);
 
@@ -109,11 +119,47 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     setEstado((e) => ({ ...e, personajes: e.personajes.map((p) => (p.id === personajeId ? { ...p, imagenUrl: url } : p)) }));
   }, []);
 
+  const crearObjeto = useCallback((datos: DatosObjeto): Resultado => {
+    const r = crear(estado, datos, actor);
+    if (!r.ok) return r;
+    setEstado(r.estado);
+    return { ok: true };
+  }, [estado, actor]);
+
+  const editarObjeto = useCallback((id: string, datos: DatosObjeto): Resultado => {
+    const r = editar(estado, id, datos);
+    if (!r.ok) return r;
+    setEstado(r.estado);
+    return { ok: true };
+  }, [estado]);
+
+  const eliminarObjeto = useCallback((id: string) => setEstado((e) => eliminar(e, id)), []);
+
+  const ordenar = useCallback((dueno: Propietario, criterio: CriterioOrden) => setEstado((e) => ordenarInventario(e, dueno, criterio)), []);
+
+  const editarPersonaje = useCallback((id: string, cambios: Partial<Personaje>) => {
+    setEstado((e) => ({ ...e, personajes: e.personajes.map((p) => (p.id === id ? { ...p, ...cambios, id: p.id } : p)) }));
+  }, []);
+
+  const crearPersonaje = useCallback((datos: Omit<Personaje, 'id'>) => {
+    setEstado((e) => ({ ...e, personajes: [...e.personajes, { ...datos, id: nuevoId('pj') }] }));
+  }, []);
+
+  // Lo que llevaba pasa al alijo, desequipado y sin sintonizar
+  const eliminarPersonaje = useCallback((id: string) => {
+    setEstado((e) => ({
+      ...e,
+      personajes: e.personajes.filter((p) => p.id !== id),
+      objetos: e.objetos.map((o) => (o.propietario.tipo === 'personaje' && o.propietario.id === id
+        ? { ...o, propietario: { tipo: 'alijo' }, equipadoEn: null, sintonizado: false, posicion: undefined } : o)),
+    }));
+  }, []);
+
   const restablecer = useCallback(() => setEstado(estadoInicial()), []);
 
   const valor = useMemo(
-    () => ({ estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, restablecer }),
-    [estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, restablecer],
+    () => ({ estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, restablecer }),
+    [estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, restablecer],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }

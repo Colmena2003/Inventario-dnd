@@ -1,5 +1,6 @@
 // Arrastrar y soltar con eventos de puntero. Los destinos se marcan con data-drop:
 //   "alijo" · "pj:<id>" (inventario) · "pj:<id>:<ranura>:<indice>" (ranura de equipo)
+//   · "alijo#<celda>" y "pj:<id>#<celda>" (una celda concreta del inventario, para ordenarlo a mano)
 //   · "comer:<id>" (fila de la despensa: el personaje se come lo que se suelta; no tiene Destino)
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode, type PointerEvent as RPE } from 'react';
@@ -28,13 +29,23 @@ interface Ctx {
 const C = createContext<Ctx>({ arrastre: null, empezar: () => {} });
 export const useArrastre = () => useContext(C);
 
+/** Clave sin la celda: «pj:aldric#4» → «pj:aldric». */
+export const claveBase = (clave: string) => clave.split('#')[0];
+export const celdaDe = (clave: string | undefined) => {
+  const c = clave?.split('#')[1];
+  return c === undefined ? undefined : Number(c);
+};
+
 export function parsearDestino(clave: string): Destino | null {
-  if (clave === 'alijo') return { propietario: { tipo: 'alijo' } };
-  const [t, id, ranura, indice] = clave.split(':');
+  const base = claveBase(clave);
+  const posicion = celdaDe(clave);
+  if (base === 'alijo') return { propietario: { tipo: 'alijo' }, posicion };
+  const [t, id, ranura, indice] = base.split(':');
   if (t !== 'pj' || !id) return null;
   return {
     propietario: { tipo: 'personaje', id },
     equipar: ranura ? { ranura: ranura as TipoRanura, indice: Number(indice) } : undefined,
+    posicion: ranura ? undefined : posicion,
   };
 }
 

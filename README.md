@@ -31,7 +31,13 @@ Hecho:
 
 - Despensa: hambre de cada personaje con su efecto, botón «Comer» con la comida elegida o arrastrando comida sobre la fila del personaje, y la comida de toda la party agrupada en raciones, platos e ingredientes. Comer gasta 1 unidad: primero de lo que lleva quien come, después del alijo y por último de otro personaje. «Reservas» calcula los días de comida y «Pasar un día» resta 25 de saciedad a todos (este botón no está en el diseño).
 
-Pendiente: crafteo, añadir personajes y objetos, y Supabase.
+- Menú de cada personaje (las tres rayas): ver ficha, editar personaje, añadir objeto, ordenar su inventario y cambiar o quitar la imagen.
+- Añadir, editar y eliminar objetos con el formulario del diseño y vista previa en vivo. Se añaden desde el menú del personaje, el «+» del alijo o «Añadir objeto» en la vista individual; clic derecho sobre un objeto abre Editar, Sintonizar, Dar a… y Eliminar (con confirmación).
+- Orden manual: cada objeto se puede arrastrar a cualquier celda de su inventario (si está ocupada, se intercambian; si es la misma pila, se juntan). Con un filtro de categoría activo se ve la lista compacta y no se recoloca.
+- Orden automático por rareza, tipo, valor, peso o nombre (menú del personaje, «Ordenar» del alijo y de la vista individual). Al ordenar se juntan las pilas iguales.
+- Añadir personaje con el «+» de los retratos (hasta 5) y editar o eliminar personajes; al eliminar uno, lo que llevaba pasa al alijo.
+
+Pendiente: crafteo y Supabase.
 
 ## Datos
 

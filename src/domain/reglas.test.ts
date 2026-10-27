@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { estadoInicial } from '../data/semilla';
+import { crearObjeto, editarObjeto, objetoEnBlanco } from './objetos';
 import {
-  alternarSintonia, ataque, cargaMaxKg, sintonizadosDe, equipadoEn, estadoSaciedad, modificador, moverObjeto, objetosDe, pesoMonedasKg,
+  alternarSintonia, ataque, colocar, ordenarInventario, cargaMaxKg, sintonizadosDe, equipadoEn, estadoSaciedad, modificador, moverObjeto, objetosDe, pesoMonedasKg,
   pesoPersonajeKg, resumenInventario, totalEnPo, tramoCarga, validarMovimiento,
 } from './reglas';
 
@@ -118,5 +119,63 @@ describe('estadísticas', () => {
     expect(Object.values(r.porRareza).reduce((s, n) => s + n, 0)).toBe(propios.length);
     expect(r.valorPo).toBe(propios.reduce((s, o) => s + o.valorPo * o.cantidad, 0));
     expect(r.pesoKg).toBeCloseTo(pesoPersonajeKg(e0, p));
+  });
+});
+
+describe('posiciones y orden del inventario', () => {
+  const dueno = { tipo: 'personaje' as const, id: 'nerys' };
+  const visibles = (e: typeof e0) => colocar(objetosDe(e, dueno).filter((o) => !o.equipadoEn), 0, 1);
+
+  it('mover a una celda libre del propio inventario', () => {
+    const [a] = visibles(e0);
+    const e = moverObjeto(e0, a!.id, { propietario: dueno, posicion: 30 }, 'T');
+    expect(visibles(e)[30]?.id).toBe(a!.id);
+    expect(visibles(e)[0]?.id).not.toBe(a!.id);
+  });
+
+  it('soltar sobre otro objeto del mismo inventario intercambia los sitios', () => {
+    const [a, b] = visibles(e0);
+    const e = moverObjeto(e0, a!.id, { propietario: dueno, posicion: 1 }, 'T');
+    expect(visibles(e)[0]?.id).toBe(b!.id);
+    expect(visibles(e)[1]?.id).toBe(a!.id);
+    expect(e.objetos.length).toBe(e0.objetos.length);
+  });
+
+  it('ordenar por rareza pone primero lo más raro y no toca el equipo', () => {
+    const e = ordenarInventario(e0, dueno, 'rareza');
+    const orden = ['artefacto', 'legendario', 'muy raro', 'raro', 'poco común', 'común'];
+    const rarezas = visibles(e).filter(Boolean).map((o) => orden.indexOf(o!.rareza));
+    expect(rarezas).toEqual([...rarezas].sort((x, y) => x - y));
+    const equipo = (x: typeof e0) => objetosDe(x, dueno).filter((o) => o.equipadoEn).map((o) => o.id).sort();
+    expect(equipo(e)).toEqual(equipo(e0));
+  });
+
+  it('ordenar junta las pilas iguales sin perder unidades', () => {
+    const base = objetosDe(e0, dueno).find((o) => !o.equipadoEn && !o.sintonizado)!;
+    const e1 = { ...e0, objetos: [...e0.objetos, { ...base, id: 'copia', cantidad: 2 }] };
+    const e = ordenarInventario(e1, dueno, 'nombre');
+    const pilas = objetosDe(e, dueno).filter((o) => o.nombre === base.nombre && !o.equipadoEn);
+    expect(pilas.length).toBe(1);
+    expect(pilas[0].cantidad).toBe(base.cantidad + 2);
+  });
+});
+
+describe('alta y edición de objetos', () => {
+  const datos = objetoEnBlanco({ tipo: 'personaje', id: 'nerys' });
+  it('crea un objeto y rechaza el sobrepeso', () => {
+    const r = crearObjeto(e0, { ...datos, nombre: 'Lámpara' }, 'T');
+    if (!r.ok) throw new Error(r.motivo);
+    expect(r.estado.objetos.find((o) => o.id === r.id)?.nombre).toBe('Lámpara');
+    expect(crearObjeto(e0, { ...datos, nombre: 'Yunque', pesoKg: 500 }, 'T').ok).toBe(false);
+    expect(crearObjeto(e0, { ...datos, nombre: '  ' }, 'T').ok).toBe(false);
+  });
+  it('cambiar de dueño al editar desequipa y quita la sintonización', () => {
+    const o = e0.objetos.find((x) => x.sintonizado && x.equipadoEn)!;
+    const { id: _id, equipadoEn: _eq, posicion: _p, sintonizado: _s, ...d } = o;
+    const r = editarObjeto(e0, o.id, { ...d, propietario: { tipo: 'alijo' } });
+    if (!r.ok) throw new Error(r.motivo);
+    const n = r.estado.objetos.find((x) => x.id === o.id)!;
+    expect(n.equipadoEn).toBeNull();
+    expect(n.sintonizado).toBe(false);
   });
 });

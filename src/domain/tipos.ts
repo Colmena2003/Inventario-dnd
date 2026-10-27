@@ -85,6 +85,9 @@ export interface Objeto {
   saciedad?: number;
   propietario: Propietario;
   equipadoEn: Equipado | null;
+  /** Celda del inventario (orden manual). Sin ella, ocupa el primer hueco libre. */
+  posicion?: number;
+  creadoPor?: string;
 }
 
 export interface Movimiento {

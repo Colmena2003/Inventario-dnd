@@ -5,6 +5,7 @@ import { useCofre } from './store/cofre';
 import { claveComida } from './domain/despensa';
 import { ArrastreProvider, type Objetivo } from './ui/arrastre';
 import { DividirPila, QuienEres, SintoniaProvider } from './ui/Dialogos';
+import { ObjetosProvider } from './ui/EditarObjeto';
 import { AvisoActual, Grupal, PieGrupal, type Aviso } from './ui/Grupal';
 import { Despensa } from './ui/Despensa';
 import { Estadisticas } from './ui/Estadisticas';
@@ -64,7 +65,7 @@ export default function App() {
     const destino = objetivo.destino;
     if (!destino) return;
     const mismoSitio =
-      !destino.equipar && !objeto.equipadoEn &&
+      !destino.equipar && !objeto.equipadoEn && destino.posicion === undefined &&
       JSON.stringify(destino.propietario) === JSON.stringify(objeto.propietario);
     if (mismoSitio) return;
     if (conMayus && objeto.cantidad > 1) {
@@ -92,12 +93,13 @@ export default function App() {
 
           <TooltipProvider lienzo={lienzo} escala={escala}>
             <Topbar activa={pestana} onPestana={setPestana} busqueda={busqueda} onBusqueda={setBusqueda} />
-            <Retratos activo={activo} onActivo={(id) => { setActivo(id); setPestana('individual'); }} />
 
             <SintoniaProvider onAviso={avisar}>
+            <ObjetosProvider lienzo={lienzo} escala={escala} onAviso={avisar}>
+            <Retratos activo={activo} onActivo={(id) => { setActivo(id); setPestana('individual'); }} />
             {pestana === 'grupal' ? (
               <>
-                <Grupal busqueda={busqueda} />
+                <Grupal busqueda={busqueda} onFicha={(id) => { setActivo(id); setPestana('individual'); }} />
                 <PieGrupal aviso={aviso} />
               </>
             ) : pestana === 'individual' ? (
@@ -124,6 +126,7 @@ export default function App() {
                 <button type="button" className="btn sec" onClick={() => setPestana('grupal')}>Volver al inventario grupal</button>
               </section>
             )}
+            </ObjetosProvider>
             </SintoniaProvider>
 
             {dividir && (

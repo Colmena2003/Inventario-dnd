@@ -54,6 +54,12 @@ export const UI = {
   check: 'M5 12.5l4.5 4.5L19 7',
   cruz: 'M6 6l12 12M18 6L6 18',
   flecha: 'M2 10h34M28 3l8 7-8 7',
+  lapiz: 'M4 20l4-1 11-11-3-3L5 16zM14 7l3 3',
+  persona: 'M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5',
+  papelera: 'M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13M10.5 11v5M13.5 11v5',
+  subir: 'M12 16V4M7 9l5-5 5 5M5 20h14',
+  ordenar: 'M7 4v16M4 17l3 3 3-3M14 6h6M14 11h4M14 16h2',
+  imagen: 'M4 5h16v14H4zM4 16l5-5 4 4 2-2 5 5M15 9.5a1.5 1.5 0 1 0 0 .1',
 };
 
 export const ESQUINA = 'M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5';

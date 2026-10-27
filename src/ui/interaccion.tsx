@@ -6,12 +6,14 @@ import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
 import type { ClaveIcono } from './iconos';
 import { Ranura } from './piezas';
+import { useObjetos } from './EditarObjeto';
 import { useTooltip } from './Tooltip';
 
 /** Arrastre, tooltip, doble clic y atenuado por búsqueda para las ranuras con objeto. */
 export function useInteraccion(busqueda: string, onDoble?: (o: Objeto) => void) {
   const { arrastre, empezar } = useArrastre();
   const { mostrar, ocultar } = useTooltip();
+  const { menu } = useObjetos();
   const q = busqueda.trim().toLocaleLowerCase('es');
   return {
     arrastre,
@@ -20,6 +22,7 @@ export function useInteraccion(busqueda: string, onDoble?: (o: Objeto) => void) 
       onPointerEnter: (e: React.PointerEvent) => { if (!arrastre) mostrar(o, e.currentTarget); },
       onPointerLeave: ocultar,
       onDoubleClick: onDoble ? () => onDoble(o) : undefined,
+      onContextMenu: (e: React.MouseEvent) => { ocultar(); menu(e, o); },
     }),
     clase: (o: Objeto) => {
       if (arrastre?.objeto.id === o.id) return 'origin';
