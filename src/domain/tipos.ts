@@ -50,6 +50,8 @@ export interface Personaje {
   resistencias: string[];
   rasgos?: Rasgo[];
   imagenUrl?: string;
+  /** Encuadre de la imagen en su hueco, en % (object-position). Por defecto, centrada y un poco por arriba. */
+  imagenEncuadre?: { x: number; y: number };
   monedas: Monedas;
   saciedad: number;
   color: string;

@@ -11,7 +11,7 @@ import { useArrastre } from './arrastre';
 import { useSintonia } from './Dialogos';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
 import { Esquinas, fmt1, fmtNum, Icono, Orla, Ranura } from './piezas';
-import { celdas, DCHA, IZQ, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { celdas, DCHA, IZQ, ImagenPersonaje, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 
 // ── Pantalla ───────────────────────────────────────────────────────
 
@@ -103,7 +103,7 @@ function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number;
 
       <div className="figura">
         {p.imagenUrl ? (
-          <img className="retrato-img" src={p.imagenUrl} alt={`Imagen de ${p.nombre}`} />
+          <ImagenPersonaje p={p} className="retrato-img" />
         ) : (
           <Silueta tinte={p.color} id={`col${indice}`} arma={silueta} />
         )}

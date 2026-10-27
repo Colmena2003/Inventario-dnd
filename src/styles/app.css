@@ -100,7 +100,7 @@
 
 .figura { position: relative; height: 392px; margin-top: 4px; }
 .figura > svg, .figura > .retrato-img { position: absolute; left: 50%; top: 0; width: 200px; height: 392px; transform: translateX(-50%); }
-.retrato-img { object-fit: cover; object-position: center 20%; -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent); mask-image: linear-gradient(180deg, #000 70%, transparent); }
+.retrato-img { object-fit: cover; -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent); mask-image: linear-gradient(180deg, #000 70%, transparent); }
 .figura .camara { position: absolute; right: 60px; top: 2px; z-index: 1; }
 .eq-izq, .eq-dcha { position: absolute; top: 8px; display: flex; flex-direction: column; gap: 8px; z-index: 1; }
 .eq-izq { left: 6px; }
@@ -228,3 +228,7 @@
 .pronto { position: absolute; left: 124px; right: 24px; top: 90px; height: 936px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
 .pronto h2 { margin: 0; font: 600 28px var(--f-titulo); letter-spacing: .05em; color: #eedcb0; }
 .pronto p { margin: 0; font: 16px var(--f-datos); color: var(--texto-2); }
+
+/* Imagen de personaje que se encuadra arrastrando */
+.encuadrable { cursor: grab; touch-action: none; user-select: none; }
+.encuadrable.moviendo { cursor: grabbing; }

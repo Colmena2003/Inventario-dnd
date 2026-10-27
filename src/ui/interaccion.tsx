@@ -1,5 +1,6 @@
 // Piezas que comparten la vista grupal y la individual: interacción de ranuras, ranuras de equipo y silueta.
 
+import { useRef, useState } from 'react';
 import { equipadoEn } from '../domain/reglas';
 import type { Objeto, Personaje, TipoRanura } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
@@ -100,6 +101,57 @@ export function Silueta({ tinte, id, arma, className, aura = true }: { tinte: st
         fill={`url(#fg-${id})`} stroke={tinte} strokeOpacity=".6" strokeWidth="1"
       />
     </svg>
+  );
+}
+
+const ENCUADRE_INICIAL = { x: 50, y: 20 };
+const limitar = (n: number) => Math.min(100, Math.max(0, n));
+
+/**
+ * Imagen del personaje: rellena su hueco (object-fit: cover) y se puede arrastrar para elegir
+ * qué parte se ve. El encuadre se guarda en el personaje al soltar.
+ */
+export function ImagenPersonaje({ p, className }: { p: Personaje; className: string }) {
+  const { encuadrarImagen } = useCofre();
+  const ref = useRef<HTMLImageElement>(null);
+  const [vivo, setVivo] = useState<{ x: number; y: number } | null>(null);
+  const pos = vivo ?? p.imagenEncuadre ?? ENCUADRE_INICIAL;
+
+  const empezar = (e: React.PointerEvent<HTMLImageElement>) => {
+    const img = ref.current;
+    if (e.button !== 0 || !img?.naturalWidth) return;
+    e.preventDefault();
+    e.stopPropagation();
+    // Lo que sobra de la imagen a cada lado, en píxeles de pantalla (el lienzo puede estar escalado)
+    const caja = img.getBoundingClientRect();
+    const k = Math.max(caja.width / img.naturalWidth, caja.height / img.naturalHeight);
+    const sobraX = img.naturalWidth * k - caja.width;
+    const sobraY = img.naturalHeight * k - caja.height;
+    const x0 = e.clientX, y0 = e.clientY, ini = pos;
+    let ultimo = ini;
+    const mover = (ev: PointerEvent) => {
+      ultimo = {
+        x: sobraX > 0.5 ? limitar(ini.x - ((ev.clientX - x0) / sobraX) * 100) : ini.x,
+        y: sobraY > 0.5 ? limitar(ini.y - ((ev.clientY - y0) / sobraY) * 100) : ini.y,
+      };
+      setVivo(ultimo);
+    };
+    const fin = () => {
+      window.removeEventListener('pointermove', mover);
+      window.removeEventListener('pointerup', fin);
+      setVivo(null);
+      if (ultimo !== ini) encuadrarImagen(p.id, { x: Math.round(ultimo.x), y: Math.round(ultimo.y) });
+    };
+    window.addEventListener('pointermove', mover);
+    window.addEventListener('pointerup', fin);
+  };
+
+  return (
+    <img
+      ref={ref} className={`${className} encuadrable ${vivo ? 'moviendo' : ''}`} src={p.imagenUrl} alt={`Imagen de ${p.nombre}`}
+      title="Arrastra para encuadrar la imagen" draggable={false} onPointerDown={empezar}
+      style={{ objectPosition: `${pos.x}% ${pos.y}%` }}
+    />
   );
 }
 

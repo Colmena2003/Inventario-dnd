@@ -9,7 +9,7 @@ import type { Categoria, Caracteristica, IconoRasgo, Objeto, Personaje, Rareza }
 import { useCofre } from '../store/cofre';
 import { useSintonia } from './Dialogos';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
-import { celdas, DCHA, IZQ, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { celdas, DCHA, IZQ, ImagenPersonaje, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { Esquinas, fmtNum, Icono, Moneda, MONEDAS, Ranura } from './piezas';
 
 export function Individual({ personajeId, busqueda }: { personajeId: string | null; busqueda: string }) {
@@ -147,7 +147,7 @@ function Equipo({ p, busqueda }: { p: Personaje; busqueda: string }) {
     <section className="equipo" aria-label="Equipo" style={{ '--tinte': p.color } as CSSProperties}>
       <div className="equipo-aura" aria-hidden="true" />
       {p.imagenUrl ? (
-        <img className="equipo-img" src={p.imagenUrl} alt={`Imagen de ${p.nombre}`} />
+        <ImagenPersonaje p={p} className="equipo-img" />
       ) : (
         <Silueta className="equipo-fig" tinte={p.color} id={`ind-${p.id}`} arma={silueta} aura={false} />
       )}
