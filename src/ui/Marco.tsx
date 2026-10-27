@@ -76,7 +76,7 @@ export function Retratos({ activo, onActivo }: { activo: string | null; onActivo
   const peso = estado.personajes.reduce((s, p) => s + pesoPersonajeKg(estado, p), 0);
   // Soltar un objeto sobre un retrato se lo da a ese personaje
   const marca = (id: string) => {
-    if (arrastre?.objetivo?.clave !== `pj:${id}` || !arrastre.celda?.closest('.retratos')) return '';
+    if (arrastre?.objetivo?.clave !== `pj:${id}` || !arrastre.zona?.closest('.retratos')) return '';
     return validar(arrastre.objeto.id, { propietario: { tipo: 'personaje', id } }).ok ? 'drop-ok' : 'drop-no';
   };
   const max = estado.personajes.reduce((s, p) => s + cargaMaxKg(p.fue), 0);

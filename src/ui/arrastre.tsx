@@ -1,7 +1,7 @@
 // Arrastrar y soltar con eventos de puntero. Los destinos se marcan con data-drop:
 //   "alijo" · "pj:<id>" (inventario) · "pj:<id>:<ranura>:<indice>" (ranura de equipo)
 
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode, type PointerEvent as RPE } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode, type PointerEvent as RPE } from 'react';
 import { createPortal } from 'react-dom';
 import type { Destino } from '../domain/reglas';
 import type { Objeto, TipoRanura } from '../domain/tipos';
@@ -11,12 +11,10 @@ export type Objetivo = { clave: string; destino: Destino };
 
 export interface Arrastre {
   objeto: Objeto;
-  x: number;
-  y: number;
   shift: boolean;
   objetivo: Objetivo | null;
-  /** Elemento bajo el puntero */
-  celda: Element | null;
+  /** Zona data-drop bajo el puntero */
+  zona: Element | null;
 }
 
 interface Ctx {
@@ -37,12 +35,11 @@ export function parsearDestino(clave: string): Destino | null {
   };
 }
 
-function objetivoEn(x: number, y: number): { objetivo: Objetivo | null; celda: Element | null } {
-  const el = document.elementFromPoint(x, y);
-  const zona = el?.closest('[data-drop]');
+function objetivoEn(x: number, y: number): { objetivo: Objetivo | null; zona: Element | null } {
+  const zona = document.elementFromPoint(x, y)?.closest('[data-drop]') ?? null;
   const clave = zona?.getAttribute('data-drop');
   const destino = clave ? parsearDestino(clave) : null;
-  return { objetivo: clave && destino ? { clave, destino } : null, celda: el };
+  return { objetivo: clave && destino ? { clave, destino } : null, zona };
 }
 
 export function ArrastreProvider({ escala, onSoltar, children }: {
@@ -54,6 +51,17 @@ export function ArrastreProvider({ escala, onSoltar, children }: {
   const ref = useRef<Arrastre | null>(null);
   const soltarRef = useRef(onSoltar);
   soltarRef.current = onSoltar;
+  // La posición no pasa por el estado: re-renderizar la app en cada pointermove la ralentiza.
+  const pos = useRef({ x: 0, y: 0 });
+  const fantasma = useRef<HTMLDivElement>(null);
+  const lado = 44 * escala;
+  const ladoRef = useRef(lado);
+  ladoRef.current = lado;
+
+  const colocar = () => {
+    const el = fantasma.current;
+    if (el) el.style.transform = `translate3d(${pos.current.x - ladoRef.current / 2}px, ${pos.current.y - ladoRef.current / 2}px, 0)`;
+  };
 
   const fijar = (a: Arrastre | null) => {
     ref.current = a;
@@ -64,14 +72,29 @@ export function ArrastreProvider({ escala, onSoltar, children }: {
     if (e.button !== 0) return;
     const x0 = e.clientX, y0 = e.clientY;
     let activo = false;
+    let marco = 0;
 
+    const actualizar = (x: number, y: number, shift: boolean) => {
+      marco = 0;
+      pos.current = { x, y };
+      colocar();
+      // Solo se re-renderiza cuando cambia algo que se ve: la zona de destino o Mayús
+      const { objetivo, zona } = objetivoEn(x, y);
+      const a = ref.current;
+      if (!a || a.zona !== zona || a.objetivo?.clave !== objetivo?.clave || a.shift !== shift) {
+        fijar({ objeto, shift, objetivo, zona });
+      }
+    };
     const mover = (ev: PointerEvent) => {
       if (!activo && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 5) return;
       activo = true;
-      fijar({ objeto, x: ev.clientX, y: ev.clientY, shift: ev.shiftKey, ...objetivoEn(ev.clientX, ev.clientY) });
+      const { clientX: x, clientY: y, shiftKey } = ev;
+      if (marco) cancelAnimationFrame(marco);
+      marco = requestAnimationFrame(() => actualizar(x, y, shiftKey));
     };
     const fin = (ev: PointerEvent) => {
       limpiar();
+      if (activo) actualizar(ev.clientX, ev.clientY, ev.shiftKey);
       const a = ref.current;
       fijar(null);
       if (activo && a?.objetivo) soltarRef.current(a.objeto, a.objetivo.destino, ev.shiftKey);
@@ -85,6 +108,8 @@ export function ArrastreProvider({ escala, onSoltar, children }: {
       }
     };
     const limpiar = () => {
+      if (marco) cancelAnimationFrame(marco);
+      marco = 0;
       window.removeEventListener('pointermove', mover);
       window.removeEventListener('pointerup', fin);
       window.removeEventListener('keydown', tecla);
@@ -96,22 +121,20 @@ export function ArrastreProvider({ escala, onSoltar, children }: {
     window.addEventListener('keyup', tecla);
   }, []);
 
+  const arrastrando = arrastre !== null;
   useEffect(() => {
-    document.body.style.cursor = arrastre ? 'grabbing' : '';
-  }, [arrastre]);
+    document.body.style.cursor = arrastrando ? 'grabbing' : '';
+  }, [arrastrando]);
+  useLayoutEffect(colocar, [arrastrando, lado]);
 
-  const lado = 44 * escala;
   return (
     <C.Provider value={{ arrastre, empezar }}>
       {children}
       {arrastre &&
         createPortal(
-          <Ranura
-            objeto={arrastre.objeto}
-            extra="dragging"
-            aria-hidden="true"
-            style={{ left: arrastre.x - lado / 2, top: arrastre.y - lado / 2, width: lado, height: lado }}
-          />,
+          <div ref={fantasma} className="arrastre-fantasma">
+            <Ranura objeto={arrastre.objeto} extra="dragging" aria-hidden="true" style={{ width: lado, height: lado }} />
+          </div>,
           document.body,
         )}
     </C.Provider>
