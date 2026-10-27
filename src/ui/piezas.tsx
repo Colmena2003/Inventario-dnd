@@ -74,9 +74,10 @@ export const MONEDAS: { k: keyof Monedas; t: string; bg: string; fg: string }[] 
   { k: 'pc', t: 'PC', bg: '#b06d43', fg: '#24120a' },
 ];
 
-export function Moneda({ t, bg, fg }: { t: string; bg: string; fg: string }) {
+export function Moneda({ t, bg, fg, tam }: { t: string; bg: string; fg: string; tam?: number }) {
+  const grande = tam ? { width: tam, height: tam, fontSize: tam > 30 ? 11 : 9, boxShadow: 'inset 0 0 0 2px rgba(0,0,0,.3), 0 0 0 1px #000' } : {};
   return (
-    <span className="moneda" style={{ color: fg, background: `radial-gradient(circle at 35% 30%, #fff8 0, transparent 45%), ${bg}` }}>
+    <span className="moneda" style={{ color: fg, background: `radial-gradient(circle at 35% 30%, #fff8 0, transparent 45%), ${bg}`, ...grande }}>
       {t}
     </span>
   );

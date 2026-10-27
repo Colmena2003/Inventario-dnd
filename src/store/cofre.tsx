@@ -6,6 +6,7 @@ import { estadoInicial } from '../data/semilla';
 import {
   alternarSintonia, moverObjeto, validarMovimiento, type Destino, type ResultadoSintonia, type Validacion,
 } from '../domain/reglas';
+import { aplicarMonedas, type Cambio, type ResultadoMonedas } from '../domain/monedas';
 import type { Estado } from '../domain/tipos';
 
 type SinEstado<T> = T extends { estado: Estado } ? Omit<T, 'estado'> : T;
@@ -37,6 +38,7 @@ interface Cofre {
   validar: (objetoId: string, destino: Destino, cantidad?: number) => Validacion;
   mover: (objetoId: string, destino: Destino, cantidad?: number) => Validacion;
   sintonizar: (objetoId: string, sustituir?: string) => SinEstado<ResultadoSintonia>;
+  monedas: (cambios: Cambio[], descripcion: string) => SinEstado<ResultadoMonedas>;
   cambiarImagen: (personajeId: string, url: string) => void;
   restablecer: () => void;
 }
@@ -78,6 +80,16 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     [estado],
   );
 
+  const monedas = useCallback(
+    (cambios: Cambio[], descripcion: string): SinEstado<ResultadoMonedas> => {
+      const r = aplicarMonedas(estado, cambios, actor || 'Alguien', descripcion);
+      if (!r.ok) return r;
+      setEstado(r.estado);
+      return { ok: true };
+    },
+    [estado, actor],
+  );
+
   const cambiarImagen = useCallback((personajeId: string, url: string) => {
     setEstado((e) => ({ ...e, personajes: e.personajes.map((p) => (p.id === personajeId ? { ...p, imagenUrl: url } : p)) }));
   }, []);
@@ -85,8 +97,8 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   const restablecer = useCallback(() => setEstado(estadoInicial()), []);
 
   const valor = useMemo(
-    () => ({ estado, actor, setActor, validar, mover, sintonizar, cambiarImagen, restablecer }),
-    [estado, actor, setActor, validar, mover, sintonizar, cambiarImagen, restablecer],
+    () => ({ estado, actor, setActor, validar, mover, sintonizar, monedas, cambiarImagen, restablecer }),
+    [estado, actor, setActor, validar, mover, sintonizar, monedas, cambiarImagen, restablecer],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }

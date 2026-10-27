@@ -25,7 +25,9 @@ Hecho:
 - Sintonizar: doble clic en un objeto que lo requiere (también en los rombos de sintonización para quitarla). Con 3 ya sintonizados pide cuál sustituir.
 - Soltar un objeto sobre un retrato se lo da a ese personaje.
 
-Pendiente: estadísticas, crafteo, despensa, monedas, añadir personajes y objetos, y Supabase.
+- Monedas (se abre pulsando el tesoro de la barra superior): tesoro común con ingresar y retirar (Mayús = de 10 en 10), cambio exacto de monedas, historial, monedas por personaje con ingresos y retiradas (desde o hacia el tesoro, o monedas nuevas/gastadas), repartir botín moneda a moneda o convertido a la moneda más alta, y carga de cada personaje y de la party. Un reparto que deje a alguien con sobrepeso se bloquea.
+
+Pendiente: estadísticas, crafteo, despensa, añadir personajes y objetos, y Supabase.
 
 ## Datos
 

@@ -6,7 +6,8 @@ import { useArrastre } from './arrastre';
 import { UI } from './iconos';
 import { fmt1, fmtNum, iniciales, Icono, Moneda, MONEDAS } from './piezas';
 
-export type Pestana = 'grupal' | 'individual' | 'estadisticas' | 'crafteo' | 'despensa';
+/** Pestañas de la barra, más «monedas», a la que se llega pulsando el tesoro. */
+export type Pestana = 'grupal' | 'individual' | 'estadisticas' | 'crafteo' | 'despensa' | 'monedas';
 
 export const PESTANAS: { id: Pestana; label: string; d: string }[] = [
   { id: 'grupal', label: 'Inventario grupal', d: 'M3 11h18v9H3zM3 11a9 6 0 0 1 18 0M10.5 13h3v3.5h-3z' },
@@ -45,12 +46,12 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda }: {
         ))}
       </nav>
       <div className="top-dcha">
-        <div className="tesoro" aria-label="Tesoro común de la party">
+        <button type="button" className="tesoro" aria-label="Tesoro común de la party" aria-current={activa === 'monedas' ? 'page' : undefined} onClick={() => onPestana('monedas')}>
           <span>Tesoro</span>
           {MONEDAS.map((m) => (
             <span key={m.k} className="moneda-v"><Moneda {...m} />{fmtNum(estado.party.tesoro[m.k])}</span>
           ))}
-        </div>
+        </button>
         <label className="buscar">
           <span className="sr-only">Buscar objetos</span>
           <Icono d={UI.lupa} />

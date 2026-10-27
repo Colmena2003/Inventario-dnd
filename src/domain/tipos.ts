@@ -105,4 +105,5 @@ export interface Estado {
   personajes: Personaje[];
   objetos: Objeto[];
   movimientos: Movimiento[];
+  registroMonedas?: { id: string; fecha: number; actor: string; texto: string }[];
 }

@@ -6,6 +6,7 @@ import { ArrastreProvider } from './ui/arrastre';
 import { DividirPila, QuienEres, SintoniaProvider } from './ui/Dialogos';
 import { AvisoActual, Grupal, PieGrupal, type Aviso } from './ui/Grupal';
 import { Individual } from './ui/Individual';
+import { PantallaMonedas } from './ui/Monedas';
 import { PESTANAS, Retratos, Topbar, type Pestana } from './ui/Marco';
 import { TooltipProvider } from './ui/Tooltip';
 
@@ -64,7 +65,7 @@ export default function App() {
     if (!v.ok) setAviso({ id: Date.now(), tipo: 'error', texto: v.motivo });
   }, [mover]);
 
-  const titulo = PESTANAS.find((t) => t.id === pestana)!.label;
+  const titulo = PESTANAS.find((t) => t.id === pestana)?.label ?? '';
 
   return (
     <div className="visor">
@@ -93,6 +94,11 @@ export default function App() {
               <>
                 <Individual personajeId={activo} busqueda={busqueda} />
                 <div className="avisos-flot"><AvisoActual aviso={aviso} /></div>
+              </>
+            ) : pestana === 'monedas' ? (
+              <>
+                <PantallaMonedas avisar={avisar} />
+                <div className="avisos-flot abajo"><AvisoActual aviso={aviso} /></div>
               </>
             ) : (
               <section className="pronto">

@@ -86,7 +86,7 @@ function Ficha({ p }: { p: Personaje }) {
       </div>
 
       <div className="ficha-bloque">
-        <h3 className="sec">Condiciones</h3>
+        <h3 className="titulo-sec">Condiciones</h3>
         <div className="etiquetas">
           {p.condiciones.length === 0 && <span className="vacio">Ninguna</span>}
           {p.condiciones.map((c) => {
@@ -100,14 +100,14 @@ function Ficha({ p }: { p: Personaje }) {
         </div>
       </div>
       <div className="ficha-bloque">
-        <h3 className="sec">Resistencias</h3>
+        <h3 className="titulo-sec">Resistencias</h3>
         <div className="etiquetas">
           {p.resistencias.length === 0 && <span className="vacio">Ninguna</span>}
           {p.resistencias.map((r) => <span key={r} className="cond">{r}</span>)}
         </div>
       </div>
       <div className="ficha-bloque">
-        <h3 className="sec">Rasgos destacados</h3>
+        <h3 className="titulo-sec">Rasgos destacados</h3>
         <ul className="rasgos">
           {(p.rasgos ?? []).map((r) => {
             const ic = ICONO_RASGO[r.icono ?? 'estrella'];

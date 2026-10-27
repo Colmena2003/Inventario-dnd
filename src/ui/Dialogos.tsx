@@ -16,7 +16,7 @@ function Separador() {
   );
 }
 
-function useEscape(f: () => void) {
+export function useEscape(f: () => void) {
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === 'Escape' && f();
     window.addEventListener('keydown', k);
