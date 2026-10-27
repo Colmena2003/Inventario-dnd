@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Monedas y carga</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+body{margin:0;background:#060504}
+.panel{position:relative;box-sizing:border-box;background:linear-gradient(180deg,#16120e 0%,#0f0c0a 55%,#0c0a08 100%);border:1px solid #5e4c2c;box-shadow:inset 0 0 0 3px #0b0907,inset 0 0 0 4px #33291a,0 14px 40px rgba(0,0,0,.7)}
+.cn{position:absolute;width:30px;height:30px;fill:none;stroke:#b89a55;stroke-width:1.2;pointer-events:none}
+.cn.tl{left:-3px;top:-3px}.cn.tr{right:-3px;top:-3px;transform:scaleX(-1)}.cn.bl{left:-3px;bottom:-3px;transform:scaleY(-1)}.cn.br{right:-3px;bottom:-3px;transform:scale(-1,-1)}
+.h{margin:0;font-family:'Cinzel',serif;font-weight:600;letter-spacing:.05em;color:#eedcb0}
+.k{font:600 12px 'Alegreya Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#a99d86}
+.s{font-family:'Alegreya Sans',sans-serif;color:#b9ab90}
+.mini{width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #4d3e25;border-radius:50%;background:#0d0b09;color:#c9b88f;cursor:pointer}
+.mini svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.mini:hover{border-color:#e2c27a;color:#f1dfb0}
+.btn{height:44px;padding:0 22px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:22px;font:600 14px 'Cinzel',serif;letter-spacing:.05em;cursor:pointer}
+.btn.pri{color:#1a1206;background:linear-gradient(180deg,#f0d38a,#c49a45);border:1px solid #f6e2a8}
+.btn.sec{color:#d8ccb3;background:#0f0c0a;border:1px solid #5e4c2c}
+.inp{width:100%;height:40px;box-sizing:border-box;padding:0 10px;border:1px solid #4d3e25;border-radius:3px;background:#0b0907;color:#ece4d2;font:600 16px 'Alegreya Sans',sans-serif;text-align:right;outline:none}
+.pick{display:flex;align-items:center;gap:10px;height:48px;padding:0 12px;border:1px solid #3e321f;background:#0e0b09;cursor:pointer;font:500 15px 'Alegreya Sans',sans-serif;color:#d8ccb3}
+.pick.on{border-color:#b89a55;background:#1a150e;color:#f3e6c6}
+th{font:600 12px 'Alegreya Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#a99d86;text-align:right;padding:0 10px 10px}
+td{padding:12px 10px;border-top:1px solid #2c2419;text-align:right;font:500 17px 'Alegreya Sans',sans-serif;color:#ece4d2}
+</style>
+</helmet>
+<div style="position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: 'Alegreya', Georgia, serif; color: #e8dfcc; background: radial-gradient(ellipse 75% 70% at 55% 45%, #1b1611 0%, #0d0b09 58%, #050404 100%)">
+  <div style="position: absolute; left: 0; top: 0"><dc-import name="Topbar" active="ninguna" hint-size="1920px,72px"></dc-import></div>
+  <div style="position: absolute; left: 0; top: 72px"><dc-import name="Retratos" active="-1" hint-size="104px,1008px"></dc-import></div>
+
+  <div style="position: absolute; left: 124px; top: 90px; width: 1772px; height: 970px; display: grid; grid-template-columns: 420px 760px 560px; grid-template-rows: 560px 1fr; gap: 16px">
+
+    <section class="panel" aria-label="Tesoro común" style="padding: 22px 24px; display: flex; flex-direction: column; gap: 14px">
+      <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <header style="display: flex; flex-direction: column; gap: 4px">
+        <h2 class="h" style="font-size: 22px">Tesoro común</h2>
+        <span class="s" style="font-size: 14px">Fondo de la party · equivale a <b style="color: #e8c46c">1.382,0 PO</b></span>
+      </header>
+      <div style="display: flex; flex-direction: column">
+        <sc-for list="{{treasury}}" as="m" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #2c2419">
+            <span style="{{m.style}}">{{m.k}}</span>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 1px">
+              <span style="font: 600 15px 'Cinzel', serif; color: #e3d9c4">{{m.t}}</span>
+              <span class="s" style="font-size: 12px; color: #8f846f">{{m.eq}}</span>
+            </div>
+            <span style="font: 700 22px 'Alegreya Sans', sans-serif; color: #f2e6c8; min-width: 70px; text-align: right">{{m.v}}</span>
+            <button type="button" class="mini" aria-label="Retirar {{m.t}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+            <button type="button" class="mini" aria-label="Ingresar {{m.t}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top: auto; display: flex; gap: 10px">
+        <button type="button" class="btn sec" style="flex: 1; padding: 0 12px; white-space: nowrap">Cambiar monedas</button>
+        <button type="button" class="btn sec" style="flex: 1">Historial</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Monedas por personaje" style="padding: 22px 24px; display: flex; flex-direction: column; gap: 14px">
+      <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <h2 class="h" style="font-size: 22px">Monedas por personaje</h2>
+      <table style="width: 100%; border-collapse: collapse">
+        <thead><tr><th style="text-align: left; padding-left: 0">Personaje</th><th>PPT</th><th>PO</th><th>PE</th><th>PP</th><th>PC</th><th>Total PO</th><th style="width: 76px"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Acciones</span></th></tr></thead>
+        <tbody>
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+            <tr>
+              <td style="text-align: left; padding-left: 0"><span style="display: flex; align-items: center; gap: 10px"><span style="width: 34px; height: 38px; border: 1px solid {{r.tint}}; background: linear-gradient(180deg, {{r.tint}}88, #0b0907); display: flex; align-items: center; justify-content: center; font: 700 11px 'Cinzel', serif; color: #e9d6a8">{{r.ini}}</span><span style="font-family: 'Cinzel', serif; font-size: 16px">{{r.name}}</span></span></td>
+              <td>{{r.ppt}}</td><td style="color: #e8c46c">{{r.po}}</td><td>{{r.pe}}</td><td>{{r.pp}}</td><td>{{r.pc}}</td>
+              <td style="font-weight: 700; color: #f2e6c8">{{r.total}}</td>
+              <td><span style="display: flex; gap: 6px; justify-content: flex-end"><button type="button" class="mini" aria-label="Retirar de {{r.name}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button><button type="button" class="mini" aria-label="Ingresar a {{r.name}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button></span></td>
+            </tr>
+          </sc-for>
+          <tr>
+            <td style="text-align: left; padding-left: 0; font-family: 'Cinzel', serif; color: #e2c27a">Party + tesoro</td>
+            <td>16</td><td style="color: #e8c46c">2.009</td><td>4</td><td>190</td><td>557</td>
+            <td style="font-weight: 700; color: #e8c46c">2.195,6</td><td></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="s" style="margin: 0 0 0; font-size: 13px; color: #8f846f">1 PPT = 10 PO · 1 PE = ½ PO · 10 PP = 1 PO · 100 PC = 1 PO. Cada 50 monedas pesan 0,45 kg y cuentan para la carga.</p>
+    </section>
+
+    <section class="panel" aria-label="Repartir botín" style="grid-row: span 2; padding: 22px 24px; display: flex; flex-direction: column; gap: 16px; border-color: #8c6a33">
+      <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <svg class="cn bl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <svg class="cn br" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <header style="display: flex; align-items: center; gap: 12px">
+        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" style="fill: none; stroke: #e2c27a; stroke-width: 1.4; stroke-linejoin: round"><path d="M4 8c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 8v4c0 1.7 3.6 3 8 3s8-1.3 8-3V8M4 12v4c0 1.7 3.6 3 8 3s8-1.3 8-3v-4"></path></svg>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h2 class="h" style="font-size: 22px">Repartir botín</h2>
+          <span class="s" style="font-size: 14px">Divide a partes iguales entre quien elijas</span>
+        </div>
+      </header>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span class="k">Botín encontrado</span>
+        <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px">
+          <sc-for list="{{loot}}" as="l" hint-placeholder-count="5">
+            <label style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+              <span style="{{l.style}}">{{l.k}}</span>
+              <input class="inp" value="{{l.v}}" aria-label="{{l.t}} a repartir">
+            </label>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span class="k">Entre</span>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+          <sc-for list="{{who}}" as="w" hint-placeholder-count="4">
+            <button type="button" role="checkbox" aria-checked="{{w.chk}}" class="{{w.cls}}" onClick="{{w.toggle}}">
+              <span style="{{w.box}}"><sc-if value="{{w.on}}" hint-placeholder-val="{{true}}"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill: none; stroke: #1a1206; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></sc-if></span>
+              <span style="width: 10px; height: 10px; border-radius: 50%; background: {{w.tint}}"></span>{{w.name}}
+            </button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; background: rgba(0,0,0,.3); border: 1px solid #2c2419">
+        <span class="k">Cada uno recibe</span>
+        <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap">
+          <span style="font: 700 34px 'Cinzel', serif; color: #e8c46c">{{each.po}} <span style="font-size: 16px">PO</span></span>
+          <span style="font: 600 22px 'Cinzel', serif; color: #d6d8dc">{{each.pp}} <span style="font-size: 14px">PP</span></span>
+          <span style="font: 600 22px 'Cinzel', serif; color: #d79a6d">{{each.pc}} <span style="font-size: 14px">PC</span></span>
+          <span style="font: 600 22px 'Cinzel', serif; color: #d9d27f">{{each.pe}} <span style="font-size: 14px">PE</span></span>
+        </div>
+        <span class="s" style="font-size: 14px">Resto al tesoro común: <b style="color: #ece4d2">{{rest}}</b></span>
+        <span class="s" style="font-size: 13px; color: #8f846f">+{{kg}} kg por persona en monedas</span>
+      </div>
+      <label style="display: flex; align-items: center; gap: 10px; cursor: pointer">
+        <input type="checkbox" style="width: 18px; height: 18px; accent-color: #d9b05a">
+        <span class="s" style="font-size: 15px; color: #d8ccb3">Convertir a la moneda más alta posible</span>
+      </label>
+      <div style="margin-top: auto; display: flex; gap: 10px">
+        <button type="button" class="btn sec" style="flex: 1">Al tesoro común</button>
+        <button type="button" class="btn pri" style="flex: 1.4"><span>Repartir entre {{n}}</span></button>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Carga" style="grid-column: span 2; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px">
+      <svg class="cn bl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <svg class="cn br" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <header style="display: flex; align-items: baseline; gap: 16px">
+        <h2 class="h" style="font-size: 22px; flex: 1">Carga</h2>
+        <span class="s" style="font-size: 15px">Party <b style="color: #ece4d2">156,0 / 339 kg</b> · Alijo <b style="color: #ece4d2">63,4 kg</b> (en el carro)</span>
+      </header>
+      <sc-for list="{{load}}" as="l" hint-placeholder-count="4">
+        <div style="display: grid; grid-template-columns: 180px 1fr 190px; align-items: center; gap: 16px">
+          <span style="display: flex; align-items: center; gap: 10px; font: 600 15px 'Cinzel', serif; color: #e3d9c4"><span style="width: 10px; height: 10px; border-radius: 50%; background: {{l.tint}}"></span>{{l.name}}</span>
+          <div style="position: relative; height: 14px; display: flex; gap: 2px">
+            <div style="flex: 1; background: rgba(201,166,90,.12); border: 1px solid #3e321f"></div>
+            <div style="flex: 1; background: rgba(224,136,58,.1); border: 1px solid #3e2a1a"></div>
+            <div style="flex: 1; background: rgba(224,83,77,.1); border: 1px solid #3e1d1b"></div>
+            <div style="{{l.bar}}"></div>
+          </div>
+          <span style="display: flex; justify-content: space-between; font: 15px 'Alegreya Sans', sans-serif"><span style="color: {{l.c}}">{{l.state}}</span><span style="color: #ece4d2"><b>{{l.w}}</b> / {{l.m}}</span></span>
+        </div>
+      </sc-for>
+      <div style="display: grid; grid-template-columns: 180px 1fr 190px; gap: 16px; padding-top: 10px; border-top: 1px solid #2c2419; align-items: center">
+        <span style="font: 600 15px 'Cinzel', serif; color: #e2c27a">Total party</span>
+        <div style="display: flex; height: 14px; gap: 2px">
+          <div style="width: 11.2%; background: #6f8fb8"></div><div style="width: 4.3%; background: #9a78d0"></div><div style="width: 15.5%; background: #c08e4f"></div><div style="width: 15%; background: #4fa07f"></div>
+          <div style="flex: 1; background: #1a1611; border: 1px solid #3a2f1d"></div>
+        </div>
+        <span style="font: 15px 'Alegreya Sans', sans-serif; color: #ece4d2; text-align: right"><b>156,0</b> / 339 kg · 46 %</span>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { sel: [true, true, true, true] }; }
+  renderVals() {
+    const coin = (bg, fg, s) => 'width:' + s + 'px;height:' + s + 'px;flex:none;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:700 ' + (s > 30 ? 11 : 9) + 'px Alegreya Sans,sans-serif;color:' + fg + ';background:radial-gradient(circle at 35% 30%,#fff8 0,transparent 45%),' + bg + ';box-shadow:inset 0 0 0 2px rgba(0,0,0,.3),0 0 0 1px #000';
+    const C = { PPT: ['#c9d3dc', '#1d252c', 'Platino', '= 10 PO'], PO: ['#d9a83c', '#2b1d05', 'Oro', '= 1 PO'], PE: ['#bcb67a', '#24210c', 'Electro', '= ½ PO'], PP: ['#a9adb3', '#1c1e21', 'Plata', '= 1/10 PO'], PC: ['#b06d43', '#24120a', 'Cobre', '= 1/100 PO'] };
+    const treasury = [['PPT', '12'], ['PO', '1.248'], ['PE', '4'], ['PP', '86'], ['PC', '340']].map((x) => ({ k: x[0], v: x[1], t: C[x[0]][2], eq: C[x[0]][3], style: coin(C[x[0]][0], C[x[0]][1], 38) }));
+    const chars = [
+      { name: 'Aldric Varn', ini: 'AV', tint: '#6f8fb8', ppt: 2, po: 312, pe: 0, pp: 41, pc: 87, w: 38.0, m: 122 },
+      { name: 'Nerys Valtëa', ini: 'NV', tint: '#9a78d0', ppt: 0, po: 148, pe: 0, pp: 23, pc: 50, w: 14.6, m: 54 },
+      { name: 'Brom Hierroforja', ini: 'BH', tint: '#c08e4f', ppt: 2, po: 205, pe: 0, pp: 12, pc: 0, w: 52.4, m: 95 },
+      { name: 'Ysolde Mirra', ini: 'YM', tint: '#4fa07f', ppt: 0, po: 96, pe: 0, pp: 28, pc: 80, w: 51.0, m: 68 }
+    ];
+    const fmt = (n, d) => n.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
+    const rows = chars.map((c) => ({ ...c, total: fmt(c.ppt * 10 + c.po + c.pe / 2 + c.pp / 10 + c.pc / 100, 1) }));
+    const load = chars.map((c) => {
+      const p = c.w / c.m;
+      const st = p > 2 / 3 ? ['Sobrecargado', '#e0534d'] : p > 1 / 3 ? ['Cargado', '#e0883a'] : ['Normal', '#c9a65a'];
+      return { name: c.name, tint: c.tint, w: fmt(c.w, 1), m: c.m + ' kg', state: st[0], c: st[1], bar: 'position:absolute;left:0;top:0;height:14px;width:' + (p * 100).toFixed(1) + '%;background:linear-gradient(90deg,' + st[1] + '88,' + st[1] + ');box-shadow:0 0 10px ' + st[1] + '66' };
+    });
+    const lootV = { PPT: 0, PO: 450, PE: 0, PP: 120, PC: 300 };
+    const loot = ['PPT', 'PO', 'PE', 'PP', 'PC'].map((k) => ({ k, t: C[k][2], v: String(lootV[k]), style: coin(C[k][0], C[k][1], 34) }));
+    const sel = this.state.sel;
+    const n = sel.filter(Boolean).length || 1;
+    const who = chars.map((c, i) => {
+      const on = sel[i];
+      return {
+        name: c.name.split(' ')[0], tint: c.tint, on, chk: on ? 'true' : 'false', cls: on ? 'pick on' : 'pick',
+        box: 'width:20px;height:20px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:3px;' + (on ? 'background:#e2c27a;border:1px solid #f6e2a8' : 'border:1px solid #6b5631'),
+        toggle: () => { const s = sel.slice(); s[i] = !s[i]; if (s.some(Boolean)) this.setState({ sel: s }); }
+      };
+    });
+    const each = { po: Math.floor(lootV.PO / n), pp: Math.floor(lootV.PP / n), pc: Math.floor(lootV.PC / n), pe: Math.floor(lootV.PE / n) };
+    const restParts = [];
+    if (lootV.PO % n) restParts.push(lootV.PO % n + ' PO');
+    if (lootV.PP % n) restParts.push(lootV.PP % n + ' PP');
+    if (lootV.PC % n) restParts.push(lootV.PC % n + ' PC');
+    const coinsEach = each.po + each.pp + each.pc + each.pe;
+    return { treasury, rows, load, loot, who, each, n, rest: restParts.join(' · ') || 'nada', kg: fmt(coinsEach / 50 * 0.45, 1) };
+  }
+}
+</script>
+</body>
+</html>

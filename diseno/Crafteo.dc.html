@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Crafteo y materiales</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+body{margin:0;background:#060504}
+.r-c{--rc:#cfc8ba;--rg:rgba(207,200,186,.16)}
+.r-u{--rc:#5fcf6d;--rg:rgba(95,207,109,.22)}
+.r-r{--rc:#55a3ff;--rg:rgba(85,163,255,.25)}
+.r-m{--rc:#b874ff;--rg:rgba(184,116,255,.28)}
+.slot{position:relative;width:44px;height:44px;flex:none;padding:0;box-sizing:border-box;border:1px solid #2b241b;border-radius:2px;background:radial-gradient(circle at 50% 42%,var(--rg,transparent) 0,transparent 72%),linear-gradient(180deg,#18140f 0%,#0d0b09 100%);box-shadow:inset 0 1px 0 rgba(255,232,180,.05),inset 0 -3px 6px rgba(0,0,0,.65),0 0 0 1px #070605;display:flex;align-items:center;justify-content:center;color:var(--rc,#5d5242);cursor:pointer;transition:box-shadow .16s,transform .16s,border-color .16s}
+.slot.has{border-color:color-mix(in srgb,var(--rc) 62%,#120e0a)}
+.slot.has:hover{border-color:var(--rc);box-shadow:0 0 0 1px var(--rc),0 0 18px var(--rg);transform:translateY(-1px)}
+.slot svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px var(--rg,transparent))}
+.slot.miss{border:1px dashed #ef5a55;color:#ef5a55;background:rgba(60,12,10,.4)}
+.slot.miss svg{opacity:.6}
+.slot.l{width:64px;height:64px}.slot.l svg{width:40px;height:40px}
+.slot.xl{width:96px;height:96px}.slot.xl svg{width:60px;height:60px}
+.qty{position:absolute;right:3px;bottom:1px;font:700 12px/1 'Alegreya Sans',sans-serif;color:#f6eedd;text-shadow:0 0 3px #000,0 0 2px #000}
+.panel{position:relative;box-sizing:border-box;background:linear-gradient(180deg,#16120e 0%,#0f0c0a 55%,#0c0a08 100%);border:1px solid #5e4c2c;box-shadow:inset 0 0 0 3px #0b0907,inset 0 0 0 4px #33291a,0 14px 40px rgba(0,0,0,.7)}
+.cn{position:absolute;width:30px;height:30px;fill:none;stroke:#b89a55;stroke-width:1.2;pointer-events:none}
+.cn.tl{left:-3px;top:-3px}.cn.tr{right:-3px;top:-3px;transform:scaleX(-1)}.cn.bl{left:-3px;bottom:-3px;transform:scaleY(-1)}.cn.br{right:-3px;bottom:-3px;transform:scale(-1,-1)}
+.h{margin:0;font-family:'Cinzel',serif;font-weight:600;letter-spacing:.05em;color:#eedcb0}
+.s{font-family:'Alegreya Sans',sans-serif;color:#b9ab90}
+.sec{display:flex;align-items:center;gap:12px;margin:0;font:600 14px 'Cinzel',serif;letter-spacing:.06em;color:#d8c38f}
+.sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#4d3e25,transparent)}
+.card{display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid #2f271b;background:linear-gradient(180deg,#15110d,#0e0b09);text-align:left;font:inherit;color:inherit;cursor:pointer}
+.card:hover{border-color:#6b5631}
+.card.on{border-color:#e2c27a;box-shadow:0 0 0 1px #e2c27a,0 0 22px rgba(226,194,122,.15)}
+.btn{height:46px;padding:0 26px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:23px;font:600 15px 'Cinzel',serif;letter-spacing:.06em;cursor:pointer}
+.btn.pri{color:#1a1206;background:linear-gradient(180deg,#f0d38a,#c49a45);border:1px solid #f6e2a8;box-shadow:0 0 22px rgba(226,194,122,.3)}
+.btn.off{color:#7d725f;background:#14110d;border:1px solid #3a2f1d;cursor:not-allowed}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div style="position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: 'Alegreya', Georgia, serif; color: #e8dfcc; background: radial-gradient(ellipse 75% 70% at 70% 45%, #1d1712 0%, #0d0b09 58%, #050404 100%)">
+  <div style="position: absolute; left: 0; top: 0"><dc-import name="Topbar" active="crafteo" hint-size="1920px,72px"></dc-import></div>
+  <div style="position: absolute; left: 0; top: 72px"><dc-import name="Retratos" active="1" hint-size="104px,1008px"></dc-import></div>
+
+  <section class="panel" aria-label="Materiales" style="position: absolute; left: 124px; top: 90px; width: 420px; height: 970px; padding: 22px 24px; display: flex; flex-direction: column; gap: 16px">
+    <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn bl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <header style="display: flex; flex-direction: column; gap: 4px">
+      <h2 class="h" style="font-size: 22px">Materiales</h2>
+      <span class="s" style="font-size: 14px">De toda la party y el alijo</span>
+    </header>
+    <sc-for list="{{mats}}" as="g" hint-placeholder-count="4">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h3 class="sec">{{g.t}}</h3>
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px">
+          <sc-for list="{{g.items}}" as="it" hint-placeholder-count="6">
+            <button type="button" class="{{it.cls}}" aria-label="{{it.n}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{it.d}}"></path></svg><span class="qty">{{it.q}}</span></button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+    <p class="s" style="margin: 0; margin-top: auto; font-size: 13px; color: #8f846f">Al craftear se gastan primero los materiales del alijo y después los de quien craftea.</p>
+  </section>
+
+  <section class="panel" aria-label="Libro de recetas" style="position: absolute; left: 560px; top: 90px; width: 760px; height: 970px; padding: 22px 24px; display: flex; flex-direction: column; gap: 16px">
+    <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <header style="display: flex; align-items: center; gap: 12px">
+      <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" style="fill: none; stroke: #e2c27a; stroke-width: 1.4; stroke-linejoin: round"><path d="M5 5.5A1.5 1.5 0 0 1 6.5 4H19v13H6.5A1.5 1.5 0 0 0 5 18.5zM5 18.5A1.5 1.5 0 0 0 6.5 20H19v-3M12 7.5l1.2 2 2.3.3-1.7 1.6.4 2.3-2.2-1.1-2.2 1.1.4-2.3-1.7-1.6 2.3-.3z"></path></svg>
+      <h2 class="h" style="font-size: 22px; flex: 1">Libro de recetas</h2>
+      <span class="s" style="font-size: 14px"><b style="color: #9cc95e">{{ready}}</b> de 6 se pueden craftear</span>
+    </header>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <sc-for list="{{recipes}}" as="r" hint-placeholder-count="6">
+        <button type="button" class="{{r.cls}}" onClick="{{r.pick}}" aria-pressed="{{r.pressed}}">
+          <span style="display: flex; align-items: center; gap: 12px">
+            <span class="{{r.slot}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{r.d}}"></path></svg><span class="qty">{{r.out}}</span></span>
+            <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+              <span style="font: 600 16px 'Cinzel', serif; color: {{r.nc}}">{{r.n}}</span>
+              <span class="s" style="font-size: 13px">{{r.rar}} · {{r.time}}</span>
+            </span>
+            <span style="{{r.badge}}">{{r.status}}</span>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 5px">
+            <sc-for list="{{r.ing}}" as="i" hint-placeholder-count="3">
+              <span style="display: flex; align-items: center; gap: 8px; font: 14px 'Alegreya Sans', sans-serif">
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="flex: none; fill: none; stroke: {{i.c}}; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round"><path d="{{i.mark}}"></path></svg>
+                <span style="flex: 1; color: {{i.tc}}">{{i.n}}</span>
+                <span style="color: {{i.c}}; font-weight: 700">{{i.have}}</span>
+              </span>
+            </sc-for>
+          </span>
+          <span style="display: flex; align-items: center; gap: 8px; padding-top: 8px; border-top: 1px solid #2c2419; font: 13px 'Alegreya Sans', sans-serif; color: #9d917b">
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill: none; stroke: #c9b88f; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round"><path d="M13 4l7 7-2.5 2.5-7-7zM10.5 9.5L3 17l3 3 7.5-7.5"></path></svg>
+            <span>{{r.tool}}</span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Mesa de crafteo" style="position: absolute; left: 1336px; top: 90px; width: 560px; height: 970px; padding: 22px 26px; display: flex; flex-direction: column; gap: 16px; border-color: #8c6a33">
+    <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn bl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn br" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <header style="display: flex; flex-direction: column; gap: 4px">
+      <h2 class="h" style="font-size: 22px">Mesa de crafteo</h2>
+      <span class="s" style="font-size: 14px">Arrastra ingredientes a los círculos · craftea <b style="color: #9a78d0">Nerys</b></span>
+    </header>
+
+    <div style="position: relative; height: 440px">
+      <svg viewBox="0 0 500 440" width="500" height="440" aria-hidden="true" style="position: absolute; left: 4px; top: 0">
+        <defs><radialGradient id="tbl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="{{glow}}" stop-opacity=".28"></stop><stop offset="1" stop-color="{{glow}}" stop-opacity="0"></stop></radialGradient></defs>
+        <circle cx="250" cy="220" r="210" fill="url(#tbl)"></circle>
+        <circle cx="250" cy="220" r="160" fill="none" stroke="#5e4c2c" stroke-width="1"></circle>
+        <circle cx="250" cy="220" r="150" fill="none" stroke="#3a2f1d" stroke-width="1" stroke-dasharray="2 6"></circle>
+        <circle cx="250" cy="220" r="96" fill="none" stroke="#b89a55" stroke-opacity=".6" stroke-width="1"></circle>
+        <path d="M250 60v64M250 316v64M90 220h64M346 220h64" stroke="#5e4c2c" stroke-width="1"></path>
+        <path d="M250 50l6 10-6 10-6-10zM250 370l6 10-6 10-6-10zM80 220l10-6 10 6-10 6zM400 220l10-6 10 6-10 6z" fill="#b89a55"></path>
+      </svg>
+      <div style="position: absolute; left: 206px; top: 176px; display: flex; flex-direction: column; align-items: center; gap: 8px">
+        <div class="{{res.slot}}" style="width: 96px; height: 96px"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 60px; height: 60px"><path d="{{res.d}}"></path></svg><span class="qty" style="font-size: 15px">{{res.out}}</span></div>
+      </div>
+      <sc-for list="{{table}}" as="t" hint-placeholder-count="4">
+        <div style="{{t.pos}}">
+          <div class="{{t.cls}}" aria-label="{{t.n}}" style="width: 64px; height: 64px"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 40px; height: 40px"><path d="{{t.d}}"></path></svg><span class="qty">{{t.q}}</span></div>
+          <span style="max-width: 120px; text-align: center; font: 13px 'Alegreya Sans', sans-serif; color: {{t.tc}}">{{t.n}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; background: rgba(0,0,0,.3); border: 1px solid #2c2419">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <span style="font: 700 20px 'Cinzel', serif; color: {{res.nc}}">{{res.n}}</span>
+        <span class="s" style="font-size: 14px">{{res.time}}</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; font: 14px 'Alegreya Sans', sans-serif; color: #cfc3aa">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="fill: none; stroke: #9cc95e; stroke-width: 2.4; stroke-linecap: round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>
+        <span>Herramienta: {{res.tool}}</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; font: 14px 'Alegreya Sans', sans-serif; color: #cfc3aa">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="fill: none; stroke: #e2c27a; stroke-width: 1.8; stroke-linejoin: round"><path d="M12 2.5l8.5 5v9L12 21.5l-8.5-5v-9z"></path></svg>
+        <span>Prueba de herramienta CD {{res.dc}} · bono de Nerys +6</span>
+      </div>
+    </div>
+    <div style="margin-top: auto; display: flex; flex-direction: column; align-items: stretch; gap: 10px">
+      <sc-if value="{{res.ok}}" hint-placeholder-val="{{true}}">
+        <button type="button" class="btn pri">Craftear</button>
+      </sc-if>
+      <sc-if value="{{res.no}}" hint-placeholder-val="{{false}}">
+        <button type="button" class="btn off" disabled>Faltan materiales</button>
+      </sc-if>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { sel: 0 }; }
+  renderVals() {
+    const IC = {
+      herb: 'M12 21V10M12 10C12 6 9 3 5 3c0 4 3 7 7 7zM12 15c0-3.5 3-6.5 7-6.5 0 4-3 6.5-7 6.5z',
+      mushroom: 'M4 12a8 7 0 0 1 16 0zM10 12v7a2 2 0 0 0 4 0v-7',
+      flower: 'M12 12a2.5 2.5 0 1 0 0-.01zM12 9.5C12 6 10 4 12 3s0 3 0 6.5zM12 14.5c0 3.5 2 5.5 0 6.5s0-3 0-6.5zM9.5 12C6 12 4 14 3 12s3 0 6.5 0zM14.5 12c3.5 0 5.5-2 6.5 0s-3 0-6.5 0zM12 21v-2',
+      root: 'M12 3v6M9 9h6l-1 4 2 7M11 13l-3 7M12 13v8M9 6l-2-2M15 6l2-2',
+      ore: 'M4 16l3-8 6-3 6 4 1 7-6 4-8-1zM7 8l6 4 7-3M13 12l1 8M4 16l9-4',
+      ingot: 'M3 17l3-7h12l3 7zM6 10l2-4h8l2 4',
+      gem: 'M7 4h10l4 5-9 11L3 9zM3 9h18M9 4l3 5 3-5M12 9v11',
+      fang: 'M5 4c2 6 3 11 7 16 4-5 5-10 7-16-2 2-4 3-7 3S7 6 5 4zM12 7v8',
+      scale: 'M4 10c3-6 13-6 16 0-3 6-13 6-16 0zM4 10c4 2 12 2 16 0M8 6.5c1 2 1 5 0 7M16 6.5c-1 2-1 5 0 7',
+      claw: 'M6 20c0-6 2-12 6-16M10 20c0-5 2-10 6-13M14 20c0-4 2-8 6-10',
+      eye: 'M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+      dust: 'M5 18h14M7 18c0-3 2-5 5-5s5 2 5 5M9 9h.01M12 7h.01M15 9h.01M11 4h.01',
+      drop: 'M12 3c3 4.5 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-6.5 6-11z',
+      flask: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3M7.5 15h9',
+      potion: 'M10 3h4M10.5 3v5L6 15a4.2 4.2 0 0 0 3.6 6h4.8a4.2 4.2 0 0 0 3.6-6l-4.5-7V3M7 14.5h10',
+      arrow: 'M4 20L18 6M14 5h5v5M4 20l2-5M4 20l5-2',
+      sword: 'M20 4l-1.5 5.5L9 19l-4-4 9.5-9.5zM6 14l4 4M4.5 19.5L3 21M7.5 16.5L5 19'
+    };
+    const m = (n, i, r, q) => ({ n: n + ' ×' + q, d: IC[i], cls: 'slot has r-' + r, q: String(q) });
+    const mats = [
+      { t: 'Hierbas', items: [m('Hierba de sangre', 'herb', 'c', 5), m('Hierba lunar', 'herb', 'c', 6), m('Raíz de mandrágora', 'root', 'u', 4), m('Seta brillante', 'mushroom', 'c', 6), m('Seta de las cavernas', 'mushroom', 'u', 3), m('Flor de escarcha', 'flower', 'r', 1)] },
+      { t: 'Minerales', items: [m('Mineral de hierro', 'ore', 'c', 8), m('Lingote de hierro', 'ingot', 'c', 6), m('Lingote de plata', 'ingot', 'u', 3), m('Mineral de mitral', 'ore', 'r', 2), m('Barra de adamantina', 'ingot', 'm', 3), m('Esmeralda en bruto', 'gem', 'u', 2)] },
+      { t: 'Partes de criaturas', items: [m('Colmillo de huargo', 'fang', 'c', 5), m('Escama de dragón verde', 'scale', 'm', 2), m('Garra de mantícora', 'claw', 'r', 2), m('Polvo de hueso', 'dust', 'c', 3), m('Ojo de araña gigante', 'eye', 'u', 2)] },
+      { t: 'Reactivos alquímicos', items: [m('Sal de plata', 'dust', 'c', 5), m('Aceite de lámpara', 'drop', 'c', 4), m('Tinta de pulpo', 'drop', 'c', 2), m('Polvo de diamante', 'gem', 'u', 1), m('Frasco vacío', 'flask', 'c', 4), m('Agua bendita', 'flask', 'u', 3)] }
+    ];
+    const R = { c: ['Común', '#ece4d2'], u: ['Poco común', '#7fdc8a'], r: ['Raro', '#7ab6ff'], m: ['Muy raro', '#c98dff'] };
+    const defs = [
+      { n: 'Poción de curación', d: IC.potion, r: 'c', out: 1, time: '1 hora', dc: 10, tool: 'Kit de herborista · Nerys', ing: [['Hierba de sangre', 'herb', 'c', 2, 5], ['Seta brillante', 'mushroom', 'c', 1, 6], ['Frasco vacío', 'flask', 'c', 1, 4]] },
+      { n: 'Resistencia al fuego', d: IC.potion, r: 'u', out: 1, time: '4 horas', dc: 15, tool: 'Kit de alquimista · Nerys', ing: [['Raíz de mandrágora', 'root', 'u', 2, 4], ['Sal de plata', 'dust', 'c', 1, 5], ['Polvo de rubí', 'gem', 'u', 1, 0], ['Frasco vacío', 'flask', 'c', 1, 4]] },
+      { n: 'Flechas de plata', d: IC.arrow, r: 'u', out: 10, time: '2 horas', dc: 12, tool: 'Herramientas de herrero · Brom', ing: [['Lingote de plata', 'ingot', 'u', 1, 3], ['Flechas', 'arrow', 'c', 10, 66]] },
+      { n: 'Antídoto', d: IC.flask, r: 'c', out: 2, time: '1 hora', dc: 10, tool: 'Kit de herborista · Nerys', ing: [['Colmillo de huargo', 'fang', 'c', 1, 5], ['Hierba lunar', 'herb', 'c', 2, 6], ['Frasco vacío', 'flask', 'c', 2, 4]] },
+      { n: 'Aceite de afilar', d: IC.drop, r: 'u', out: 3, time: '2 horas', dc: 12, tool: 'Herramientas de herrero · Brom', ing: [['Mineral de hierro', 'ore', 'c', 2, 8], ['Aceite de lámpara', 'drop', 'c', 1, 4]] },
+      { n: 'Visión en la oscuridad', d: IC.potion, r: 'r', out: 1, time: '8 horas', dc: 17, tool: 'Kit de alquimista · Nerys', ing: [['Garra de mantícora', 'claw', 'r', 1, 2], ['Seta brillante', 'mushroom', 'c', 3, 6], ['Esencia de sombra', 'drop', 'm', 1, 0]] }
+    ];
+    const sel = this.state.sel;
+    let ready = 0;
+    const recipes = defs.map((r, k) => {
+      const ok = r.ing.every((x) => x[4] >= x[3]);
+      if (ok) ready++;
+      return {
+        n: r.n, d: r.d, out: r.out > 1 ? String(r.out) : '', rar: R[r.r][0], nc: R[r.r][1], time: r.time, tool: r.tool,
+        slot: 'slot has l r-' + r.r, cls: k === sel ? 'card on' : 'card', pressed: k === sel ? 'true' : 'false',
+        status: ok ? 'Disponible' : 'Faltan',
+        badge: 'padding:3px 10px;border-radius:11px;font:600 12px Alegreya Sans,sans-serif;' + (ok ? 'color:#c9f5cf;background:#0f2412;border:1px solid #4f9a58' : 'color:#ffd6d3;background:#2b0e0d;border:1px solid #9a3a35'),
+        ing: r.ing.map((x) => {
+          const has = x[4] >= x[3];
+          return { n: x[0] + ' ×' + x[3], have: x[4] + ' / ' + x[3], c: has ? '#9cc95e' : '#ef6a64', tc: has ? '#e3d9c4' : '#f3b5b0', mark: has ? 'M5 12.5l4.5 4.5L19 7' : 'M6 6l12 12M18 6L6 18' };
+        }),
+        pick: () => this.setState({ sel: k })
+      };
+    });
+    const cur = defs[sel];
+    const okCur = cur.ing.every((x) => x[4] >= x[3]);
+    const P = ['position:absolute;left:210px;top:10px', 'position:absolute;left:370px;top:188px', 'position:absolute;left:210px;top:348px', 'position:absolute;left:50px;top:188px'];
+    const table = [0, 1, 2, 3].map((k) => {
+      const x = cur.ing[k];
+      const base = P[k] + ';display:flex;flex-direction:column;align-items:center;gap:6px;width:88px';
+      if (!x) return { pos: base, n: 'Libre', d: '', cls: 'slot l', q: '', tc: '#6f6553' };
+      const has = x[4] >= x[3];
+      return { pos: base, n: x[0], d: IC[x[1]], cls: has ? 'slot l has r-' + x[2] : 'slot l miss', q: String(x[3]), tc: has ? '#d8ccb3' : '#ef8a84' };
+    });
+    const res = { n: cur.n, d: cur.d, out: cur.out > 1 ? String(cur.out) : '', nc: R[cur.r][1], slot: 'slot xl has r-' + cur.r, time: cur.time, tool: cur.tool, dc: cur.dc, ok: okCur, no: !okCur };
+    return { mats, recipes, ready, table, res, glow: okCur ? '#e2c27a' : '#ef5a55' };
+  }
+}
+</script>
+</body>
+</html>

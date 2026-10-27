@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Retratos de la party</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<nav aria-label="Personajes" style="width: 104px; height: 1008px; box-sizing: border-box; padding: 18px 12px; display: flex; flex-direction: column; align-items: center; gap: 16px; background: linear-gradient(90deg, #090705 0%, #0f0c09 100%); border-right: 1px solid #3a2f1d; box-shadow: inset -1px 0 0 #17120c; font-family: 'Alegreya Sans', system-ui, sans-serif; color: #e8dfcc">
+  <sc-for list="{{chars}}" as="c" hint-placeholder-count="4">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 5px">
+      <button type="button" aria-label="{{c.label}}" aria-pressed="{{c.pressed}}" style="{{c.frame}}">
+        <svg viewBox="0 0 80 92" width="76" height="88" aria-hidden="true" style="display: block">
+          <defs>
+            <linearGradient id="pt{{$index}}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="{{c.tint}}" stop-opacity=".55"></stop>
+              <stop offset="1" stop-color="#0b0907"></stop>
+            </linearGradient>
+          </defs>
+          <rect width="80" height="92" fill="#0d0b09"></rect>
+          <rect width="80" height="92" fill="url(#pt{{$index}})"></rect>
+          <path d="M40 18a15 15 0 1 1 0 30 15 15 0 0 1 0-30zM10 92c0-22 13-36 30-36s30 14 30 36z" fill="#0a0806" opacity=".85"></path>
+          <path d="M40 18a15 15 0 1 1 0 30 15 15 0 0 1 0-30zM10 92c0-22 13-36 30-36s30 14 30 36z" fill="none" stroke="{{c.tint}}" stroke-opacity=".7" stroke-width="1"></path>
+          <text x="40" y="40" text-anchor="middle" font-family="Cinzel, serif" font-size="14" font-weight="700" fill="#e9d6a8">{{c.ini}}</text>
+        </svg>
+        <span style="position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 0 3px; text-align: center; font-size: 13px; font-weight: 700; color: #f4ecdc; background: linear-gradient(transparent, rgba(0,0,0,.85)); text-shadow: 0 1px 2px #000">{{c.pv}}</span>
+      </button>
+      <div aria-hidden="true" style="width: 76px; height: 4px; background: #241812; border: 1px solid #3a2a1d; box-sizing: content-box">
+        <div style="{{c.hpBar}}"></div>
+      </div>
+      <div title="{{c.satLabel}}" style="display: flex; align-items: center; gap: 4px; width: 78px">
+        <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" style="flex: none; fill: none; stroke: {{c.satC}}; stroke-width: 2; stroke-linecap: round"><path d="M3 11h18a9 9 0 0 1-18 0zM9 8V4M12 8V3M15 8V4"></path></svg>
+        <div style="flex: 1; height: 4px; background: #17130f; border: 1px solid #332a1c">
+          <div style="{{c.satBar}}"></div>
+        </div>
+      </div>
+    </div>
+  </sc-for>
+  <button type="button" aria-label="Añadir personaje" style="width: 52px; height: 52px; margin-top: 4px; display: flex; align-items: center; justify-content: center; border: 1px dashed #5a4a2c; border-radius: 50%; background: transparent; color: #a8956a; cursor: pointer">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round"><path d="M12 5v14M5 12h14"></path></svg>
+  </button>
+  <div style="flex: 1"></div>
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 12px; border-top: 1px solid #2a2218; width: 80px">
+    <span style="font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #9d917b">Carga</span>
+    <span style="font-size: 14px; font-weight: 700; color: #e2c27a">156,9</span>
+    <span style="font-size: 12px; color: #9d917b">/ 339 kg</span>
+  </div>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"int","min":0,"max":4,"default":0},"$preview":{"width":104,"height":1008}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const active = Number(this.props.active ?? 0);
+    const sat = { s: ['Saciado', '#9cc95e'], n: ['Normal', '#c9a65a'], h: ['Hambriento', '#e0883a'], f: ['Famélico', '#e0534d'] };
+    const raw = [
+      { name: 'Aldric Varn', ini: 'AV', tint: '#6f8fb8', hp: 44, hpm: 52, s: 's', sp: 86 },
+      { name: 'Nerys Valtëa', ini: 'NV', tint: '#9a78d0', hp: 26, hpm: 31, s: 'n', sp: 58 },
+      { name: 'Brom Hierroforja', ini: 'BH', tint: '#c08e4f', hp: 41, hpm: 45, s: 'h', sp: 27 },
+      { name: 'Ysolde Mirra', ini: 'YM', tint: '#4fa07f', hp: 18, hpm: 36, s: 'f', sp: 8 }
+    ];
+    const chars = raw.map((c, i) => {
+      const on = i === active;
+      const st = sat[c.s];
+      return {
+        ...c,
+        label: c.name + ', ' + c.hp + ' de ' + c.hpm + ' PV, ' + st[0],
+        pressed: on ? 'true' : 'false',
+        pv: c.hp + '/' + c.hpm,
+        satLabel: 'Saciedad: ' + st[0],
+        satC: st[1],
+        frame: 'position:relative;width:80px;height:92px;padding:0;overflow:hidden;cursor:pointer;background:#0d0b09;' +
+          (on ? 'border:2px solid #d9b86a;box-shadow:0 0 0 1px #0a0807,0 0 16px rgba(217,184,106,.35)' : 'border:2px solid #4a3c24;box-shadow:0 0 0 1px #0a0807'),
+        hpBar: 'height:4px;width:' + Math.round(c.hp / c.hpm * 100) + '%;background:linear-gradient(90deg,#8e2420,#c8403a)',
+        satBar: 'height:4px;width:' + c.sp + '%;background:' + st[1]
+      };
+    });
+    return { chars };
+  }
+}
+</script>
+</body>
+</html>

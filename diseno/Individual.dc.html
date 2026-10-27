@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Inventario individual</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+body{margin:0;background:#060504}
+.r-c{--rc:#cfc8ba;--rg:rgba(207,200,186,.16)}
+.r-u{--rc:#5fcf6d;--rg:rgba(95,207,109,.22)}
+.r-r{--rc:#55a3ff;--rg:rgba(85,163,255,.25)}
+.r-m{--rc:#b874ff;--rg:rgba(184,116,255,.28)}
+.r-l{--rc:#f5a93c;--rg:rgba(245,169,60,.3)}
+.r-a{--rc:#ec4652;--rg:rgba(236,70,82,.32)}
+.slot{position:relative;width:44px;height:44px;padding:0;box-sizing:border-box;border:1px solid #2b241b;border-radius:2px;background:radial-gradient(circle at 50% 42%,var(--rg,transparent) 0,transparent 72%),linear-gradient(180deg,#18140f 0%,#0d0b09 100%);box-shadow:inset 0 1px 0 rgba(255,232,180,.05),inset 0 -3px 6px rgba(0,0,0,.65),0 0 0 1px #070605;display:flex;align-items:center;justify-content:center;color:var(--rc,#5d5242);cursor:pointer;transition:box-shadow .16s ease,transform .16s ease,border-color .16s ease}
+.slot.has{border-color:color-mix(in srgb,var(--rc) 62%,#120e0a)}
+.slot.has:hover{border-color:var(--rc);box-shadow:0 0 0 1px var(--rc),0 0 18px var(--rg),inset 0 0 12px var(--rg);transform:translateY(-1px)}
+.slot svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px #000) drop-shadow(0 0 4px var(--rg,transparent))}
+.slot.big{width:52px;height:52px}.slot.big svg{width:32px;height:32px}
+.slot.ghost{color:#4a4034}.slot.ghost svg{opacity:.55;filter:none}
+.qty{position:absolute;right:3px;bottom:1px;font:700 12px/1 'Alegreya Sans',sans-serif;color:#f6eedd;text-shadow:0 0 3px #000,0 0 2px #000,0 0 1px #000}
+.attm{position:absolute;left:3px;top:3px;width:7px;height:7px;transform:rotate(45deg);background:#e9c56a;box-shadow:0 0 0 1px #2a1d06,0 0 5px rgba(233,197,106,.8)}
+.panel{position:relative;box-sizing:border-box;background:linear-gradient(180deg,#16120e 0%,#0f0c0a 55%,#0c0a08 100%);border:1px solid #5e4c2c;box-shadow:inset 0 0 0 3px #0b0907,inset 0 0 0 4px #33291a,0 14px 40px rgba(0,0,0,.7)}
+.cn{position:absolute;width:30px;height:30px;fill:none;stroke:#b89a55;stroke-width:1.2;pointer-events:none}
+.cn.tl{left:-3px;top:-3px}.cn.tr{right:-3px;top:-3px;transform:scaleX(-1)}.cn.bl{left:-3px;bottom:-3px;transform:scaleY(-1)}.cn.br{right:-3px;bottom:-3px;transform:scale(-1,-1)}
+.sec{display:flex;align-items:center;justify-content:center;gap:12px;font:600 15px 'Cinzel',serif;letter-spacing:.06em;color:#d8c38f}
+.sec::before,.sec::after{content:"";width:46px;height:8px;background:linear-gradient(90deg,transparent,#6b5631) center/100% 1px no-repeat}
+.sec::after{transform:scaleX(-1)}
+.lbl{font:500 13px/1 'Alegreya',Georgia,serif;color:#b9ab90}
+.chip{height:32px;padding:0 12px;display:flex;align-items:center;gap:6px;border:1px solid #3e321f;border-radius:16px;background:#0e0b09;color:#c9b88f;font:500 14px 'Alegreya Sans',sans-serif;cursor:pointer}
+.chip svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.chip.on{border-color:#b89a55;color:#f1dfb0;background:#1d1710;box-shadow:0 0 10px rgba(226,194,122,.15)}
+.ibtn{height:36px;padding:0 14px;display:flex;align-items:center;gap:8px;border:1px solid #5e4c2c;border-radius:18px;background:rgba(13,11,9,.85);color:#e2c27a;font:500 14px 'Alegreya Sans',sans-serif;cursor:pointer}
+.ibtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</helmet>
+<div style="position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: 'Alegreya', Georgia, serif; color: #e8dfcc; background: radial-gradient(ellipse 75% 70% at 50% 45%, #1b1611 0%, #0d0b09 58%, #050404 100%)">
+  <svg aria-hidden="true" width="1920" height="1080" style="position: absolute; inset: 0; opacity: .5; pointer-events: none">
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix values="0 0 0 0 .55  0 0 0 0 .45  0 0 0 0 .32  0 0 0 .09 0"></feColorMatrix></filter>
+    <rect width="1920" height="1080" filter="url(#grain)"></rect>
+  </svg>
+  <div style="position: absolute; left: 0; top: 0"><dc-import name="Topbar" active="individual" hint-size="1920px,72px"></dc-import></div>
+  <div style="position: absolute; left: 0; top: 72px"><dc-import name="Retratos" active="0" hint-size="104px,1008px"></dc-import></div>
+
+  <!-- Ficha -->
+  <section class="panel" aria-label="Ficha de Aldric Varn" style="position: absolute; left: 124px; top: 90px; width: 440px; height: 970px; padding: 22px 26px; display: flex; flex-direction: column; gap: 16px">
+    <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn bl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn br" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <header style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+      <h1 style="margin: 0; font-family: 'Cinzel', serif; font-size: 28px; font-weight: 600; letter-spacing: .05em; color: #eedcb0">Aldric Varn</h1>
+      <span style="font-family: 'Alegreya Sans', sans-serif; font-size: 15px; color: #b9ab90">Humano · Trasfondo: Soldado</span>
+      <svg viewBox="0 0 90 90" width="84" height="84" aria-hidden="true">
+        <path d="M45 6l10 18 20-4-6 20 15 10-17 8 4 20-19-8-7 16-7-16-19 8 4-20-17-8 15-10-6-20 20 4z" fill="#120f0b" stroke="#a88a4c" stroke-width="1.2"></path>
+        <path d="M45 24l13 7v14c0 9-6 15-13 19-7-4-13-10-13-19V31z" fill="#0c1a22" stroke="#e2c27a" stroke-width="1.4"></path>
+        <path d="M45 32v22M38 40h14" stroke="#e2c27a" stroke-width="1.6" stroke-linecap="round"></path>
+      </svg>
+      <span style="font-family: 'Cinzel', serif; font-size: 19px; color: #e2c27a">Nivel 5 · Paladín 5</span>
+      <div style="display: flex; align-items: center; gap: 10px; width: 300px; font-family: 'Alegreya Sans', sans-serif; font-size: 13px; color: #9d917b">
+        <span>PX</span>
+        <div style="flex: 1; height: 5px; background: #110e0b; border: 1px solid #3a2f1d"><div style="width: 62%; height: 5px; background: linear-gradient(90deg, #55a3ff, #8fc3ff)"></div></div>
+        <span>4.300 / 6.500</span>
+      </div>
+    </header>
+
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{stats}}" as="s" hint-placeholder-count="6">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+          <span style="font-family: 'Cinzel', serif; font-size: 13px; font-weight: 600; letter-spacing: .08em; color: #b9ab90">{{s.k}}</span>
+          <div style="width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; border: 1px solid #5e4c2c; background: linear-gradient(180deg, #1b1611, #0d0b09); box-shadow: inset 0 0 0 2px #0b0907, inset 0 0 0 3px #2c2418; font-family: 'Cinzel', serif; font-size: 24px; font-weight: 700; color: #f2e6c8">{{s.v}}</div>
+          <span style="font-family: 'Alegreya Sans', sans-serif; font-size: 14px; font-weight: 700; color: {{s.c}}">{{s.m}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <h3 class="sec" style="margin: 0">Condiciones</h3>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; font-family: 'Alegreya Sans', sans-serif; font-size: 14px">
+        <span style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border: 1px solid #3b5a2a; border-radius: 14px; background: rgba(156,201,94,.08); color: #b9e08a"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 1.8"><path d="M12 2.5l2.4 6.1 6.1 2.4-6.1 2.4L12 19.5l-2.4-6.1L3.5 11l6.1-2.4z"></path></svg>Bendecido · 8 turnos</span>
+        <span style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border: 1px solid #6b3a1f; border-radius: 14px; background: rgba(224,136,58,.08); color: #f0b07a"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v6M12 16v.01"></path></svg>Agotamiento 1</span>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <h3 class="sec" style="margin: 0">Resistencias</h3>
+      <div style="display: flex; justify-content: center; gap: 8px; font-family: 'Alegreya Sans', sans-serif; font-size: 14px; color: #d8ccb3">
+        <span style="padding: 5px 12px; border: 1px solid #3e321f; border-radius: 14px">Necrótico · Medallón del Juramento</span>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; min-height: 0">
+      <h3 class="sec" style="margin: 0">Rasgos destacados</h3>
+      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; font-family: 'Alegreya Sans', sans-serif; font-size: 15px">
+        <sc-for list="{{feats}}" as="f" hint-placeholder-count="6">
+          <li style="display: flex; align-items: center; gap: 10px">
+            <span style="width: 26px; height: 26px; flex: none; display: flex; align-items: center; justify-content: center; border: 1px solid #4d3e25; border-radius: 50%; background: #0e0b09; color: {{f.c}}"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round"><path d="{{f.d}}"></path></svg></span>
+            <span style="flex: 1; color: #e3d9c4">{{f.t}}</span>
+            <span style="color: #9d917b; font-size: 14px">{{f.u}}</span>
+          </li>
+        </sc-for>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Centro: imagen y equipo -->
+  <section aria-label="Equipo" style="position: absolute; left: 580px; top: 90px; width: 660px; height: 970px">
+    <svg viewBox="0 0 660 970" width="660" height="970" aria-hidden="true" style="position: absolute; inset: 0">
+      <defs>
+        <radialGradient id="bgaura" cx=".5" cy=".42" r=".6"><stop offset="0" stop-color="#6f8fb8" stop-opacity=".25"></stop><stop offset="1" stop-color="#6f8fb8" stop-opacity="0"></stop></radialGradient>
+        <linearGradient id="fig" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8aa6cb"></stop><stop offset=".55" stop-color="#4c6487" stop-opacity=".75"></stop><stop offset="1" stop-color="#0c0a08"></stop></linearGradient>
+      </defs>
+      <rect width="660" height="970" fill="url(#bgaura)"></rect>
+      <g transform="translate(150 70) scale(1.8)">
+        <ellipse cx="100" cy="374" rx="86" ry="14" fill="none" stroke="#6f8fb8" stroke-opacity=".5"></ellipse>
+        <ellipse cx="100" cy="374" rx="60" ry="8" fill="#6f8fb8" opacity=".2"></ellipse>
+        <path d="M68 98L38 360l40-14 12 24 10-20 10 20 12-24 40 14L132 98z" fill="#090706" opacity=".92"></path>
+        <path d="M150 190L182 60M176 84l14 4" fill="none" stroke="#d8d0c0" stroke-opacity=".6" stroke-width="2.5" stroke-linecap="round"></path>
+        <path d="M100 30c14 0 24 10 24 25s-10 26-24 26-24-11-24-26 10-25 24-25zM78 88h44l20 10 12 78-14 6-10-52-6 62 8 118h-28l-10-104-10 104H66l8-118-6-62-10 52-14-6 12-78z" fill="url(#fig)" stroke="#8aa6cb" stroke-opacity=".6" stroke-width=".8"></path>
+      </g>
+    </svg>
+    <div style="position: absolute; left: 50%; top: 4px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px">
+      <span style="font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: .1em; color: #c9b88f">Sintonización <b style="color: #f1dfb0">2 / 3</b></span>
+      <div style="display: flex; gap: 10px">
+        <sc-for list="{{att}}" as="a" hint-placeholder-count="3">
+          <div aria-label="{{a.n}}" class="{{a.cls}}" style="width: 40px; height: 40px; transform: rotate(45deg); cursor: default"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform: rotate(-45deg); width: 22px; height: 22px"><path d="{{a.d}}"></path></svg></div>
+        </sc-for>
+      </div>
+    </div>
+    <button type="button" class="ibtn" style="position: absolute; right: 18px; top: 52px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3.5L9 5.5h6L16.5 8H20v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"></path></svg>Cambiar imagen del personaje</button>
+    <div style="position: absolute; left: 18px; top: 110px; display: flex; flex-direction: column; gap: 12px">
+      <sc-for list="{{left}}" as="e" hint-placeholder-count="5">
+        <button type="button" class="{{e.cls}}" aria-label="{{e.n}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{e.d}}"></path></svg><sc-if value="{{e.att}}" hint-placeholder-val="{{false}}"><span class="attm"></span></sc-if></button>
+      </sc-for>
+    </div>
+    <div style="position: absolute; right: 18px; top: 110px; display: flex; flex-direction: column; gap: 12px">
+      <sc-for list="{{right}}" as="e" hint-placeholder-count="3">
+        <button type="button" class="{{e.cls}}" aria-label="{{e.n}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{e.d}}"></path></svg><sc-if value="{{e.att}}" hint-placeholder-val="{{false}}"><span class="attm"></span></sc-if></button>
+      </sc-for>
+    </div>
+    <div style="position: absolute; left: 18px; right: 18px; bottom: 8px; display: grid; grid-template-columns: 1fr 96px 1fr; align-items: end">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span class="lbl" style="font-size: 15px">Cuerpo a cuerpo</span>
+        <div style="display: flex; gap: 8px">
+          <button type="button" class="slot big has r-m" aria-label="Hoja del Alba Cenicienta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4l-1.5 5.5L9 19l-4-4 9.5-9.5zM6 14l4 4M4.5 19.5L3 21M7.5 16.5L5 19"></path></svg><span class="attm"></span></button>
+          <button type="button" class="slot big has r-u" aria-label="Escudo de roble y hierro"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 2.5V12c0 4.2-3 7.3-7 9-4-1.7-7-4.8-7-9V5.5zM12 3v18M5 11h14"></path></svg></button>
+        </div>
+        <div style="display: flex; gap: 18px; font-family: 'Alegreya Sans', sans-serif"><span style="font-size: 18px; font-weight: 700; color: #f2e6c8">+8</span><span style="font-size: 16px; color: #cfc3aa">1d8+5 cortante</span></div>
+      </div>
+      <div aria-label="Clase de armadura 19" style="position: relative; width: 96px; height: 106px; display: flex; flex-direction: column; align-items: center; justify-content: center">
+        <svg viewBox="0 0 76 84" width="96" height="106" aria-hidden="true" style="position: absolute; inset: 0">
+          <path d="M38 3l32 10v26c0 20-14 34-32 42C20 73 6 59 6 39V13z" fill="#0f0c0a" stroke="#b89a55" stroke-width="1.4"></path>
+          <path d="M38 9l26 8v22c0 16-11 28-26 35C23 67 12 55 12 39V17z" fill="none" stroke="#4d3e25"></path>
+          <path d="M30 6l8-5 8 5" fill="none" stroke="#e2c27a" stroke-width="1.2"></path>
+        </svg>
+        <span style="position: relative; font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; color: #b9ab90; letter-spacing: .1em">CA</span>
+        <span style="position: relative; font-family: 'Cinzel', serif; font-size: 40px; font-weight: 700; line-height: 1; color: #f2e6c8; text-shadow: 0 0 12px rgba(226,194,122,.4)">19</span>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px">
+        <span class="lbl" style="font-size: 15px">A distancia</span>
+        <div style="display: flex; gap: 8px">
+          <button type="button" class="slot big has r-c" aria-label="Jabalinas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4l-9 9-2-2 9-9zM12 14l-2 2-2-2 2-2M8 16l-4 4M7 11l6 6"></path></svg><span class="qty">4</span></button>
+          <button type="button" class="slot big ghost" aria-label="Mano secundaria: vacío"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4l-9 9-2-2 9-9zM12 14l-2 2-2-2 2-2M8 16l-4 4M7 11l6 6"></path></svg></button>
+        </div>
+        <div style="display: flex; gap: 18px; font-family: 'Alegreya Sans', sans-serif"><span style="font-size: 16px; color: #cfc3aa">1d6+4 perforante</span><span style="font-size: 18px; font-weight: 700; color: #f2e6c8">+7</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Derecha: inventario -->
+  <section class="panel" aria-label="Inventario de Aldric" style="position: absolute; left: 1256px; top: 90px; width: 640px; height: 970px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 12px">
+    <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn bl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn br" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <header style="display: flex; align-items: center; gap: 10px">
+      <h2 style="margin: 0; flex: 1; font-family: 'Cinzel', serif; font-size: 20px; font-weight: 600; letter-spacing: .05em; color: #eedcb0">Inventario <span style="font-size: 15px; color: #9d917b">· 31 objetos</span></h2>
+      <label style="display: flex; align-items: center; gap: 8px; font-family: 'Alegreya Sans', sans-serif; font-size: 14px; color: #b9ab90">Ordenar por
+        <select style="height: 34px; padding: 0 10px; border: 1px solid #4d3e25; border-radius: 4px; background: #0e0b09; color: #e8dfcc; font: 14px 'Alegreya Sans', sans-serif">
+          <option>Rareza</option><option>Peso</option><option>Valor</option><option>Reciente</option>
+        </select>
+      </label>
+      <button type="button" class="chip on" style="height: 34px">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Añadir objeto
+      </button>
+    </header>
+    <div role="group" aria-label="Filtrar por categoría" style="display: flex; flex-wrap: wrap; gap: 6px">
+      <sc-for list="{{cats}}" as="k" hint-placeholder-count="9">
+        <button type="button" class="{{k.cls}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{k.d}}"></path></svg>{{k.t}}</button>
+      </sc-for>
+    </div>
+    <div style="position: relative; flex: 1; min-height: 0; display: flex; gap: 8px">
+      <div style="flex: 1; overflow: hidden; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: 44px; gap: 4px; align-content: start">
+        <sc-for list="{{inv}}" as="it" hint-placeholder-count="168">
+          <button type="button" class="{{it.cls}}" aria-label="{{it.n}}"><sc-if value="{{it.hd}}" hint-placeholder-val="{{true}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{it.d}}"></path></svg></sc-if><sc-if value="{{it.hq}}" hint-placeholder-val="{{false}}"><span class="qty">{{it.q}}</span></sc-if><sc-if value="{{it.att}}" hint-placeholder-val="{{false}}"><span class="attm"></span></sc-if></button>
+        </sc-for>
+      </div>
+      <div aria-hidden="true" style="width: 6px; background: #0b0907; border: 1px solid #2c2419; border-radius: 3px; position: relative">
+        <div style="position: absolute; left: 0; right: 0; top: 0; height: 58%; background: linear-gradient(#8a7040, #5e4c2c); border-radius: 3px"></div>
+      </div>
+    </div>
+    <footer style="display: flex; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid #2c2419; font-family: 'Alegreya Sans', sans-serif">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="flex: none; fill: none; stroke: #b9ab90; stroke-width: 1.6; stroke-linejoin: round"><path d="M7 9h10l3 11H4zM9 9a3 3 0 0 1 6 0"></path></svg>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 5px">
+          <div style="position: relative; display: flex; height: 10px; gap: 2px">
+            <div style="flex: 1; background: rgba(201,166,90,.14); border: 1px solid #4d3e25"></div>
+            <div style="flex: 1; background: rgba(224,136,58,.12); border: 1px solid #5a3a1f"></div>
+            <div style="flex: 1; background: rgba(224,83,77,.12); border: 1px solid #5a2321"></div>
+            <div style="position: absolute; left: 0; top: 0; height: 10px; width: 31.1%; background: linear-gradient(90deg, #8f7740, #c9a65a); box-shadow: 0 0 8px rgba(201,166,90,.5)"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 13px; color: #9d917b">
+            <span style="color: #c9a65a">Normal hasta 40,7</span><span style="color: #e0883a">Cargado hasta 81,3</span><span style="color: #e0534d">Sobrecargado hasta 122</span>
+          </div>
+        </div>
+        <span style="font-size: 16px; color: #e8dfcc; white-space: nowrap"><b>38,0</b> / 122 kg</span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <span style="font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: .06em; color: #c9b88f">Monedas personales</span>
+        <div style="display: flex; gap: 16px">
+          <sc-for list="{{coins}}" as="m" hint-placeholder-count="5">
+            <span style="display: flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 500"><span style="{{m.style}}">{{m.k}}</span>{{m.v}}</span>
+          </sc-for>
+        </div>
+      </div>
+    </footer>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const IC = {
+      sword: 'M20 4l-1.5 5.5L9 19l-4-4 9.5-9.5zM6 14l4 4M4.5 19.5L3 21M7.5 16.5L5 19',
+      axe: 'M5 21L16 10M13 4.5c3.5-1.5 7 .5 7.5 4-2 2.5-5 3.5-7.5 3l-1.5-1.5c-.5-2.5.5-4 1.5-5.5z',
+      bow: 'M5 3c9 1 15 7 16 16M5 3l16 16M5 3v4M5 3h4M3 21l7-7',
+      staff: 'M4 21L15 10M17 9a3 3 0 1 0-2-5 3 3 0 0 0 2 5zM19 2.5l.5 1.5M21.5 5l-1.5.5',
+      dagger: 'M20 4l-9 9-2-2 9-9zM12 14l-2 2-2-2 2-2M8 16l-4 4M7 11l6 6',
+      shield: 'M12 3l7 2.5V12c0 4.2-3 7.3-7 9-4-1.7-7-4.8-7-9V5.5zM12 3v18M5 11h14',
+      helm: 'M5 15a7 7 0 0 1 14 0v4H5zM12 8V4M9.5 19v-4h5v4',
+      armor: 'M8 4h8l3.5 3-2.5 4v9H7v-9L4.5 7zM9 4a3 3 0 0 0 6 0M12 7v13M7 13h10',
+      cloak: 'M9 4h6l1.5 3L20 20H4L7.5 7zM9 4l3 4 3-4M12 8v12',
+      gloves: 'M8 21v-5l-2.5-5V6.5a1 1 0 0 1 2 0V10V4.5a1 1 0 0 1 2 0V10V4a1 1 0 0 1 2 0v6V5a1 1 0 0 1 2 0v8l1.8-1.8a1.2 1.2 0 0 1 1.9 1.5L15 17.5V21z',
+      boots: 'M7 3h5v10l5.5 2.5A3 3 0 0 1 19.5 18.5V21H6v-4.5zM6 17h13.5',
+      amulet: 'M6 3c0 5.5 2.7 8.5 6 8.5S18 8.5 18 3M12 11.5l3 4-3 5-3-5z',
+      ring: 'M12 21a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM9.5 5.5L12 3l2.5 2.5L12 8z',
+      potion: 'M10 3h4M10.5 3v5L6 15a4.2 4.2 0 0 0 3.6 6h4.8a4.2 4.2 0 0 0 3.6-6l-4.5-7V3M7 14.5h10',
+      scroll: 'M7 4h11a2 2 0 0 1 0 4h-1v10a2 2 0 0 1-2 2H5a2 2 0 0 1 0-4h2zM18 8H7M10 11h4M10 14h4',
+      book: 'M5 5.5A1.5 1.5 0 0 1 6.5 4H19v13H6.5A1.5 1.5 0 0 0 5 18.5zM5 18.5A1.5 1.5 0 0 0 6.5 20H19v-3M12 7.5l1.2 2 2.3.3-1.7 1.6.4 2.3-2.2-1.1-2.2 1.1.4-2.3-1.7-1.6 2.3-.3z',
+      key: 'M8 20a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 13l9-9M17 7l2 2M14.5 9.5l2 2',
+      gem: 'M7 4h10l4 5-9 11L3 9zM3 9h18M9 4l3 5 3-5M12 9v11',
+      herb: 'M12 21V10M12 10C12 6 9 3 5 3c0 4 3 7 7 7zM12 15c0-3.5 3-6.5 7-6.5 0 4-3 6.5-7 6.5z',
+      ore: 'M4 16l3-8 6-3 6 4 1 7-6 4-8-1zM7 8l6 4 7-3M13 12l1 8M4 16l9-4',
+      fang: 'M5 4c2 6 3 11 7 16 4-5 5-10 7-16-2 2-4 3-7 3S7 6 5 4zM12 7v8',
+      bread: 'M4 13c0-4 3.6-7 8-7s8 3 8 7v5H4zM8.5 9.5l1 2.5M12 8.5v3M15.5 9.5l-1 2.5',
+      meat: 'M15 3.5a5.5 5.5 0 0 1 0 11c-1.6 0-2.8-.6-3.8-1.6L6.5 17.6a2 2 0 1 1-2.1 2 2 2 0 1 1 2-2.1l4.7-4.7c-1-1-1.6-2.2-1.6-3.8A5.5 5.5 0 0 1 15 3.5z',
+      apple: 'M12 7.5c-3-2-8-1-8 4.5 0 5 3 9 5 9 1 0 2-.5 3-.5s2 .5 3 .5c2 0 5-4 5-9 0-5.5-5-6.5-8-4.5zM12 7.5c0-2 1-3.5 3-4.5',
+      flask: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3M7.5 15h9',
+      hammer: 'M13 4l7 7-2.5 2.5-7-7zM10.5 9.5L3 17l3 3 7.5-7.5',
+      bag: 'M8 8V6a4 4 0 0 1 8 0v2M5 8h14l-1.2 13H6.2zM9 12h6',
+      torch: 'M10 21l-1-10h6l-1 10zM12 11c-2.5-1.5-3-4-1-7 0 2 2 2.5 2 4 1-1 1.5-2 1.5-3 1.5 2 1 5-2.5 6z',
+      drop: 'M12 3c3 4.5 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-6.5 6-11z',
+      grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z'
+    };
+    const it = (n, i, r, q, a) => ({ n: n + (q > 1 ? ' ×' + q : ''), d: IC[i], cls: 'slot has r-' + r, hd: true, hq: q > 1, q: q > 1 ? String(q) : '', att: !!a });
+    const em = () => ({ n: 'Ranura vacía', d: '', cls: 'slot', hd: false, hq: false, q: '', att: false });
+    const eq = (n, i, r, a) => ({ n: n, d: IC[i], cls: 'slot big has r-' + r, att: !!a });
+    const gh = (n, i) => ({ n: n + ': vacío', d: IC[i], cls: 'slot big ghost', att: false });
+    const inv = [
+      it('Corona del Rey Ahogado', 'helm', 'l', 1, true), it('Pergamino de Revivir', 'scroll', 'r', 1), it('Zafiro tallado', 'gem', 'r', 1), it('Poción de curación mayor', 'potion', 'u', 2),
+      it('Agua bendita', 'flask', 'u', 3), it('Aceite sagrado', 'drop', 'u', 1), it('Daga de plata', 'dagger', 'u', 1), it('Anillo de sello', 'ring', 'u', 1),
+      it('Poción de curación', 'potion', 'c', 4), it('Raciones de viaje', 'bread', 'c', 5), it('Carne en salazón', 'meat', 'c', 2), it('Manzanas', 'apple', 'c', 3),
+      it('Antorcha', 'torch', 'c', 3), it('Kit de explorador', 'bag', 'c', 1), it('Llave de hierro oxidada', 'key', 'c', 1), it('Libro de plegarias', 'book', 'c', 1),
+      it('Martillo de herrero', 'hammer', 'c', 1), it('Jabalina', 'dagger', 'c', 4), it('Mineral de hierro', 'ore', 'c', 2), it('Hierba de sangre', 'herb', 'c', 5),
+      it('Espada corta', 'sword', 'c', 1), it('Hacha de mano', 'axe', 'c', 1), it('Capa de lana', 'cloak', 'c', 1), it('Guantes de cuero', 'gloves', 'c', 1),
+      it('Botas de viaje', 'boots', 'c', 1), it('Colmillo de lobo', 'fang', 'c', 3), it('Cantimplora', 'flask', 'c', 1), it('Pergamino de Bendecir', 'scroll', 'c', 2),
+      it('Carta sellada del duque', 'scroll', 'u', 1), it('Medalla del regimiento', 'amulet', 'c', 1), it('Escudo de madera', 'shield', 'c', 1)
+    ];
+    while (inv.length < 168) inv.push(em());
+    const cats = [
+      ['Todo', 'grid'], ['Armas', 'sword'], ['Armaduras', 'armor'], ['Pociones', 'potion'], ['Pergaminos', 'scroll'],
+      ['Materiales', 'ore'], ['Comida', 'bread'], ['Llaves/misión', 'key'], ['Varios', 'bag']
+    ].map((c, i) => ({ t: c[0], d: IC[c[1]], cls: i === 0 ? 'chip on' : 'chip' }));
+    const mod = (v) => { const m = Math.floor((v - 10) / 2); return m >= 0 ? '+' + m : '−' + Math.abs(m); };
+    const stats = [['FUE', 18], ['DES', 10], ['CON', 14], ['INT', 9], ['SAB', 12], ['CAR', 16]].map((s) => ({ k: s[0], v: s[1], m: mod(s[1]), c: s[1] >= 12 ? '#9cc95e' : s[1] < 10 ? '#e0883a' : '#cfc3aa' }));
+    const feats = [
+      { t: 'Imposición de manos', u: '25 / 25 PV', d: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z', c: '#9cc95e' },
+      { t: 'Castigo divino', u: 'Espacios 4 · 2', d: 'M13 2L4 14h7l-1 8 9-12h-7z', c: '#f0c86a' },
+      { t: 'Sentido divino', u: '3 / 4', d: 'M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', c: '#8fc3ff' },
+      { t: 'Ataque adicional', u: 'Pasivo', d: IC.sword, c: '#d8ccb3' },
+      { t: 'Estilo de combate: Defensa', u: '+1 CA', d: IC.shield, c: '#d8ccb3' },
+      { t: 'Juramento de devoción', u: 'Canalizar 1 / 1', d: 'M12 2.5l2.4 6.1 6.1 2.4-6.1 2.4L12 19.5l-2.4-6.1L3.5 11l6.1-2.4z', c: '#c98dff' }
+    ];
+    const att = [
+      { n: 'Sintonizado: Hoja del Alba Cenicienta', d: IC.sword, cls: 'slot has r-m' },
+      { n: 'Sintonizado: Medallón del Juramento', d: IC.amulet, cls: 'slot has r-m' },
+      { n: 'Ranura de sintonización libre', d: 'M12 2.5l2.4 6.1 6.1 2.4-6.1 2.4L12 19.5l-2.4-6.1L3.5 11l6.1-2.4z', cls: 'slot ghost' }
+    ];
+    const left = [eq('Yelmo del centinela', 'helm', 'r'), eq('Capa de viaje reforzada', 'cloak', 'u'), eq('Coraza de placas bruñida', 'armor', 'r'), eq('Guanteletes de acero', 'gloves', 'u'), gh('Botas', 'boots')];
+    const right = [eq('Medallón del Juramento', 'amulet', 'm', true), eq('Anillo de protección', 'ring', 'u'), gh('Anillo', 'ring')];
+    const coin = (bg, fg) => 'width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:' + fg + ';background:radial-gradient(circle at 35% 30%,#fff8 0,transparent 45%),' + bg + ';box-shadow:inset 0 0 0 1px rgba(0,0,0,.45)';
+    const coins = [
+      { k: 'PPT', v: '2', style: coin('#c9d3dc', '#1d252c') }, { k: 'PO', v: '312', style: coin('#d9a83c', '#2b1d05') },
+      { k: 'PE', v: '0', style: coin('#bcb67a', '#24210c') }, { k: 'PP', v: '41', style: coin('#a9adb3', '#1c1e21') }, { k: 'PC', v: '87', style: coin('#b06d43', '#24120a') }
+    ];
+    return { inv, cats, stats, feats, att, left, right, coins };
+  }
+}
+</script>
+</body>
+</html>

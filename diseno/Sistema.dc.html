@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Sistema visual</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+body{margin:0;background:#060504}
+.r-c{--rc:#cfc8ba;--rg:rgba(207,200,186,.16)}
+.r-u{--rc:#5fcf6d;--rg:rgba(95,207,109,.22)}
+.r-r{--rc:#55a3ff;--rg:rgba(85,163,255,.25)}
+.r-m{--rc:#b874ff;--rg:rgba(184,116,255,.28)}
+.r-l{--rc:#f5a93c;--rg:rgba(245,169,60,.3)}
+.r-a{--rc:#ec4652;--rg:rgba(236,70,82,.32)}
+.slot{position:relative;width:56px;height:56px;padding:0;box-sizing:border-box;border:1px solid #2b241b;border-radius:2px;background:radial-gradient(circle at 50% 42%,var(--rg,transparent) 0,transparent 72%),linear-gradient(180deg,#18140f 0%,#0d0b09 100%);box-shadow:inset 0 1px 0 rgba(255,232,180,.05),inset 0 -3px 6px rgba(0,0,0,.65),0 0 0 1px #070605;display:flex;align-items:center;justify-content:center;color:var(--rc,#5d5242);cursor:pointer;transition:box-shadow .16s ease,transform .16s ease,border-color .16s ease}
+.slot.has{border-color:color-mix(in srgb,var(--rc) 62%,#120e0a)}
+.slot.has:hover,.slot.hov{border-color:var(--rc);box-shadow:0 0 0 1px var(--rc),0 0 18px var(--rg),inset 0 0 12px var(--rg);transform:translateY(-1px)}
+.slot svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px #000) drop-shadow(0 0 4px var(--rg,transparent))}
+.slot.ghost{color:#4a4034}.slot.ghost svg{opacity:.55;filter:none}
+.slot.lift{transform:rotate(-7deg) scale(1.12);border-color:var(--rc);box-shadow:0 0 0 1px var(--rc),0 0 26px var(--rg),0 22px 34px rgba(0,0,0,.85)}
+.slot.ok{border-color:#73e281;background:radial-gradient(circle,rgba(115,226,129,.28),transparent 75%),#0f1a10;box-shadow:0 0 0 2px #73e281,0 0 22px rgba(115,226,129,.55)}
+.slot.bad{border-color:#ef5a55;background:radial-gradient(circle,rgba(239,90,85,.28),transparent 75%),#1d0d0c;box-shadow:0 0 0 2px #ef5a55,0 0 22px rgba(239,90,85,.5);color:#ef5a55}
+.slot.origin{border:1px dashed #8a7a5a;background:rgba(0,0,0,.25);box-shadow:none}
+.qty{position:absolute;right:4px;bottom:2px;font:700 13px/1 'Alegreya Sans',sans-serif;color:#f6eedd;text-shadow:0 0 3px #000,0 0 2px #000}
+.attm{position:absolute;left:4px;top:4px;width:8px;height:8px;transform:rotate(45deg);background:#e9c56a;box-shadow:0 0 0 1px #2a1d06,0 0 5px rgba(233,197,106,.8)}
+.panel{position:relative;box-sizing:border-box;background:linear-gradient(180deg,#16120e 0%,#0f0c0a 55%,#0c0a08 100%);border:1px solid #5e4c2c;box-shadow:inset 0 0 0 3px #0b0907,inset 0 0 0 4px #33291a,0 14px 40px rgba(0,0,0,.7)}
+.cn{position:absolute;width:30px;height:30px;fill:none;stroke:#b89a55;stroke-width:1.2;pointer-events:none}
+.cn.tl{left:-3px;top:-3px}.cn.tr{right:-3px;top:-3px;transform:scaleX(-1)}.cn.bl{left:-3px;bottom:-3px;transform:scaleY(-1)}.cn.br{right:-3px;bottom:-3px;transform:scale(-1,-1)}
+.cap{font:600 12px 'Alegreya Sans',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8f846f}
+.h{margin:0;font-family:'Cinzel',serif;font-weight:600;letter-spacing:.04em;color:#eedcb0}
+.s{font:14px 'Alegreya Sans',sans-serif;color:#b9ab90}
+.btn{height:42px;padding:0 20px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:21px;font:600 14px 'Cinzel',serif;letter-spacing:.05em;cursor:pointer}
+.btn.pri{color:#1a1206;background:linear-gradient(180deg,#f0d38a,#c49a45);border:1px solid #f6e2a8}
+.btn.sec{color:#d8ccb3;background:#0f0c0a;border:1px solid #5e4c2c}
+.btn.dan{color:#fff1ef;background:linear-gradient(180deg,#b8342f,#7d1f1b);border:1px solid #ef7a72}
+.tab{height:42px;padding:0 18px 0 5px;display:inline-flex;align-items:center;gap:10px;border-radius:21px;font:600 13.5px 'Cinzel',serif;letter-spacing:.04em}
+.tab i{width:32px;height:32px;border-radius:50%;display:block}
+.chip{height:32px;padding:0 12px;display:inline-flex;align-items:center;border:1px solid #3e321f;border-radius:16px;background:#0e0b09;color:#c9b88f;font:500 14px 'Alegreya Sans',sans-serif}
+.chip.on{border-color:#b89a55;color:#f1dfb0;background:#1d1710}
+</style>
+</helmet>
+<div style="position: relative; width: 1920px; height: 1080px; overflow: hidden; box-sizing: border-box; padding: 44px 40px 40px; display: flex; flex-direction: column; gap: 24px; font-family: 'Alegreya', Georgia, serif; color: #e8dfcc; background: radial-gradient(ellipse 80% 70% at 50% 40%, #19140f 0%, #0b0907 65%, #050404 100%)">
+  <header style="display: flex; align-items: baseline; gap: 18px">
+    <h1 class="h" style="font-size: 30px">Sistema visual</h1>
+    <span class="s" style="font-size: 15px; color: #9d917b">Tokens, ranuras, marcos y estados compartidos por todas las pantallas</span>
+  </header>
+  <div style="flex: 1; display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 24px; min-height: 0">
+
+    <div style="display: flex; flex-direction: column; gap: 24px">
+      <section class="panel" style="padding: 22px; display: flex; flex-direction: column; gap: 16px">
+        <span class="cap">Rareza · borde, brillo y color del nombre</span>
+        <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px">
+          <sc-for list="{{rar}}" as="r" hint-placeholder-count="6">
+            <div class="{{r.cls}}" style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+              <div class="slot has hov"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{r.d}}"></path></svg></div>
+              <span style="font: 600 14px 'Cinzel', serif; color: var(--rc); text-align: center">{{r.t}}</span>
+              <span class="s" style="font-size: 12px; color: #8f846f">{{r.hex}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      <section class="panel" style="padding: 22px; display: flex; flex-direction: column; gap: 16px">
+        <span class="cap">Estados de ranura</span>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 18px; column-gap: 10px">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><div class="slot"></div><span class="s">Vacía</span></div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><div class="slot ghost"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15a7 7 0 0 1 14 0v4H5zM12 8V4M9.5 19v-4h5v4"></path></svg></div><span class="s">Equipo libre</span></div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><div class="slot has r-r"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3h4M10.5 3v5L6 15a4.2 4.2 0 0 0 3.6 6h4.8a4.2 4.2 0 0 0 3.6-6l-4.5-7V3M7 14.5h10"></path></svg><span class="qty">3</span></div><span class="s">Con pila</span></div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><div class="slot has r-m hov"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4l-1.5 5.5L9 19l-4-4 9.5-9.5zM6 14l4 4M4.5 19.5L3 21M7.5 16.5L5 19"></path></svg><span class="attm"></span></div><span class="s">Hover · sintoniz.</span></div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><div class="slot has r-m lift" style="margin-bottom: 10px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16l3-8 6-3 6 4 1 7-6 4-8-1zM7 8l6 4 7-3M13 12l1 8M4 16l9-4"></path></svg><span class="qty">3</span></div><span class="s">Arrastrando</span></div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><div class="slot origin"></div><span class="s">Origen</span></div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><div class="slot ok"></div><span class="s">Destino válido</span></div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><div class="slot bad"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 22px; height: 22px"><path d="M6 6l12 12M18 6L6 18"></path></svg></div><span class="s">No válido</span></div>
+        </div>
+      </section>
+      <section class="panel" style="flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+        <span class="cap">Microinteracciones</span>
+        <ul class="s" style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.4; color: #cfc3aa">
+          <li>Hover: borde y halo del color de rareza, sube 1 px · 160 ms ease.</li>
+          <li>Levantar al arrastrar: escala 1,12, giro −7°, sombra larga; el hueco de origen queda punteado.</li>
+          <li>Durante el arrastre todas las columnas muestran si aceptan el objeto (verde) o no (rojo, con motivo).</li>
+          <li>Tooltip: aparece a los 250 ms con fundido y subida de 8 px.</li>
+          <li>Comer: la barra de saciedad se rellena en 600 ms con destello del color del nuevo estado.</li>
+        </ul>
+      </section>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 24px">
+      <section class="panel" style="padding: 22px; display: flex; flex-direction: column; gap: 14px">
+        <span class="cap">Color base</span>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+          <sc-for list="{{base}}" as="b" hint-placeholder-count="8">
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <div style="height: 44px; border: 1px solid #3e321f; background: {{b.hex}}"></div>
+              <span class="s" style="font-size: 13px; color: #e3d9c4">{{b.t}}</span>
+              <span class="s" style="font-size: 12px; color: #8f846f">{{b.hex}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      <section class="panel" style="padding: 22px; display: flex; flex-direction: column; gap: 12px">
+        <span class="cap">Tipografía</span>
+        <span style="font-family: 'Cinzel', serif; font-size: 30px; font-weight: 600; color: #eedcb0; letter-spacing: .05em">Cinzel · Títulos</span>
+        <span class="s" style="font-size: 13px">Grabado, dorado. Nombres de personaje, de objeto y cifras de CA.</span>
+        <span style="font-family: 'Alegreya', serif; font-size: 20px; color: #e8dfcc">Alegreya · descripciones y rasgos</span>
+        <span style="font-family: 'Alegreya Sans', sans-serif; font-size: 18px; color: #e8dfcc">Alegreya Sans · datos 1d8+5 · 38,0 kg · 2.400 PO</span>
+        <div style="display: flex; align-items: center; gap: 22px; padding-top: 6px">
+          <div style="position: relative; width: 76px; height: 84px; display: flex; flex-direction: column; align-items: center; justify-content: center">
+            <svg viewBox="0 0 76 84" width="76" height="84" aria-hidden="true" style="position: absolute; inset: 0"><path d="M38 3l32 10v26c0 20-14 34-32 42C20 73 6 59 6 39V13z" fill="#0f0c0a" stroke="#b89a55" stroke-width="1.5"></path><path d="M38 9l26 8v22c0 16-11 28-26 35C23 67 12 55 12 39V17z" fill="none" stroke="#4d3e25"></path><path d="M30 6l8-5 8 5" fill="none" stroke="#e2c27a" stroke-width="1.2"></path></svg>
+            <span style="position: relative; font: 600 12px 'Cinzel', serif; color: #b9ab90; letter-spacing: .1em">CA</span>
+            <span style="position: relative; font: 700 30px/1 'Cinzel', serif; color: #f2e6c8">19</span>
+          </div>
+          <div style="position: relative; width: 76px; height: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center">
+            <svg viewBox="0 0 76 76" width="76" height="76" aria-hidden="true" style="position: absolute; inset: 0"><circle cx="38" cy="38" r="34" fill="#140b0a" stroke="#b89a55" stroke-width="1.5"></circle><circle cx="38" cy="38" r="28" fill="none" stroke="#5a2321" stroke-width="4"></circle><path d="M38 10a28 28 0 1 1-24.2 42" fill="none" stroke="#c8403a" stroke-width="4"></path></svg>
+            <span style="position: relative; font: 600 11px 'Cinzel', serif; color: #b9ab90; letter-spacing: .1em">PV</span>
+            <span style="position: relative; font: 700 22px/1 'Cinzel', serif; color: #f2e6c8">44</span>
+          </div>
+          <span class="s" style="font-size: 13px">Emblemas: escudo para CA, anillo de progreso para PV.</span>
+        </div>
+      </section>
+      <section class="panel" style="flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+        <span class="cap">Botones, pestañas y filtros</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px">
+          <button type="button" class="btn pri">Craftear</button>
+          <button type="button" class="btn sec">Cancelar</button>
+          <button type="button" class="btn dan">Eliminar</button>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px">
+          <span class="tab" style="color: #f6ead0; background: linear-gradient(180deg, #1f5560, #113139); border: 1px solid #c8a85e; box-shadow: 0 0 18px rgba(64,170,190,.28)"><i style="background: #0c2328; border: 1px solid #c8a85e"></i>Pestaña activa</span>
+          <span class="tab" style="color: #c9b88f; background: linear-gradient(180deg, #1a1611, #0f0c0a); border: 1px solid #574628"><i style="background: #0d0b09; border: 1px solid #4d3e25"></i>Inactiva</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <span class="chip on">Todo</span><span class="chip">Armas</span><span class="chip">Pociones</span><span class="chip">Materiales</span>
+        </div>
+      </section>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 24px">
+      <section class="panel" style="padding: 22px; display: flex; flex-direction: column; gap: 14px">
+        <span class="cap">Saciedad</span>
+        <sc-for list="{{sat}}" as="s" hint-placeholder-count="4">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <span style="width: 34px; height: 34px; flex: none; display: flex; align-items: center; justify-content: center; border: 1px solid {{s.c}}; border-radius: 50%; background: #0e0b09; color: {{s.c}}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round"><path d="{{s.d}}"></path></svg></span>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; justify-content: space-between"><span style="font: 600 15px 'Cinzel', serif; color: {{s.c}}">{{s.t}}</span><span class="s" style="font-size: 13px">{{s.r}}</span></div>
+              <div style="height: 8px; background: #120f0c; border: 1px solid #3a2f1d"><div style="height: 8px; width: {{s.w}}; background: {{s.c}}"></div></div>
+              <span class="s" style="font-size: 13px; color: #9d917b">{{s.e}}</span>
+            </div>
+          </div>
+        </sc-for>
+      </section>
+      <section class="panel" style="padding: 22px; display: flex; flex-direction: column; gap: 12px">
+        <span class="cap">Carga · tramos</span>
+        <div style="display: flex; height: 12px; gap: 2px">
+          <div style="flex: 1; background: #c9a65a"></div><div style="flex: 1; background: #e0883a"></div><div style="flex: 1; background: #d64541"></div>
+        </div>
+        <div class="s" style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #c9a65a">Normal ≤ ⅓</span><span style="color: #e0883a">Cargado ≤ ⅔</span><span style="color: #e0534d">Sobrecargado</span></div>
+        <span class="s" style="font-size: 13px; color: #9d917b">Máximo = FUE × 15 lb (≈ FUE × 6,8 kg), regla variante de carga del Manual del Jugador.</span>
+      </section>
+      <section class="panel" style="flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+        <span class="cap">Monedas</span>
+        <div style="display: flex; justify-content: space-between">
+          <sc-for list="{{coins}}" as="m" hint-placeholder-count="5">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+              <span style="{{m.style}}">{{m.k}}</span>
+              <span class="s" style="font-size: 13px; color: #e3d9c4">{{m.t}}</span>
+              <span class="s" style="font-size: 12px; color: #8f846f">{{m.eq}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const rar = [
+      { cls: 'r-c', t: 'Común', hex: '#CFC8BA', d: 'M8 8V6a4 4 0 0 1 8 0v2M5 8h14l-1.2 13H6.2zM9 12h6' },
+      { cls: 'r-u', t: 'Poco común', hex: '#5FCF6D', d: 'M10 3h4M10.5 3v5L6 15a4.2 4.2 0 0 0 3.6 6h4.8a4.2 4.2 0 0 0 3.6-6l-4.5-7V3M7 14.5h10' },
+      { cls: 'r-r', t: 'Raro', hex: '#55A3FF', d: 'M12 21a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM9.5 5.5L12 3l2.5 2.5L12 8z' },
+      { cls: 'r-m', t: 'Muy raro', hex: '#B874FF', d: 'M20 4l-1.5 5.5L9 19l-4-4 9.5-9.5zM6 14l4 4M4.5 19.5L3 21M7.5 16.5L5 19' },
+      { cls: 'r-l', t: 'Legendario', hex: '#F5A93C', d: 'M5 15a7 7 0 0 1 14 0v4H5zM12 8V4M9.5 19v-4h5v4' },
+      { cls: 'r-a', t: 'Artefacto', hex: '#EC4652', d: 'M5 5.5A1.5 1.5 0 0 1 6.5 4H19v13H6.5A1.5 1.5 0 0 0 5 18.5zM5 18.5A1.5 1.5 0 0 0 6.5 20H19v-3M12 7.5l1.2 2 2.3.3-1.7 1.6.4 2.3-2.2-1.1-2.2 1.1.4-2.3-1.7-1.6 2.3-.3z' }
+    ];
+    const base = [
+      { t: 'Fondo', hex: '#0D0B09' }, { t: 'Panel', hex: '#16120E' }, { t: 'Borde', hex: '#5E4C2C' }, { t: 'Oro', hex: '#B89A55' },
+      { t: 'Oro claro', hex: '#E2C27A' }, { t: 'Texto', hex: '#E8DFCC' }, { t: 'Texto 2', hex: '#B9AB90' }, { t: 'Acento activo', hex: '#1F5560' }
+    ];
+    const bowl = 'M3 11h18a9 9 0 0 1-18 0zM9 8V4M12 8V3M15 8V4';
+    const sat = [
+      { t: 'Saciado', c: '#9cc95e', w: '90%', r: '75–100', e: 'Ventaja en salvaciones contra agotamiento', d: 'M5 12.5l4.5 4.5L19 7' },
+      { t: 'Normal', c: '#c9a65a', w: '55%', r: '40–74', e: 'Sin efectos', d: bowl },
+      { t: 'Hambriento', c: '#e0883a', w: '28%', r: '15–39', e: 'No recupera dados de golpe en descanso corto', d: bowl },
+      { t: 'Famélico', c: '#e0534d', w: '8%', r: '0–14', e: 'Gana 1 nivel de agotamiento cada día', d: 'M12 3l10 18H2zM12 10v5M12 18v.01' }
+    ];
+    const coin = (bg, fg) => 'width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:700 12px Alegreya Sans,sans-serif;color:' + fg + ';background:radial-gradient(circle at 35% 30%,#fff8 0,transparent 45%),' + bg + ';box-shadow:inset 0 0 0 2px rgba(0,0,0,.35),0 0 0 1px #000';
+    const coins = [
+      { k: 'PC', t: 'Cobre', eq: '1/100 PO', style: coin('#b06d43', '#24120a') },
+      { k: 'PP', t: 'Plata', eq: '1/10 PO', style: coin('#a9adb3', '#1c1e21') },
+      { k: 'PE', t: 'Electro', eq: '1/2 PO', style: coin('#bcb67a', '#24210c') },
+      { k: 'PO', t: 'Oro', eq: '1 PO', style: coin('#d9a83c', '#2b1d05') },
+      { k: 'PPT', t: 'Platino', eq: '10 PO', style: coin('#c9d3dc', '#1d252c') }
+    ];
+    return { rar, base, sat, coins };
+  }
+}
+</script>
+</body>
+</html>

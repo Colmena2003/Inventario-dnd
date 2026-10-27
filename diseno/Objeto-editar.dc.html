@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Añadir o editar objeto</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+body{margin:0;background:#060504}
+.r-c{--rc:#cfc8ba;--rg:rgba(207,200,186,.16)}
+.r-u{--rc:#5fcf6d;--rg:rgba(95,207,109,.22)}
+.r-r{--rc:#55a3ff;--rg:rgba(85,163,255,.25)}
+.r-m{--rc:#b874ff;--rg:rgba(184,116,255,.28)}
+.r-l{--rc:#f5a93c;--rg:rgba(245,169,60,.3)}
+.r-a{--rc:#ec4652;--rg:rgba(236,70,82,.32)}
+.slot{position:relative;width:44px;height:44px;padding:0;box-sizing:border-box;border:1px solid #2b241b;border-radius:2px;background:radial-gradient(circle at 50% 42%,var(--rg,transparent) 0,transparent 72%),linear-gradient(180deg,#18140f 0%,#0d0b09 100%);box-shadow:inset 0 1px 0 rgba(255,232,180,.05),inset 0 -3px 6px rgba(0,0,0,.65),0 0 0 1px #070605;display:flex;align-items:center;justify-content:center;color:var(--rc,#8a7a5a);cursor:pointer}
+.slot.has{border-color:color-mix(in srgb,var(--rc) 62%,#120e0a)}
+.slot.hov{border-color:var(--rc);box-shadow:0 0 0 1px var(--rc),0 0 18px var(--rg),inset 0 0 12px var(--rg)}
+.slot svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px var(--rg,transparent))}
+.slot.pick{border-color:#e2c27a;box-shadow:0 0 0 2px #e2c27a}
+.attm{position:absolute;left:3px;top:3px;width:7px;height:7px;transform:rotate(45deg);background:#e9c56a;box-shadow:0 0 0 1px #2a1d06,0 0 5px rgba(233,197,106,.8)}
+.qty{position:absolute;right:3px;bottom:1px;font:700 12px/1 'Alegreya Sans',sans-serif;color:#f6eedd;text-shadow:0 0 3px #000}
+.panel{position:relative;box-sizing:border-box;background:linear-gradient(180deg,#16120e 0%,#0f0c0a 55%,#0c0a08 100%);border:1px solid #5e4c2c;box-shadow:inset 0 0 0 3px #0b0907,inset 0 0 0 4px #33291a,0 14px 40px rgba(0,0,0,.7)}
+.cn{position:absolute;width:30px;height:30px;fill:none;stroke:#b89a55;stroke-width:1.2;pointer-events:none}
+.cn.tl{left:-3px;top:-3px}.cn.tr{right:-3px;top:-3px;transform:scaleX(-1)}.cn.bl{left:-3px;bottom:-3px;transform:scaleY(-1)}.cn.br{right:-3px;bottom:-3px;transform:scale(-1,-1)}
+.f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.f>span,.lab{font:600 12px 'Alegreya Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#a99d86}
+.inp{height:40px;box-sizing:border-box;padding:0 12px;border:1px solid #4d3e25;border-radius:3px;background:#0b0907;color:#ece4d2;font:15px 'Alegreya Sans',sans-serif;outline:none;width:100%}
+.inp:focus{border-color:#e2c27a;box-shadow:0 0 0 2px rgba(226,194,122,.2)}
+textarea.inp{height:auto;padding:10px 12px;line-height:1.4;resize:none;font-family:'Alegreya',serif}
+.seg{height:36px;padding:0 12px;border:1px solid #3e321f;border-radius:18px;background:#0e0b09;font:600 13px 'Alegreya Sans',sans-serif;color:var(--rc);cursor:pointer}
+.seg.on{border-color:var(--rc);background:var(--rg);box-shadow:0 0 12px var(--rg)}
+.own{height:36px;padding:0 14px;display:flex;align-items:center;gap:8px;border:1px solid #3e321f;border-radius:18px;background:#0e0b09;color:#d8ccb3;font:500 14px 'Alegreya Sans',sans-serif;cursor:pointer}
+.own.on{border-color:#e2c27a;color:#f6e7c2;background:#1d1710}
+.btn{height:44px;padding:0 24px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:22px;font:600 14px 'Cinzel',serif;letter-spacing:.05em;cursor:pointer}
+.btn.pri{color:#1a1206;background:linear-gradient(180deg,#f0d38a,#c49a45);border:1px solid #f6e2a8}
+.btn.sec{color:#d8ccb3;background:#0f0c0a;border:1px solid #5e4c2c}
+.sec{display:flex;align-items:center;gap:12px;font:600 14px 'Cinzel',serif;letter-spacing:.06em;color:#d8c38f}
+.sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#4d3e25,transparent)}
+</style>
+</helmet>
+<div style="position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: 'Alegreya', Georgia, serif; color: #e8dfcc; background: radial-gradient(ellipse 75% 70% at 50% 45%, #15110d 0%, #080706 70%)">
+  <div style="position: absolute; left: 0; top: 0; opacity: .5"><dc-import name="Topbar" active="individual" hint-size="1920px,72px"></dc-import></div>
+
+  <section role="dialog" aria-modal="true" aria-labelledby="ed-t" class="panel" style="position: absolute; left: 160px; top: 100px; width: 1600px; height: 940px; padding: 26px 32px 24px; display: flex; flex-direction: column; gap: 18px; background: linear-gradient(180deg, #1a1511 0%, #0f0c0a 100%)">
+    <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn bl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn br" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <header style="display: flex; align-items: center; gap: 16px">
+      <h2 id="ed-t" style="margin: 0; flex: 1; font-family: 'Cinzel', serif; font-size: 26px; font-weight: 600; letter-spacing: .05em; color: #eedcb0">Editar objeto</h2>
+      <span style="font: 14px 'Alegreya Sans', sans-serif; color: #9d917b">Creado por Nerys · editado hace 2 días</span>
+      <button type="button" aria-label="Cerrar" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid #4d3e25; border-radius: 50%; background: #0d0b09; color: #c9b88f; cursor: pointer"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </header>
+
+    <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 440px; gap: 32px">
+      <form style="display: flex; flex-direction: column; gap: 14px; min-width: 0">
+        <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px">
+          <label class="f"><span>Nombre</span><input class="inp" value="Brazales de la Marea Gris"></label>
+          <label class="f"><span>Categoría</span><select class="inp"><option>Armaduras</option><option>Armas</option><option>Pociones</option><option>Pergaminos</option><option>Materiales</option><option>Comida</option><option>Llaves/misión</option><option>Varios</option></select></label>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 16px">
+          <div class="f">
+            <span class="lab">Imagen del objeto</span>
+            <button type="button" style="height: 104px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px dashed #6b5631; background: rgba(184,154,85,.05); color: #c9b88f; font: 14px 'Alegreya Sans', sans-serif; cursor: pointer">
+              <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"></path></svg>
+              Subir imagen
+              <span style="font-size: 12px; color: #8f846f">PNG cuadrado, 256 px</span>
+            </button>
+          </div>
+          <div class="f">
+            <span class="lab">O icono por defecto de la categoría</span>
+            <div role="radiogroup" aria-label="Icono por defecto" style="display: grid; grid-template-columns: repeat(8, 44px); gap: 10px">
+              <sc-for list="{{icons}}" as="i" hint-placeholder-count="16">
+                <button type="button" role="radio" aria-checked="{{i.on}}" aria-label="{{i.n}}" class="{{i.cls}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.d}}"></path></svg></button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div class="f">
+          <span class="lab">Rareza</span>
+          <div role="radiogroup" aria-label="Rareza" style="display: flex; gap: 8px">
+            <button type="button" role="radio" aria-checked="false" class="seg r-c">Común</button>
+            <button type="button" role="radio" aria-checked="false" class="seg r-u">Poco común</button>
+            <button type="button" role="radio" aria-checked="true" class="seg on r-r">Raro</button>
+            <button type="button" role="radio" aria-checked="false" class="seg r-m">Muy raro</button>
+            <button type="button" role="radio" aria-checked="false" class="seg r-l">Legendario</button>
+            <button type="button" role="radio" aria-checked="false" class="seg r-a">Artefacto</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; align-items: end">
+          <label class="f"><span>Cantidad</span><input class="inp" type="number" value="1" min="1"></label>
+          <label class="f"><span>Peso (kg)</span><input class="inp" value="0,5"></label>
+          <label class="f"><span>Valor (PO)</span><input class="inp" value="750"></label>
+          <label class="f"><span>Ranura de equipo</span><select class="inp"><option>Guantes</option><option>Ninguna</option><option>Cabeza</option><option>Capa</option><option>Armadura</option><option>Botas</option><option>Amuleto</option><option>Anillo</option><option>Cuerpo a cuerpo</option><option>A distancia</option></select></label>
+          <label style="height: 40px; display: flex; align-items: center; gap: 10px; cursor: pointer">
+            <input type="checkbox" checked style="width: 20px; height: 20px; accent-color: #d9b05a">
+            <span style="font: 15px 'Alegreya Sans', sans-serif; color: #ecd593">Requiere sintonización</span>
+          </label>
+        </div>
+
+        <h3 class="sec" style="margin: 4px 0 0">Propiedades</h3>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+          <label class="f"><span>Daño</span><input class="inp" placeholder="p. ej. 1d8 cortante"></label>
+          <label class="f"><span>Bono a CA</span><input class="inp" value="+1"></label>
+          <label class="f"><span>Cargas / usos</span><input class="inp" value="3"></label>
+          <label class="f"><span>Recarga</span><select class="inp"><option>Al amanecer</option><option>Descanso corto</option><option>Descanso largo</option><option>No recarga</option></select></label>
+        </div>
+        <label class="f"><span>Efectos</span><textarea class="inp" rows="2">Gasta 1 carga como reacción al recibir daño contundente para reducirlo a la mitad. Respiras bajo el agua mientras los llevas.</textarea></label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px">
+          <label class="f"><span>Descripción</span><textarea class="inp" rows="3">Placas de acero cubiertas de percebes petrificados. Al tocarlos se oye un oleaje lejano.</textarea></label>
+          <label class="f"><span>Notas de la party</span><textarea class="inp" rows="3">Encontrados en el naufragio de la Gaviota Negra. Brom cree que se pueden vender en Puerto Ceniza.</textarea></label>
+        </div>
+
+        <div class="f">
+          <span class="lab">Propietario</span>
+          <div role="radiogroup" aria-label="Propietario" style="display: flex; flex-wrap: wrap; gap: 8px">
+            <button type="button" role="radio" aria-checked="true" class="own on"><span style="width: 10px; height: 10px; border-radius: 50%; background: #6f8fb8"></span>Aldric</button>
+            <button type="button" role="radio" aria-checked="false" class="own"><span style="width: 10px; height: 10px; border-radius: 50%; background: #9a78d0"></span>Nerys</button>
+            <button type="button" role="radio" aria-checked="false" class="own"><span style="width: 10px; height: 10px; border-radius: 50%; background: #c08e4f"></span>Brom</button>
+            <button type="button" role="radio" aria-checked="false" class="own"><span style="width: 10px; height: 10px; border-radius: 50%; background: #4fa07f"></span>Ysolde</button>
+            <button type="button" role="radio" aria-checked="false" class="own"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="fill: none; stroke: #e2c27a; stroke-width: 1.6"><path d="M3 11h18v9H3zM3 11a9 6 0 0 1 18 0M10.5 13h3v3.5h-3z"></path></svg>Alijo de la party</button>
+          </div>
+        </div>
+      </form>
+
+      <aside aria-label="Vista previa" style="display: flex; flex-direction: column; gap: 16px; padding-left: 32px; border-left: 1px solid #2c2419">
+        <h3 class="sec" style="margin: 0">Vista previa</h3>
+        <div style="display: flex; align-items: flex-end; gap: 22px; padding: 16px; background: rgba(0,0,0,.3); border: 1px solid #2c2419">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><div class="slot has r-r"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{g}}"></path></svg><span class="attm"></span></div><span style="font: 12px 'Alegreya Sans', sans-serif; color: #9d917b">Inventario</span></div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><div class="slot has r-r hov"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{g}}"></path></svg><span class="attm"></span></div><span style="font: 12px 'Alegreya Sans', sans-serif; color: #9d917b">Hover</span></div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><div class="slot has r-r" style="width: 56px; height: 56px"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 34px; height: 34px"><path d="{{g}}"></path></svg><span class="attm"></span></div><span style="font: 12px 'Alegreya Sans', sans-serif; color: #9d917b">Equipado</span></div>
+        </div>
+        <div class="panel" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; border-color: #3e6aa0; box-shadow: inset 0 0 0 3px #0b0907, inset 0 0 0 4px #1f3550, 0 18px 40px rgba(0,0,0,.8)">
+          <div style="display: flex; gap: 14px; align-items: center">
+            <div class="slot has r-r hov" style="width: 60px; height: 60px; flex: none"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 38px; height: 38px"><path d="{{g}}"></path></svg><span class="attm"></span></div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <span style="font: 700 19px/1.15 'Cinzel', serif; color: #6fb2ff">Brazales de la Marea Gris</span>
+              <span style="font: 14px 'Alegreya Sans', sans-serif; color: #b9ab90">Guantes · <span style="color: #6fb2ff">Raro</span></span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 10px"><span style="font: 700 26px 'Cinzel', serif; color: #f2e6c8">+1</span><span style="font: 15px 'Alegreya Sans', sans-serif; color: #cfc3aa">Clase de armadura</span></div>
+          <p style="margin: 0; font-size: 15px; line-height: 1.45; color: #ddd3c0">Gasta 1 carga como reacción al recibir daño contundente para reducirlo a la mitad. Respiras bajo el agua mientras los llevas.</p>
+          <div style="display: flex; justify-content: space-between; font: 14px 'Alegreya Sans', sans-serif"><span style="color: #b9ab90">Cargas</span><span style="color: #e8dfcc">3/3 · al amanecer</span></div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: rgba(233,197,106,.07); border: 1px solid #4d3e25; font: 14px 'Alegreya Sans', sans-serif; color: #ecd593"><span style="width: 8px; height: 8px; transform: rotate(45deg); background: #e9c56a"></span>Requiere sintonización</div>
+          <p style="margin: 0; font-style: italic; font-size: 14px; color: #a99d86">Placas de acero cubiertas de percebes petrificados. Al tocarlos se oye un oleaje lejano.</p>
+          <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid #2c2419; font: 14px 'Alegreya Sans', sans-serif; color: #b9ab90"><span>Lo tiene <b style="color: #e8dfcc">Aldric Varn</b></span><span style="display: flex; gap: 14px"><span>0,5 kg</span><span style="color: #e8c46c">750 PO</span></span></div>
+        </div>
+      </aside>
+    </div>
+
+    <footer style="display: flex; align-items: center; gap: 12px; padding-top: 16px; border-top: 1px solid #2c2419">
+      <button type="button" class="btn sec" style="color: #ef8a84; border-color: #5a2321">Eliminar objeto</button>
+      <span style="flex: 1"></span>
+      <button type="button" class="btn sec">Cancelar</button>
+      <button type="button" class="btn pri">Guardar cambios</button>
+    </footer>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const g = 'M8 21v-5l-2.5-5V6.5a1 1 0 0 1 2 0V10V4.5a1 1 0 0 1 2 0V10V4a1 1 0 0 1 2 0v6V5a1 1 0 0 1 2 0v8l1.8-1.8a1.2 1.2 0 0 1 1.9 1.5L15 17.5V21z';
+    const list = [
+      ['Guantes', g],
+      ['Yelmo', 'M5 15a7 7 0 0 1 14 0v4H5zM12 8V4M9.5 19v-4h5v4'],
+      ['Armadura', 'M8 4h8l3.5 3-2.5 4v9H7v-9L4.5 7zM9 4a3 3 0 0 0 6 0M12 7v13M7 13h10'],
+      ['Capa', 'M9 4h6l1.5 3L20 20H4L7.5 7zM9 4l3 4 3-4M12 8v12'],
+      ['Botas', 'M7 3h5v10l5.5 2.5A3 3 0 0 1 19.5 18.5V21H6v-4.5zM6 17h13.5'],
+      ['Escudo', 'M12 3l7 2.5V12c0 4.2-3 7.3-7 9-4-1.7-7-4.8-7-9V5.5zM12 3v18M5 11h14'],
+      ['Amuleto', 'M6 3c0 5.5 2.7 8.5 6 8.5S18 8.5 18 3M12 11.5l3 4-3 5-3-5z'],
+      ['Anillo', 'M12 21a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM9.5 5.5L12 3l2.5 2.5L12 8z'],
+      ['Espada', 'M20 4l-1.5 5.5L9 19l-4-4 9.5-9.5zM6 14l4 4M4.5 19.5L3 21M7.5 16.5L5 19'],
+      ['Arco', 'M5 3c9 1 15 7 16 16M5 3l16 16M5 3v4M5 3h4M3 21l7-7'],
+      ['Poción', 'M10 3h4M10.5 3v5L6 15a4.2 4.2 0 0 0 3.6 6h4.8a4.2 4.2 0 0 0 3.6-6l-4.5-7V3M7 14.5h10'],
+      ['Pergamino', 'M7 4h11a2 2 0 0 1 0 4h-1v10a2 2 0 0 1-2 2H5a2 2 0 0 1 0-4h2zM18 8H7M10 11h4M10 14h4'],
+      ['Gema', 'M7 4h10l4 5-9 11L3 9zM3 9h18M9 4l3 5 3-5M12 9v11'],
+      ['Llave', 'M8 20a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 13l9-9M17 7l2 2M14.5 9.5l2 2'],
+      ['Comida', 'M4 13c0-4 3.6-7 8-7s8 3 8 7v5H4zM8.5 9.5l1 2.5M12 8.5v3M15.5 9.5l-1 2.5'],
+      ['Saco', 'M8 8V6a4 4 0 0 1 8 0v2M5 8h14l-1.2 13H6.2zM9 12h6']
+    ];
+    const icons = list.map((x, i) => ({ n: x[0], d: x[1], on: i === 0 ? 'true' : 'false', cls: i === 0 ? 'slot has r-r pick' : 'slot' }));
+    return { icons, g };
+  }
+}
+</script>
+</body>
+</html>

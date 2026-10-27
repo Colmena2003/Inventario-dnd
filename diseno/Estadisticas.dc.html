@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Estadísticas de la party</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+body{margin:0;background:#060504}
+.panel{position:relative;box-sizing:border-box;background:linear-gradient(180deg,#16120e 0%,#0f0c0a 55%,#0c0a08 100%);border:1px solid #5e4c2c;box-shadow:inset 0 0 0 3px #0b0907,inset 0 0 0 4px #33291a,0 14px 40px rgba(0,0,0,.7)}
+.cn{position:absolute;width:30px;height:30px;fill:none;stroke:#b89a55;stroke-width:1.2;pointer-events:none}
+.cn.tl{left:-3px;top:-3px}.cn.tr{right:-3px;top:-3px;transform:scaleX(-1)}.cn.bl{left:-3px;bottom:-3px;transform:scaleY(-1)}.cn.br{right:-3px;bottom:-3px;transform:scale(-1,-1)}
+.h{margin:0;font-family:'Cinzel',serif;font-weight:600;letter-spacing:.05em;color:#eedcb0}
+.s{font-family:'Alegreya Sans',sans-serif;color:#b9ab90}
+.k{font:600 11px 'Alegreya Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#a99d86}
+.sec{display:flex;align-items:center;gap:10px;margin:0;font:600 13px 'Cinzel',serif;letter-spacing:.06em;color:#d8c38f}
+.sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#4d3e25,transparent)}
+.leg{display:flex;align-items:center;gap:10px;height:52px;padding:0 10px 0 6px;white-space:nowrap;border:1px solid #3e321f;background:#0e0b09;cursor:pointer;font:600 13px 'Cinzel',serif;color:#e3d9c4;text-align:left}
+.leg.off{opacity:.4}
+</style>
+</helmet>
+<div style="position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: 'Alegreya', Georgia, serif; color: #e8dfcc; background: radial-gradient(ellipse 75% 70% at 55% 45%, #1b1611 0%, #0d0b09 58%, #050404 100%)">
+  <div style="position: absolute; left: 0; top: 0"><dc-import name="Topbar" active="estadisticas" hint-size="1920px,72px"></dc-import></div>
+  <div style="position: absolute; left: 0; top: 72px"><dc-import name="Retratos" active="-1" hint-size="104px,1008px"></dc-import></div>
+
+  <div style="position: absolute; left: 124px; top: 90px; width: 1772px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+    <sc-for list="{{chars}}" as="c" hint-placeholder-count="4">
+      <article class="panel" aria-label="{{c.name}}" style="height: 520px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+        <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+        <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+        <header style="display: flex; align-items: center; gap: 12px">
+          <span style="{{c.portrait}}">{{c.ini}}</span>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+            <h2 class="h" style="font-size: 18px">{{c.name}}</h2>
+            <span class="s" style="font-size: 13px">{{c.sub}}</span>
+          </div>
+          <div style="position: relative; width: 50px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center">
+            <svg viewBox="0 0 76 84" width="50" height="56" aria-hidden="true" style="position: absolute; inset: 0"><path d="M38 3l32 10v26c0 20-14 34-32 42C20 73 6 59 6 39V13z" fill="#0f0c0a" stroke="#b89a55" stroke-width="2"></path></svg>
+            <span style="position: relative; font: 600 9px 'Cinzel', serif; color: #b9ab90">CA</span>
+            <span style="position: relative; font: 700 20px/1 'Cinzel', serif; color: #f2e6c8">{{c.ac}}</span>
+          </div>
+        </header>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="display: flex; justify-content: space-between" class="s"><span class="k">PV</span><span style="font-size: 14px; color: #ece4d2"><b>{{c.hp}}</b> / {{c.hpm}}</span></div>
+          <div style="height: 8px; background: #241812; border: 1px solid #3a2a1d"><div style="{{c.hpBar}}"></div></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{c.st}}" as="s" hint-placeholder-count="6">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; border: 1px solid #3a2f1d; background: #0e0b09">
+              <span class="k" style="font-size: 10px; letter-spacing: .08em">{{s.k}}</span>
+              <span style="font: 700 18px/1 'Cinzel', serif; color: #f2e6c8">{{s.v}}</span>
+              <span style="font: 700 12px 'Alegreya Sans', sans-serif; color: {{s.c}}">{{s.m}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <h3 class="sec">Combate</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font: 14px 'Alegreya Sans', sans-serif">
+          <span style="color: #9d917b">Cuerpo a cuerpo</span><span style="color: #ece4d2; text-align: right"><b>{{c.atkM}}</b> · {{c.dmgM}}</span>
+          <span style="color: #9d917b">A distancia</span><span style="color: #ece4d2; text-align: right"><b>{{c.atkR}}</b> · {{c.dmgR}}</span>
+          <span style="color: #9d917b">Resistencias</span><span style="color: #ece4d2; text-align: right">{{c.res}}</span>
+          <span style="color: #9d917b">Condiciones</span><span style="color: {{c.condC}}; text-align: right">{{c.cond}}</span>
+        </div>
+        <h3 class="sec">Inventario</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+          <div style="display: flex; flex-direction: column; gap: 2px"><span class="k">Valor</span><span style="font: 700 17px 'Alegreya Sans', sans-serif; color: #e8c46c">{{c.val}} PO</span></div>
+          <div style="display: flex; flex-direction: column; gap: 2px"><span class="k">Peso</span><span style="font: 700 17px 'Alegreya Sans', sans-serif; color: {{c.wC}}">{{c.w}} kg</span></div>
+          <div style="display: flex; flex-direction: column; gap: 2px"><span class="k">Objetos</span><span style="font: 700 17px 'Alegreya Sans', sans-serif; color: #ece4d2">{{c.count}}</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div aria-hidden="true" style="display: flex; height: 10px; gap: 2px">
+            <sc-for list="{{c.rar}}" as="r" hint-placeholder-count="6"><div style="{{r.bar}}"></div></sc-for>
+          </div>
+          <div style="display: flex; justify-content: space-between; font: 12px 'Alegreya Sans', sans-serif">
+            <sc-for list="{{c.rar}}" as="r" hint-placeholder-count="6"><span style="color: {{r.c}}" title="{{r.t}}">{{r.short}} {{r.n}}</span></sc-for>
+          </div>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+
+  <section class="panel" aria-label="Comparativa de características" style="position: absolute; left: 124px; top: 626px; width: 940px; height: 434px; padding: 18px 22px; display: grid; grid-template-columns: 1fr 230px; gap: 18px">
+    <svg class="cn bl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <h2 class="h" style="font-size: 20px">Comparativa de características</h2>
+      <div style="position: relative; width: 623px; height: 360px">
+      <sc-for list="{{axes}}" as="a" hint-placeholder-count="6">
+        <span style="{{a.pos}}">{{a.k}}</span>
+      </sc-for>
+      <svg viewBox="0 0 640 370" width="623" height="360" style="position: absolute; left: 0; top: 0" role="img" aria-label="Gráfico radar con las seis características de cada personaje">
+        <sc-for list="{{rings}}" as="g" hint-placeholder-count="4">
+          <polygon points="{{g.pts}}" fill="none" stroke="#3a2f1d" stroke-width="1"></polygon>
+        </sc-for>
+        <sc-for list="{{axes}}" as="a" hint-placeholder-count="6">
+          <line x1="320" y1="188" x2="{{a.x}}" y2="{{a.y}}" stroke="#3a2f1d" stroke-width="1"></line>
+        </sc-for>
+        <text x="326" y="{{tick20}}" font-family="Alegreya Sans, sans-serif" font-size="11" fill="#8f846f">20</text>
+        <text x="326" y="{{tick10}}" font-family="Alegreya Sans, sans-serif" font-size="11" fill="#8f846f">10</text>
+        <sc-for list="{{polys}}" as="p" hint-placeholder-count="4">
+          <sc-if value="{{p.show}}" hint-placeholder-val="{{true}}">
+            <polygon points="{{p.pts}}" fill="{{p.c}}" fill-opacity=".14" stroke="{{p.c}}" stroke-width="2.4" stroke-dasharray="{{p.dash}}" stroke-linejoin="round"></polygon>
+            <sc-for list="{{p.dots}}" as="d" hint-placeholder-count="6">
+              <circle cx="{{d.x}}" cy="{{d.y}}" r="3.5" fill="{{p.c}}" stroke="#0b0907" stroke-width="1.5"></circle>
+            </sc-for>
+          </sc-if>
+        </sc-for>
+      </svg>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; padding-top: 44px">
+      <span class="k">Leyenda · pulsa para ocultar</span>
+      <sc-for list="{{legend}}" as="l" hint-placeholder-count="4">
+        <button type="button" class="{{l.cls}}" onClick="{{l.toggle}}" aria-pressed="{{l.pressed}}">
+          <span style="{{l.portrait}}">{{l.ini}}</span>
+          <svg viewBox="0 0 30 6" width="30" height="6" aria-hidden="true"><line x1="0" y1="3" x2="30" y2="3" stroke="{{l.c}}" stroke-width="2.4" stroke-dasharray="{{l.dash}}"></line></svg>
+          <span>{{l.name}}</span>
+        </button>
+      </sc-for>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Valor y carga" style="position: absolute; left: 1080px; top: 626px; width: 816px; height: 434px; padding: 18px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px">
+    <svg class="cn br" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <h2 class="h" style="font-size: 20px">Valor del inventario</h2>
+      <span class="s" style="font-size: 13px">En piezas de oro, objetos equipados incluidos</span>
+      <div style="flex: 1; display: flex; align-items: flex-end; gap: 22px; padding: 0 8px; border-bottom: 1px solid #4d3e25">
+        <sc-for list="{{valBars}}" as="b" hint-placeholder-count="4">
+          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px">
+            <span style="font: 700 14px 'Alegreya Sans', sans-serif; color: #ece4d2">{{b.label}}</span>
+            <div style="{{b.bar}}"></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; gap: 22px; padding: 0 8px">
+        <sc-for list="{{valBars}}" as="b" hint-placeholder-count="4"><span style="flex: 1; text-align: center; font: 600 13px 'Cinzel', serif; color: #d8ccb3">{{b.ini}}</span></sc-for>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <h2 class="h" style="font-size: 20px">Carga por personaje</h2>
+      <span class="s" style="font-size: 13px">kg llevados sobre su máximo</span>
+      <div style="flex: 1; display: flex; align-items: flex-end; gap: 22px; padding: 0 8px; border-bottom: 1px solid #4d3e25">
+        <sc-for list="{{loadBars}}" as="b" hint-placeholder-count="4">
+          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px">
+            <span style="font: 700 14px 'Alegreya Sans', sans-serif; color: {{b.c}}">{{b.label}}</span>
+            <div style="position: relative; width: 52px; height: 220px; background: #110e0b; border: 1px solid #3a2f1d; display: flex; align-items: flex-end">
+              <div style="{{b.bar}}"></div>
+              <span aria-hidden="true" style="position: absolute; left: -4px; right: -4px; bottom: 33.3%; height: 1px; background: #7a6338"></span>
+              <span aria-hidden="true" style="position: absolute; left: -4px; right: -4px; bottom: 66.6%; height: 1px; background: #7a6338"></span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; gap: 22px; padding: 0 8px">
+        <sc-for list="{{loadBars}}" as="b" hint-placeholder-count="4"><span style="flex: 1; text-align: center; font: 600 13px 'Cinzel', serif; color: #d8ccb3">{{b.ini}}</span></sc-for>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { hidden: [false, false, false, false] }; }
+  renderVals() {
+    const mod = (v) => { const m = Math.floor((v - 10) / 2); return m >= 0 ? '+' + m : '−' + Math.abs(m); };
+    const K = ['FUE', 'DES', 'CON', 'INT', 'SAB', 'CAR'];
+    const RC = [['C', '#cfc8ba', 'Común'], ['PC', '#5fcf6d', 'Poco común'], ['R', '#55a3ff', 'Raro'], ['MR', '#b874ff', 'Muy raro'], ['L', '#f5a93c', 'Legendario'], ['A', '#ec4652', 'Artefacto']];
+    const raw = [
+      { name: 'Aldric Varn', ini: 'AV', tint: '#7d9cc6', dash: '', sub: 'Humano · Paladín 5', ac: 19, hp: 44, hpm: 52, s: [18, 10, 14, 9, 12, 16], atkM: '+8', dmgM: '1d8+5', atkR: '+7', dmgR: '1d6+4', res: 'Necrótico', cond: 'Bendecido', condC: '#b9e08a', val: 3120, w: 38.0, m: 122, rar: [25, 8, 5, 2, 1, 0] },
+      { name: 'Nerys Valtëa', ini: 'NV', tint: '#b493e6', dash: '8 5', sub: 'Elfa · Maga 5', ac: 13, hp: 26, hpm: 31, s: [8, 14, 13, 18, 12, 10], atkM: '+3', dmgM: '1d6+1', atkR: '+6', dmgR: '1d8+3', res: '—', cond: 'Ninguna', condC: '#9d917b', val: 2480, w: 14.6, m: 54, rar: [12, 8, 5, 0, 0, 0] },
+      { name: 'Brom Hierroforja', ini: 'BH', tint: '#d9a35f', dash: '2 5', sub: 'Enano · Clérigo 5', ac: 18, hp: 41, hpm: 45, s: [14, 8, 16, 10, 17, 12], atkM: '+6', dmgM: '1d8+3', atkR: '+2', dmgR: '1d8', res: 'Veneno', cond: 'Hambriento', condC: '#e0883a', val: 6950, w: 52.4, m: 95, rar: [22, 6, 5, 1, 1, 0] },
+      { name: 'Ysolde Mirra', ini: 'YM', tint: '#5fbf96', dash: '14 4 3 4', sub: 'Mediana · Pícara 5', ac: 15, hp: 18, hpm: 36, s: [10, 18, 12, 13, 11, 14], atkM: '+7', dmgM: '1d6+4', atkR: '+7', dmgR: '1d6+4', res: '—', cond: 'Famélica · Sobrecargada', condC: '#e0534d', val: 4310, w: 51.0, m: 68, rar: [16, 6, 4, 1, 0, 1] }
+    ];
+    const fmt = (n, d) => { const t = n.toFixed(d).split('.'); return t[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (d ? ',' + t[1] : ''); };
+    const chars = raw.map((c) => {
+      const p = c.w / c.m;
+      const total = c.rar.reduce((a, b) => a + b, 0);
+      return {
+        ...c, val: fmt(c.val, 0), w: fmt(c.w, 1), count: String(total),
+        wC: p > 2 / 3 ? '#e0534d' : p > 1 / 3 ? '#e0883a' : '#ece4d2',
+        portrait: 'width:48px;height:56px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid ' + c.tint + ';background:linear-gradient(180deg,' + c.tint + '88,#0b0907);font:700 14px Cinzel,serif;color:#f1e3bf',
+        hpBar: 'height:8px;width:' + Math.round(c.hp / c.hpm * 100) + '%;background:linear-gradient(90deg,#8e2420,#c8403a)',
+        st: c.s.map((v, i) => ({ k: K[i], v, m: mod(v), c: v >= 12 ? '#9cc95e' : v < 10 ? '#e0883a' : '#cfc3aa' })),
+        rar: c.rar.map((n, i) => ({ n, short: RC[i][0], t: RC[i][2], c: n ? RC[i][1] : '#5d5242', bar: 'flex:' + (n || 0.0001) + ';background:' + RC[i][1] + (n ? '' : ';display:none') }))
+      };
+    });
+    const cx = 320, cy = 188, R = 150;
+    const pt = (i, v) => { const a = (-90 + 60 * i) * Math.PI / 180; return [cx + Math.cos(a) * R * v / 20, cy + Math.sin(a) * R * v / 20]; };
+    const rings = [5, 10, 15, 20].map((v) => ({ pts: [0, 1, 2, 3, 4, 5].map((i) => pt(i, v).map((n) => n.toFixed(1)).join(',')).join(' ') }));
+    const axes = K.map((k, i) => { const e = pt(i, 20); const l = pt(i, 23.2); const sc = 623 / 640; return { k, x: e[0].toFixed(1), y: e[1].toFixed(1), pos: 'position:absolute;z-index:1;transform:translate(-50%,-50%);left:' + (l[0] * sc).toFixed(1) + 'px;top:' + (l[1] * sc).toFixed(1) + 'px;font:600 15px Cinzel,serif;color:#d8c38f;letter-spacing:.06em' }; });
+    const hidden = this.state.hidden;
+    const polys = raw.map((c, j) => {
+      const P = c.s.map((v, i) => pt(i, v));
+      return { c: c.tint, dash: c.dash || 'none', show: !hidden[j], pts: P.map((q) => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join(' '), dots: P.map((q) => ({ x: q[0].toFixed(1), y: q[1].toFixed(1) })) };
+    });
+    const legend = raw.map((c, j) => ({
+      name: c.name, ini: c.ini, c: c.tint, dash: c.dash || 'none', cls: hidden[j] ? 'leg off' : 'leg', pressed: hidden[j] ? 'false' : 'true',
+      portrait: 'width:36px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid ' + c.tint + ';background:linear-gradient(180deg,' + c.tint + '88,#0b0907);font:700 11px Cinzel,serif;color:#f1e3bf',
+      toggle: () => { const h = hidden.slice(); h[j] = !h[j]; this.setState({ hidden: h }); }
+    }));
+    const maxV = 7000;
+    const valBars = raw.map((c) => ({ ini: c.ini, label: fmt(c.val, 0), bar: 'width:52px;height:' + Math.round(c.val / maxV * 220) + 'px;background:linear-gradient(180deg,' + c.tint + ',' + c.tint + '55);border:1px solid ' + c.tint + ';border-bottom:0' }));
+    const loadBars = raw.map((c) => {
+      const p = c.w / c.m; const col = p > 2 / 3 ? '#e0534d' : p > 1 / 3 ? '#e0883a' : '#c9a65a';
+      return { ini: c.ini, c: col, label: fmt(c.w, 1) + ' / ' + c.m, bar: 'width:100%;height:' + Math.round(p * 100) + '%;background:linear-gradient(180deg,' + col + ',' + col + '66)' };
+    });
+    return { chars, rings, axes, polys, legend, valBars, loadBars, tick20: (cy - R - 4).toFixed(0), tick10: (cy - R / 2 - 4).toFixed(0) };
+  }
+}
+</script>
+</body>
+</html>

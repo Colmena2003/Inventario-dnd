@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Arrastrar objetos entre columnas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+body{margin:0;background:#060504}
+.r-c{--rc:#cfc8ba;--rg:rgba(207,200,186,.16)}
+.r-u{--rc:#5fcf6d;--rg:rgba(95,207,109,.22)}
+.r-r{--rc:#55a3ff;--rg:rgba(85,163,255,.25)}
+.r-m{--rc:#b874ff;--rg:rgba(184,116,255,.28)}
+.r-l{--rc:#f5a93c;--rg:rgba(245,169,60,.3)}
+.r-a{--rc:#ec4652;--rg:rgba(236,70,82,.32)}
+.slot{position:relative;width:44px;height:44px;padding:0;box-sizing:border-box;border:1px solid #2b241b;border-radius:2px;background:radial-gradient(circle at 50% 42%,var(--rg,transparent) 0,transparent 72%),linear-gradient(180deg,#18140f 0%,#0d0b09 100%);box-shadow:inset 0 1px 0 rgba(255,232,180,.05),inset 0 -3px 6px rgba(0,0,0,.65),0 0 0 1px #070605;display:flex;align-items:center;justify-content:center;color:var(--rc,#5d5242);cursor:pointer;transition:box-shadow .16s ease,transform .16s ease,border-color .16s ease}
+.slot.has{border-color:color-mix(in srgb,var(--rc) 62%,#120e0a)}
+.slot.has:hover,.slot.hov{border-color:var(--rc);box-shadow:0 0 0 1px var(--rc),0 0 18px var(--rg),inset 0 0 12px var(--rg);transform:translateY(-1px)}
+.slot svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px #000) drop-shadow(0 0 4px var(--rg,transparent))}
+.slot.ghost{color:#4a4034}
+.slot.ghost svg{opacity:.55;filter:none}
+.qty{position:absolute;right:3px;bottom:1px;font:700 12px/1 'Alegreya Sans',sans-serif;color:#f6eedd;text-shadow:0 0 3px #000,0 0 2px #000,0 0 1px #000}
+.attm{position:absolute;left:3px;top:3px;width:7px;height:7px;transform:rotate(45deg);background:#e9c56a;box-shadow:0 0 0 1px #2a1d06,0 0 5px rgba(233,197,106,.8)}
+.panel{position:relative;box-sizing:border-box;background:linear-gradient(180deg,#16120e 0%,#0f0c0a 55%,#0c0a08 100%);border:1px solid #5e4c2c;box-shadow:inset 0 0 0 3px #0b0907,inset 0 0 0 4px #33291a,0 14px 40px rgba(0,0,0,.7)}
+.cn{position:absolute;width:30px;height:30px;fill:none;stroke:#b89a55;stroke-width:1.2;pointer-events:none}
+.cn.tl{left:-3px;top:-3px}.cn.tr{right:-3px;top:-3px;transform:scaleX(-1)}.cn.bl{left:-3px;bottom:-3px;transform:scaleY(-1)}.cn.br{right:-3px;bottom:-3px;transform:scale(-1,-1)}
+.ibtn{width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #4d3e25;border-radius:50%;background:#0d0b09;color:#c9b88f;cursor:pointer}
+.ibtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.lbl{font:500 13px/1 'Alegreya',Georgia,serif;color:#b9ab90}
+.chip{height:28px;padding:0 10px;border:1px solid #3e321f;border-radius:14px;background:#0e0b09;color:#c9b88f;font:500 13px 'Alegreya Sans',sans-serif;cursor:pointer}
+.chip.on{border-color:#b89a55;color:#f1dfb0;background:#1a150e}
+.slot.drop-ok{border-color:#73e281;background:radial-gradient(circle,rgba(115,226,129,.28),transparent 75%),#0f1a10;box-shadow:0 0 0 2px #73e281,0 0 22px rgba(115,226,129,.55)}
+.slot.origin{border:1px dashed #8a7a5a;background:rgba(0,0,0,.25);box-shadow:none}
+.slot.no{opacity:.4;filter:grayscale(.6)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+<div style="position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: 'Alegreya', Georgia, serif; color: #e8dfcc; background: radial-gradient(ellipse 75% 70% at 55% 45%, #1b1611 0%, #0d0b09 58%, #050404 100%)">
+  <svg aria-hidden="true" width="1920" height="1080" style="position: absolute; inset: 0; opacity: .5; pointer-events: none">
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix values="0 0 0 0 .55  0 0 0 0 .45  0 0 0 0 .32  0 0 0 .09 0"></feColorMatrix></filter>
+    <rect width="1920" height="1080" filter="url(#grain)"></rect>
+  </svg>
+  <div aria-hidden="true" style="position: absolute; inset: 0; box-shadow: inset 0 0 260px 40px #000; pointer-events: none"></div>
+
+  <div style="position: absolute; left: 0; top: 0">
+    <dc-import name="Topbar" active="grupal" hint-size="1920px,72px"></dc-import>
+  </div>
+  <div style="position: absolute; left: 0; top: 72px">
+    <dc-import name="Retratos" active="0" hint-size="104px,1008px"></dc-import>
+  </div>
+
+  <main style="position: absolute; left: 124px; top: 90px; display: flex; gap: 16px; align-items: flex-start">
+    <sc-for list="{{chars}}" as="c" hint-placeholder-count="4">
+      <article class="panel" aria-label="{{c.name}}" style="width: 352px; height: 936px; padding: 10px 8px; display: flex; flex-direction: column">
+        <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+        <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+        <svg class="cn bl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+        <svg class="cn br" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+
+        <header style="display: grid; grid-template-columns: 34px 1fr 74px; align-items: center; gap: 6px; height: 40px; padding: 0 6px">
+          <button type="button" class="ibtn" aria-label="Opciones de {{c.name}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"></path></svg></button>
+          <h2 style="margin: 0; text-align: center; white-space: nowrap; font-family: 'Cinzel', serif; font-size: 19px; font-weight: 600; letter-spacing: .02em; color: #eedcb0; text-shadow: 0 0 12px rgba(226,194,122,.25)">{{c.name}}</h2>
+          <div style="display: flex; align-items: center; justify-content: flex-end; gap: 5px; font-family: 'Alegreya Sans', sans-serif; font-size: 15px; font-weight: 500; color: #e8c46c">
+            {{c.gold}}
+            <span aria-label="piezas de oro" style="width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff3c4 0, #d9a83c 45%, #8a6116 100%); box-shadow: inset 0 0 0 1px rgba(0,0,0,.4)"></span>
+          </div>
+        </header>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 2px 0 8px">
+          <span style="font-family: 'Alegreya Sans', sans-serif; font-size: 14px; color: #b9ab90; letter-spacing: .02em">{{c.cls}}</span>
+          <div title="Saciedad" style="display: flex; align-items: center; gap: 8px">
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="fill: none; stroke: {{c.satC}}; stroke-width: 1.8; stroke-linecap: round"><path d="M3 11h18a9 9 0 0 1-18 0zM9 8V4M12 8V3M15 8V4"></path></svg>
+            <div style="width: 150px; height: 6px; background: #120f0c; border: 1px solid #3a2f1d; box-shadow: inset 0 1px 2px #000">
+              <div style="{{c.satBar}}"></div>
+            </div>
+            <span style="width: 74px; font-family: 'Alegreya Sans', sans-serif; font-size: 13px; font-weight: 500; color: {{c.satC}}">{{c.sat}}</span>
+          </div>
+        </div>
+        <svg viewBox="0 0 330 10" width="330" height="10" aria-hidden="true" style="display: block; margin: 0 auto">
+          <path d="M20 5h132M178 5h132" stroke="#4d3e25" stroke-width="1"></path>
+          <path d="M165 1l4 4-4 4-4-4z" fill="#b89a55"></path>
+          <path d="M156 5h2M172 5h2" stroke="#b89a55" stroke-width="2"></path>
+        </svg>
+
+        <div style="position: relative; height: 392px; margin-top: 4px">
+          <svg viewBox="0 0 200 400" aria-hidden="true" style="position: absolute; left: 50%; top: 0; width: 200px; height: 392px; transform: translateX(-50%)">
+            <defs>
+              <linearGradient id="fg{{$index}}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="{{c.tint}}" stop-opacity=".95"></stop>
+                <stop offset=".6" stop-color="{{c.tint}}" stop-opacity=".35"></stop>
+                <stop offset="1" stop-color="#0c0a08" stop-opacity=".9"></stop>
+              </linearGradient>
+              <radialGradient id="aura{{$index}}" cx=".5" cy=".45" r=".55">
+                <stop offset="0" stop-color="{{c.tint}}" stop-opacity=".28"></stop>
+                <stop offset="1" stop-color="{{c.tint}}" stop-opacity="0"></stop>
+              </radialGradient>
+            </defs>
+            <rect x="-40" y="0" width="280" height="400" fill="url(#aura{{$index}})"></rect>
+            <ellipse cx="100" cy="374" rx="78" ry="13" fill="none" stroke="{{c.tint}}" stroke-opacity=".45" stroke-width="1.2"></ellipse>
+            <ellipse cx="100" cy="374" rx="58" ry="8" fill="{{c.tint}}" opacity=".18"></ellipse>
+            <path d="M28 362c30-14 120-16 150 2M40 352c40-8 90-8 124 4" fill="none" stroke="{{c.tint}}" stroke-opacity=".3" stroke-width="1"></path>
+            <path d="M68 98L38 360l40-14 12 24 10-20 10 20 12-24 40 14L132 98z" fill="#090706" opacity=".9"></path>
+            <path d="{{c.weapon}}" fill="none" stroke="#d8d0c0" stroke-opacity=".55" stroke-width="2.5" stroke-linecap="round"></path>
+            <path d="M100 30c14 0 24 10 24 25s-10 26-24 26-24-11-24-26 10-25 24-25zM78 88h44l20 10 12 78-14 6-10-52-6 62 8 118h-28l-10-104-10 104H66l8-118-6-62-10 52-14-6 12-78z" fill="url(#fg{{$index}})" stroke="{{c.tint}}" stroke-opacity=".6" stroke-width="1"></path>
+          </svg>
+          <button type="button" class="ibtn" aria-label="Cambiar imagen del personaje" style="position: absolute; right: 60px; top: 2px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3.5L9 5.5h6L16.5 8H20v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"></path></svg></button>
+          <div style="position: absolute; left: 6px; top: 8px; display: flex; flex-direction: column; gap: 8px">
+            <sc-for list="{{c.left}}" as="e" hint-placeholder-count="5">
+              <button type="button" class="{{e.cls}}" aria-label="{{e.n}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{e.d}}"></path></svg><sc-if value="{{e.att}}" hint-placeholder-val="{{false}}"><span class="attm"></span></sc-if></button>
+            </sc-for>
+          </div>
+          <div style="position: absolute; right: 6px; top: 8px; display: flex; flex-direction: column; gap: 8px">
+            <sc-for list="{{c.right}}" as="e" hint-placeholder-count="3">
+              <button type="button" class="{{e.cls}}" aria-label="{{e.n}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{e.d}}"></path></svg><sc-if value="{{e.att}}" hint-placeholder-val="{{false}}"><span class="attm"></span></sc-if></button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 76px 1fr; align-items: end; margin-top: -54px; padding: 0 6px; position: relative">
+          <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 5px">
+            <span class="lbl">Cuerpo a cuerpo</span>
+            <div style="display: flex; gap: 6px">
+              <sc-for list="{{c.melee}}" as="e" hint-placeholder-count="2">
+                <button type="button" class="{{e.cls}}" aria-label="{{e.n}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{e.d}}"></path></svg><sc-if value="{{e.att}}" hint-placeholder-val="{{false}}"><span class="attm"></span></sc-if></button>
+              </sc-for>
+            </div>
+          </div>
+          <div aria-label="Clase de armadura {{c.ac}}" style="position: relative; width: 76px; height: 84px; display: flex; flex-direction: column; align-items: center; justify-content: center">
+            <svg viewBox="0 0 76 84" width="76" height="84" aria-hidden="true" style="position: absolute; inset: 0">
+              <path d="M38 3l32 10v26c0 20-14 34-32 42C20 73 6 59 6 39V13z" fill="#0f0c0a" stroke="#b89a55" stroke-width="1.5"></path>
+              <path d="M38 9l26 8v22c0 16-11 28-26 35C23 67 12 55 12 39V17z" fill="none" stroke="#4d3e25" stroke-width="1"></path>
+              <path d="M30 6l8-5 8 5" fill="none" stroke="#e2c27a" stroke-width="1.2"></path>
+            </svg>
+            <span style="position: relative; font-family: 'Cinzel', serif; font-size: 12px; font-weight: 600; color: #b9ab90; letter-spacing: .1em">CA</span>
+            <span style="position: relative; font-family: 'Cinzel', serif; font-size: 30px; font-weight: 700; line-height: 1; color: #f2e6c8; text-shadow: 0 0 10px rgba(226,194,122,.35)">{{c.ac}}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px">
+            <span class="lbl">A distancia</span>
+            <div style="display: flex; gap: 6px">
+              <sc-for list="{{c.ranged}}" as="e" hint-placeholder-count="2">
+                <button type="button" class="{{e.cls}}" aria-label="{{e.n}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{e.d}}"></path></svg></button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 6px 10px 8px; font-family: 'Alegreya Sans', sans-serif">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 16px; font-weight: 700; color: #f2e6c8">{{c.atkM}}</span>
+            <span style="font-size: 14px; color: #cfc3aa">{{c.dmgM}}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+            <span class="lbl">Bono de ataque</span>
+            <span class="lbl">Daño</span>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+            <span style="font-size: 16px; font-weight: 700; color: #f2e6c8">{{c.atkR}}</span>
+            <span style="font-size: 14px; color: #cfc3aa">{{c.dmgR}}</span>
+          </div>
+        </div>
+
+        <div style="position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 0 2px; margin-top: 2px">
+          <sc-for list="{{c.inv}}" as="it" hint-placeholder-count="35">
+            <button type="button" class="{{it.cls}}" aria-label="{{it.n}}"><sc-if value="{{it.hd}}" hint-placeholder-val="{{true}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{it.d}}"></path></svg></sc-if><sc-if value="{{it.hq}}" hint-placeholder-val="{{false}}"><span class="qty">{{it.q}}</span></sc-if><sc-if value="{{it.att}}" hint-placeholder-val="{{false}}"><span class="attm"></span></sc-if></button>
+          </sc-for>
+        </div>
+
+        <footer style="margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px 8px 2px; font-family: 'Alegreya Sans', sans-serif">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="flex: none; fill: none; stroke: #b9ab90; stroke-width: 1.6; stroke-linejoin: round"><path d="M7 9h10l3 11H4zM9 9a3 3 0 0 1 6 0"></path></svg>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+            <div style="position: relative; height: 8px; background: #110e0b; border: 1px solid #3a2f1d; box-shadow: inset 0 1px 3px #000">
+              <div style="{{c.wBar}}"></div>
+              <span aria-hidden="true" style="position: absolute; left: 33.3%; top: -3px; bottom: -3px; width: 1px; background: #7a6338"></span>
+              <span aria-hidden="true" style="position: absolute; left: 66.6%; top: -3px; bottom: -3px; width: 1px; background: #7a6338"></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px">
+              <span style="color: {{c.wC}}; font-weight: 500">{{c.wS}}</span>
+              <span style="color: #e8dfcc"><b>{{c.w}}</b> / {{c.wm}} kg</span>
+            </div>
+          </div>
+        </footer>
+        <sc-if value="{{c.hasDrop}}" hint-placeholder-val="{{false}}">
+          <div aria-hidden="true" style="{{c.dropFrame}}"></div>
+          <div role="status" style="{{c.dropBadge}}">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="{{c.dropIcon}}"></path></svg>
+            <span>{{c.dropMsg}}</span>
+          </div>
+        </sc-if>
+      </article>
+    </sc-for>
+
+    <aside class="panel" aria-label="Alijo de la party" style="width: 300px; height: 936px; padding: 12px 8px 10px; display: flex; flex-direction: column; gap: 10px; background: linear-gradient(180deg, #17120d 0%, #100c09 100%)">
+      <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <svg class="cn bl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <svg class="cn br" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+      <header style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 2px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" style="fill: none; stroke: #e2c27a; stroke-width: 1.5; stroke-linejoin: round"><path d="M3 11h18v9H3zM3 11a9 6 0 0 1 18 0M10.5 13h3v3.5h-3zM3 15h7.5M13.5 15H21"></path></svg>
+          <h2 style="margin: 0; font-family: 'Cinzel', serif; font-size: 20px; font-weight: 600; letter-spacing: .05em; color: #eedcb0">Alijo de la party</h2>
+        </div>
+        <span style="font-family: 'Alegreya Sans', sans-serif; font-size: 13px; color: #a99d86">Cofre común · cualquiera puede dejar o tomar</span>
+      </header>
+      <div role="group" aria-label="Filtrar alijo" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px">
+        <button type="button" class="chip on">Todo</button>
+        <button type="button" class="chip">Armas</button>
+        <button type="button" class="chip">Pociones</button>
+        <button type="button" class="chip">Materiales</button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; padding: 0 2px">
+        <sc-for list="{{stash}}" as="it" hint-placeholder-count="78">
+          <button type="button" class="{{it.cls}}" aria-label="{{it.n}}"><sc-if value="{{it.hd}}" hint-placeholder-val="{{true}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{it.d}}"></path></svg></sc-if><sc-if value="{{it.hq}}" hint-placeholder-val="{{false}}"><span class="qty">{{it.q}}</span></sc-if><sc-if value="{{it.att}}" hint-placeholder-val="{{false}}"><span class="attm"></span></sc-if></button>
+        </sc-for>
+      </div>
+      <footer style="margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px 8px 2px; border-top: 1px solid #2c2419; font-family: 'Alegreya Sans', sans-serif">
+        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #b9ab90">
+          <span>41 objetos en el alijo</span><span style="color: #e8dfcc"><b>63,4</b> kg</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline">
+          <span style="font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: .06em; color: #c9b88f">Carga del grupo</span>
+          <span style="font-size: 14px; color: #e8dfcc"><b>156,9</b> / 339 kg</span>
+        </div>
+        <div aria-hidden="true" style="display: flex; height: 8px; gap: 2px">
+          <div style="width: 11%; background: #6f8fb8"></div>
+          <div style="width: 4%; background: #9a78d0"></div>
+          <div style="width: 16%; background: #c08e4f"></div>
+          <div style="width: 15%; background: #4fa07f"></div>
+          <div style="flex: 1; background: #1a1611; border: 1px solid #3a2f1d"></div>
+        </div>
+      </footer>
+    </aside>
+  </main>
+
+  <div aria-hidden="true" style="position: absolute; left: 640px; top: 754px; z-index: 6; pointer-events: none">
+    <div class="slot has r-m" style="width: 52px; height: 52px; transform: rotate(-7deg) scale(1.12); border-color: #b874ff; box-shadow: 0 0 0 1px #b874ff, 0 0 26px rgba(184,116,255,.55), 0 22px 34px rgba(0,0,0,.85); background: radial-gradient(circle at 50% 42%, rgba(184,116,255,.35) 0, transparent 72%), linear-gradient(180deg, #221a2c, #120e15)"><svg viewBox="0 0 24 24" style="width: 34px; height: 34px"><path d="M4 16l3-8 6-3 6 4 1 7-6 4-8-1zM7 8l6 4 7-3M13 12l1 8M4 16l9-4"></path></svg><span class="qty" style="font-size: 14px">3</span></div>
+    <svg viewBox="0 0 24 24" width="30" height="30" style="position: absolute; left: 34px; top: 30px; filter: drop-shadow(0 2px 3px #000)"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11V4a1.5 1.5 0 0 1 3 0v7V5a1.5 1.5 0 0 1 3 0v7V8a1.5 1.5 0 0 1 3 0v7c0 4-2.5 7-6.5 7h-1c-2.5 0-4-1-5.5-3l-3-4.5a1.5 1.5 0 0 1 2.4-1.8z" fill="#efe4cc" stroke="#1a140d" stroke-width="1.2" stroke-linejoin="round"></path></svg>
+    <div style="position: absolute; left: 64px; top: -6px; display: flex; flex-direction: column; gap: 2px; padding: 6px 10px; white-space: nowrap; background: rgba(12,9,7,.95); border: 1px solid #5e4c2c; font-family: 'Alegreya Sans', sans-serif; font-size: 13px; color: #b9ab90">
+      <span style="font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; color: #c98dff">Barra de adamantina ×3</span>
+      <span>18,0 kg · desde Alijo de la party</span>
+      <span style="color: #8a7f6c">Mayús + soltar para dividir la pila</span>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 124px; right: 24px; bottom: 12px; height: 34px; display: flex; align-items: center; justify-content: space-between; font-family: 'Alegreya Sans', sans-serif">
+    <div style="display: flex; align-items: center; gap: 18px; font-size: 13px; color: #b9ab90">
+      <span style="font-family: 'Cinzel', serif; letter-spacing: .08em; color: #9d917b">Rareza</span>
+      <sc-for list="{{legend}}" as="l" hint-placeholder-count="6">
+        <span class="{{l.cls}}" style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border: 1px solid var(--rc); background: var(--rg); box-shadow: 0 0 8px var(--rg)"></span><span style="color: var(--rc)">{{l.t}}</span></span>
+      </sc-for>
+      <span style="display: flex; align-items: center; gap: 6px; margin-left: 6px"><span style="width: 8px; height: 8px; transform: rotate(45deg); background: #e9c56a"></span>Requiere sintonización</span>
+    </div>
+    <div role="status" style="display: flex; align-items: center; gap: 18px; height: 34px; padding: 0 16px; background: rgba(16,12,9,.92); border: 1px solid #4d3e25; border-radius: 17px; font-size: 14px; color: #ddd3c0">
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border: 2px solid #73e281"></span>Destino válido</span>
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border: 2px solid #ef5a55"></span>Destino no válido</span>
+      <span style="color: #8a7f6c">Esc para cancelar</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const IC = {
+      sword: 'M20 4l-1.5 5.5L9 19l-4-4 9.5-9.5zM6 14l4 4M4.5 19.5L3 21M7.5 16.5L5 19',
+      axe: 'M5 21L16 10M13 4.5c3.5-1.5 7 .5 7.5 4-2 2.5-5 3.5-7.5 3l-1.5-1.5c-.5-2.5.5-4 1.5-5.5z',
+      bow: 'M5 3c9 1 15 7 16 16M5 3l16 16M5 3v4M5 3h4M3 21l7-7',
+      staff: 'M4 21L15 10M17 9a3 3 0 1 0-2-5 3 3 0 0 0 2 5zM19 2.5l.5 1.5M21.5 5l-1.5.5',
+      dagger: 'M20 4l-9 9-2-2 9-9zM12 14l-2 2-2-2 2-2M8 16l-4 4M7 11l6 6',
+      shield: 'M12 3l7 2.5V12c0 4.2-3 7.3-7 9-4-1.7-7-4.8-7-9V5.5zM12 3v18M5 11h14',
+      helm: 'M5 15a7 7 0 0 1 14 0v4H5zM12 8V4M9.5 19v-4h5v4',
+      armor: 'M8 4h8l3.5 3-2.5 4v9H7v-9L4.5 7zM9 4a3 3 0 0 0 6 0M12 7v13M7 13h10',
+      cloak: 'M9 4h6l1.5 3L20 20H4L7.5 7zM9 4l3 4 3-4M12 8v12',
+      gloves: 'M8 21v-5l-2.5-5V6.5a1 1 0 0 1 2 0V10V4.5a1 1 0 0 1 2 0V10V4a1 1 0 0 1 2 0v6V5a1 1 0 0 1 2 0v8l1.8-1.8a1.2 1.2 0 0 1 1.9 1.5L15 17.5V21z',
+      boots: 'M7 3h5v10l5.5 2.5A3 3 0 0 1 19.5 18.5V21H6v-4.5zM6 17h13.5',
+      amulet: 'M6 3c0 5.5 2.7 8.5 6 8.5S18 8.5 18 3M12 11.5l3 4-3 5-3-5z',
+      ring: 'M12 21a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM9.5 5.5L12 3l2.5 2.5L12 8z',
+      potion: 'M10 3h4M10.5 3v5L6 15a4.2 4.2 0 0 0 3.6 6h4.8a4.2 4.2 0 0 0 3.6-6l-4.5-7V3M7 14.5h10',
+      scroll: 'M7 4h11a2 2 0 0 1 0 4h-1v10a2 2 0 0 1-2 2H5a2 2 0 0 1 0-4h2zM18 8H7M10 11h4M10 14h4',
+      book: 'M5 5.5A1.5 1.5 0 0 1 6.5 4H19v13H6.5A1.5 1.5 0 0 0 5 18.5zM5 18.5A1.5 1.5 0 0 0 6.5 20H19v-3M12 7.5l1.2 2 2.3.3-1.7 1.6.4 2.3-2.2-1.1-2.2 1.1.4-2.3-1.7-1.6 2.3-.3z',
+      key: 'M8 20a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 13l9-9M17 7l2 2M14.5 9.5l2 2',
+      gem: 'M7 4h10l4 5-9 11L3 9zM3 9h18M9 4l3 5 3-5M12 9v11',
+      herb: 'M12 21V10M12 10C12 6 9 3 5 3c0 4 3 7 7 7zM12 15c0-3.5 3-6.5 7-6.5 0 4-3 6.5-7 6.5z',
+      ore: 'M4 16l3-8 6-3 6 4 1 7-6 4-8-1zM7 8l6 4 7-3M13 12l1 8M4 16l9-4',
+      fang: 'M5 4c2 6 3 11 7 16 4-5 5-10 7-16-2 2-4 3-7 3S7 6 5 4zM12 7v8',
+      bread: 'M4 13c0-4 3.6-7 8-7s8 3 8 7v5H4zM8.5 9.5l1 2.5M12 8.5v3M15.5 9.5l-1 2.5',
+      meat: 'M15 3.5a5.5 5.5 0 0 1 0 11c-1.6 0-2.8-.6-3.8-1.6L6.5 17.6a2 2 0 1 1-2.1 2 2 2 0 1 1 2-2.1l4.7-4.7c-1-1-1.6-2.2-1.6-3.8A5.5 5.5 0 0 1 15 3.5z',
+      apple: 'M12 7.5c-3-2-8-1-8 4.5 0 5 3 9 5 9 1 0 2-.5 3-.5s2 .5 3 .5c2 0 5-4 5-9 0-5.5-5-6.5-8-4.5zM12 7.5c0-2 1-3.5 3-4.5',
+      flask: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3M7.5 15h9',
+      hammer: 'M13 4l7 7-2.5 2.5-7-7zM10.5 9.5L3 17l3 3 7.5-7.5',
+      bag: 'M8 8V6a4 4 0 0 1 8 0v2M5 8h14l-1.2 13H6.2zM9 12h6',
+      torch: 'M10 21l-1-10h6l-1 10zM12 11c-2.5-1.5-3-4-1-7 0 2 2 2.5 2 4 1-1 1.5-2 1.5-3 1.5 2 1 5-2.5 6z',
+      drop: 'M12 3c3 4.5 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-6.5 6-11z',
+      mushroom: 'M4 12a8 7 0 0 1 16 0zM10 12v7a2 2 0 0 0 4 0v-7'
+    };
+    const it = (n, i, r, q, a) => ({ n: n + (q > 1 ? ' ×' + q : ''), d: IC[i], cls: 'slot has r-' + r, hd: true, hq: q > 1, q: q > 1 ? String(q) : '', att: !!a });
+    const em = () => ({ n: 'Ranura vacía', d: '', cls: 'slot', hd: false, hq: false, q: '', att: false });
+    const gh = (n, i) => ({ n: n + ': vacío', d: IC[i], cls: 'slot ghost no', att: false });
+    const eq = (n, i, r, a, extra) => ({ n: n, d: IC[i], cls: 'slot has no r-' + r + (extra || ''), att: !!a });
+    const fill = (a, n) => { const o = a.slice(); while (o.length < n) o.push(em()); return o; };
+    const sat = { s: ['Saciado', '#9cc95e'], n: ['Normal', '#c9a65a'], h: ['Hambriento', '#e0883a'], f: ['Famélico', '#e0534d'] };
+    const fmt = (n) => n.toFixed(1).replace('.', ',');
+    const build = (c) => {
+      const p = c.w / c.wm;
+      const ws = p > 2 / 3 ? ['Sobrecargado · −6 m vel.', '#e0534d'] : p > 1 / 3 ? ['Cargado · −3 m vel.', '#e0883a'] : ['Carga normal', '#c9a65a'];
+      const st = sat[c.s];
+      return {
+        ...c, w: fmt(c.w), wS: ws[0], wC: ws[1],
+        wBar: 'height:8px;width:' + Math.min(100, p * 100).toFixed(1) + '%;background:linear-gradient(90deg,' + ws[1] + '99,' + ws[1] + ');box-shadow:0 0 8px ' + ws[1] + '66',
+        sat: st[0], satC: st[1], satBar: 'height:6px;width:' + c.sp + '%;background:linear-gradient(90deg,' + st[1] + '99,' + st[1] + ')',
+        inv: fill(c.inv, 35).map((x, i) => (c.hot === i ? { ...x, cls: 'slot drop-ok', n: 'Soltar aquí' } : x)),
+        hasDrop: !!c.drop,
+        dropMsg: c.drop ? c.drop.msg : '',
+        dropIcon: c.drop && c.drop.ok ? 'M5 12.5l4.5 4.5L19 7' : 'M6 6l12 12M18 6L6 18',
+        dropFrame: c.drop ? 'position:absolute;inset:-1px;pointer-events:none;border:2px solid ' + (c.drop.ok ? '#73e281' : '#ef5a55') + ';box-shadow:inset 0 0 ' + (c.drop.strong ? '60px' : '30px') + ' ' + (c.drop.ok ? 'rgba(115,226,129,' : 'rgba(239,90,85,') + (c.drop.strong ? '.28)' : '.16)') + ',0 0 ' + (c.drop.strong ? '26px' : '0') + ' ' + (c.drop.ok ? 'rgba(115,226,129,.35)' : 'rgba(239,90,85,.3)') + (c.drop.ok ? '' : ';background:rgba(40,8,8,.35)') : '',
+        dropBadge: c.drop ? 'position:absolute;left:50%;top:300px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;white-space:nowrap;padding:7px 14px;font:500 14px Alegreya Sans,sans-serif;border-radius:16px;' + (c.drop.ok ? 'color:#c9f5cf;background:#0f2412;border:1px solid #73e281' : 'color:#ffd6d3;background:#2b0e0d;border:1px solid #ef5a55;box-shadow:0 8px 20px rgba(0,0,0,.7)') : ''
+      };
+    };
+    const chars = [
+      {
+        drop: { ok: true, msg: 'Puede recibirlo · 56,0 / 122 kg' }, name: 'Aldric Varn', cls: 'Humano · Paladín 5 · PV 44/52', gold: '312', tint: '#6f8fb8', ac: '19', s: 's', sp: 86, w: 38.0, wm: 122,
+        weapon: 'M150 190L182 60M176 84l14 4',
+        atkM: '+8', dmgM: '1d8+5', atkR: '+7', dmgR: '1d6+4',
+        left: [eq('Yelmo del centinela', 'helm', 'r'), eq('Capa de viaje reforzada', 'cloak', 'u'), eq('Coraza de placas bruñida', 'armor', 'r'), eq('Guanteletes de acero', 'gloves', 'u'), gh('Botas', 'boots')],
+        right: [eq('Medallón del Juramento', 'amulet', 'm', true), eq('Anillo de protección', 'ring', 'u', true), gh('Anillo', 'ring')],
+        melee: [eq('Hoja del Alba Cenicienta', 'sword', 'm', true), eq('Escudo de roble y hierro', 'shield', 'u')],
+        ranged: [eq('Jabalinas', 'dagger', 'c'), gh('Mano secundaria', 'dagger')],
+        inv: [it('Poción de curación', 'potion', 'c', 4), it('Poción de curación mayor', 'potion', 'u', 2), it('Pergamino de Revivir', 'scroll', 'r', 1), it('Agua bendita', 'flask', 'u', 3),
+          it('Raciones de viaje', 'bread', 'c', 5), it('Antorcha', 'torch', 'c', 3), it('Kit de explorador', 'bag', 'c', 1), it('Llave de hierro oxidada', 'key', 'c', 1),
+          it('Libro de plegarias', 'book', 'c', 1), it('Zafiro tallado', 'gem', 'r', 1), it('Martillo de herrero', 'hammer', 'c', 1), it('Carne en salazón', 'meat', 'c', 2),
+          it('Jabalina', 'dagger', 'c', 4), it('Aceite sagrado', 'drop', 'u', 1)]
+      },
+      {
+        hot: 17, drop: { ok: true, strong: true, msg: 'Soltar en Nerys · 32,6 / 54 kg' }, name: 'Nerys Valtëa', cls: 'Elfa · Maga 5 · PV 26/31', gold: '148', tint: '#9a78d0', ac: '13', s: 'n', sp: 58, w: 14.6, wm: 54,
+        weapon: 'M146 360L150 60M150 60a8 8 0 1 1 0.1 0',
+        atkM: '+3', dmgM: '1d6+1', atkR: '+6', dmgR: '1d8+3',
+        left: [eq('Diadema de plata lunar', 'helm', 'u'), eq('Capa del erudito', 'cloak', 'r'), eq('Túnica bordada', 'armor', 'u'), gh('Guantes', 'gloves'), eq('Botas silenciosas', 'boots', 'u')],
+        right: [eq('Amuleto de la salud', 'amulet', 'r', true), eq('Anillo de estrellas fugaces', 'ring', 'r', true), eq('Anillo de agua', 'ring', 'u')],
+        melee: [eq('Bastón de sauce arcano', 'staff', 'r'), gh('Mano secundaria', 'shield')],
+        ranged: [eq('Ballesta ligera', 'bow', 'c'), gh('Mano secundaria', 'dagger')],
+        inv: [it('Libro de conjuros', 'book', 'r', 1), it('Pergamino de Bola de fuego', 'scroll', 'u', 2), it('Pergamino de Identificar', 'scroll', 'c', 3), it('Tinta de pulpo', 'drop', 'c', 2),
+          it('Poción de curación', 'potion', 'c', 2), it('Polvo de diamante', 'gem', 'u', 1), it('Hierba lunar', 'herb', 'c', 6), it('Seta de las cavernas', 'mushroom', 'u', 3),
+          it('Frasco vacío', 'flask', 'c', 4), it('Virotes', 'dagger', 'c', 20), it('Manzana', 'apple', 'c', 3), it('Pergamino de Volar', 'scroll', 'r', 1)]
+      },
+      {
+        drop: { ok: true, msg: 'Puede recibirlo · 70,4 / 95 kg' }, name: 'Brom Hierroforja', cls: 'Enano · Clérigo 5 · PV 41/45', gold: '205', tint: '#c08e4f', ac: '18', s: 'h', sp: 27, w: 52.4, wm: 95,
+        weapon: 'M52 230L30 120M22 112l18-10 6 14-18 10z',
+        atkM: '+6', dmgM: '1d8+3', atkR: '+2', dmgR: '1d8',
+        left: [eq('Yelmo de cuerno', 'helm', 'r'), gh('Capa', 'cloak'), eq('Cota de mallas rúnica', 'armor', 'r', true), eq('Guantes de forja', 'gloves', 'u'), eq('Botas de hierro', 'boots', 'u')],
+        right: [eq('Símbolo de la Llama Eterna', 'amulet', 'l', true), gh('Anillo', 'ring'), gh('Anillo', 'ring')],
+        melee: [eq('Martillo de guerra', 'hammer', 'u'), eq('Escudo blasonado', 'shield', 'r')],
+        ranged: [eq('Ballesta ligera', 'bow', 'c'), gh('Mano secundaria', 'dagger')],
+        inv: [it('Lingote de hierro', 'ore', 'c', 6), it('Mineral de mitral', 'ore', 'r', 2), it('Poción de curación', 'potion', 'c', 3), it('Poción de resistencia', 'potion', 'u', 1),
+          it('Herramientas de herrero', 'hammer', 'c', 1), it('Hacha de mano', 'axe', 'c', 2), it('Cerveza enana', 'flask', 'c', 4), it('Pan de piedra', 'bread', 'c', 2),
+          it('Pergamino de Restablecimiento', 'scroll', 'u', 1), it('Colmillo de huargo', 'fang', 'c', 5), it('Antorcha', 'torch', 'c', 4), it('Llave del santuario', 'key', 'u', 1),
+          it('Kit de sanador', 'bag', 'c', 1), it('Virotes', 'dagger', 'c', 18), it('Gema de sangre', 'gem', 'm', 1), it('Carne seca', 'meat', 'c', 1)]
+      },
+      {
+        drop: { ok: false, strong: true, msg: 'Sobrepeso: 69,0 kg supera su máximo de 68 kg' }, name: 'Ysolde Mirra', cls: 'Mediana · Pícara 5 · PV 18/36', gold: '96', tint: '#4fa07f', ac: '15', s: 'f', sp: 8, w: 51.0, wm: 68,
+        weapon: 'M40 200c-24-40-20-110 10-150M40 200L12 60',
+        atkM: '+7', dmgM: '1d6+4', atkR: '+7', dmgR: '1d6+4',
+        left: [gh('Cabeza', 'helm'), eq('Capa de la sombra élfica', 'cloak', 'm', true), eq('Cuero tachonado', 'armor', 'u'), eq('Guantes de ladrón', 'gloves', 'r'), eq('Botas de zancada', 'boots', 'r', true)],
+        right: [gh('Amuleto', 'amulet'), eq('Anillo del ratón', 'ring', 'u'), gh('Anillo', 'ring')],
+        melee: [eq('Estoque de Rivenhold', 'dagger', 'r'), eq('Daga', 'dagger', 'u')],
+        ranged: [eq('Arco corto de tejo', 'bow', 'u'), gh('Mano secundaria', 'dagger')],
+        inv: [it('Herramientas de ladrón', 'key', 'u', 1), it('Flechas', 'dagger', 'c', 26), it('Cofre de hierro cerrado', 'bag', 'c', 1), it('Candelabro de plata', 'torch', 'c', 2),
+          it('Poción de invisibilidad', 'potion', 'r', 1), it('Veneno básico', 'drop', 'u', 3), it('Cuerda de seda', 'bag', 'c', 1), it('Daga arrojadiza', 'dagger', 'c', 4),
+          it('Collar de perlas', 'amulet', 'u', 1), it('Copa de oro', 'flask', 'u', 1), it('Mapa de las alcantarillas', 'scroll', 'c', 1), it('Lingote de plata', 'ore', 'u', 3),
+          it('Ganzúas de mithral', 'key', 'r', 1), it('Esfera de Ébano', 'gem', 'a', 1, true), it('Saco de canicas', 'bag', 'c', 1), it('Piedra de afilar', 'ore', 'c', 1),
+          it('Estatuilla de jade', 'gem', 'r', 1), it('Peine de marfil', 'fang', 'c', 1)]
+      }
+    ].map(build);
+    const stash = fill([
+      { n: 'Origen del arrastre', d: '', cls: 'slot origin', hd: false, hq: false, q: '', att: false }, it('Poción de curación', 'potion', 'c', 6), it('Poción de curación superior', 'potion', 'r', 2), it('Espada larga', 'sword', 'c', 2),
+      it('Arco largo', 'bow', 'c', 1), it('Hacha de batalla', 'axe', 'u', 1), it('Cota de escamas', 'armor', 'c', 1), it('Escudo', 'shield', 'c', 1),
+      it('Corona del Rey Ahogado', 'helm', 'l', 1, true), it('Gema de fuego frío', 'gem', 'r', 1), it('Pergamino de Contraconjuro', 'scroll', 'r', 1), it('Tomo de los Siete Sellos', 'book', 'a', 1, true),
+      it('Raíz de mandrágora', 'herb', 'u', 4), it('Sal de plata', 'drop', 'c', 5), it('Escama de dragón verde', 'fang', 'm', 2), it('Mineral de hierro', 'ore', 'c', 8),
+      it('Raciones de viaje', 'bread', 'c', 12), it('Queso curado', 'bread', 'c', 2), it('Manzanas', 'apple', 'c', 7), it('Vino de Sembia', 'flask', 'u', 2),
+      it('Antorchas', 'torch', 'c', 10), it('Saco de dormir', 'bag', 'c', 2), it('Capa de lana', 'cloak', 'c', 1), it('Guantes de cetrería', 'gloves', 'c', 1),
+      it('Botas de montar', 'boots', 'c', 1), it('Anillo de sello', 'ring', 'u', 1), it('Llave de la cripta', 'key', 'u', 1), it('Cálices ceremoniales', 'flask', 'c', 3),
+      it('Seta brillante', 'mushroom', 'c', 6), it('Varita de proyectil mágico', 'staff', 'r', 1, true), it('Daga de plata', 'dagger', 'u', 1), it('Amuleto roto', 'amulet', 'c', 1),
+      it('Polvo de hueso', 'drop', 'c', 3), it('Garra de mantícora', 'fang', 'r', 2), it('Pergamino de Detectar magia', 'scroll', 'c', 2), it('Carne de jabalí', 'meat', 'c', 3),
+      it('Martillo ligero', 'hammer', 'c', 2), it('Flechas', 'dagger', 'c', 40), it('Diario del cartógrafo', 'book', 'c', 1), it('Esmeralda en bruto', 'gem', 'u', 2), it('Aceite de lámpara', 'drop', 'c', 4)
+    ], 78);
+    const legend = [
+      { cls: 'r-c', t: 'Común' }, { cls: 'r-u', t: 'Poco común' }, { cls: 'r-r', t: 'Raro' },
+      { cls: 'r-m', t: 'Muy raro' }, { cls: 'r-l', t: 'Legendario' }, { cls: 'r-a', t: 'Artefacto' }
+    ];
+    return { chars, stash, legend };
+  }
+}
+</script>
+</body>
+</html>

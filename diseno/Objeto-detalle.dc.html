@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Detalle del objeto</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+body{margin:0;background:#060504}
+.panel{position:relative;box-sizing:border-box;background:linear-gradient(180deg,#16120e 0%,#0f0c0a 55%,#0c0a08 100%);border:1px solid #5e4c2c;box-shadow:inset 0 0 0 3px #0b0907,inset 0 0 0 4px #33291a,0 14px 40px rgba(0,0,0,.7)}
+.cn{position:absolute;width:30px;height:30px;fill:none;stroke:#b89a55;stroke-width:1.2;pointer-events:none}
+.cn.tl{left:-3px;top:-3px}.cn.tr{right:-3px;top:-3px;transform:scaleX(-1)}.cn.bl{left:-3px;bottom:-3px;transform:scaleY(-1)}.cn.br{right:-3px;bottom:-3px;transform:scale(-1,-1)}
+.k{font:600 12px 'Alegreya Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#a99d86}
+.v{font:500 17px 'Alegreya Sans',sans-serif;color:#ece4d2}
+.sec{display:flex;align-items:center;gap:12px;margin:0;font:600 14px 'Cinzel',serif;letter-spacing:.06em;color:#d8c38f}
+.sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#4d3e25,transparent)}
+.btn{height:44px;padding:0 22px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:22px;font:600 14px 'Cinzel',serif;letter-spacing:.05em;cursor:pointer}
+.btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.btn.pri{color:#1a1206;background:linear-gradient(180deg,#f0d38a,#c49a45);border:1px solid #f6e2a8}
+.btn.sec2{color:#d8ccb3;background:#0f0c0a;border:1px solid #5e4c2c}
+@keyframes shimmer{0%,100%{opacity:.55}50%{opacity:1}}
+</style>
+</helmet>
+<div style="position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: 'Alegreya', Georgia, serif; color: #e8dfcc; background: radial-gradient(ellipse 75% 70% at 50% 45%, #15110d 0%, #080706 70%)">
+  <div style="position: absolute; left: 0; top: 0; opacity: .5"><dc-import name="Topbar" active="grupal" hint-size="1920px,72px"></dc-import></div>
+
+  <section role="dialog" aria-modal="true" aria-labelledby="dt-t" class="panel" style="position: absolute; left: 310px; top: 150px; width: 1300px; height: 820px; padding: 34px 40px 28px; display: grid; grid-template-columns: 380px 1fr; gap: 40px; background: linear-gradient(180deg, #1b1510 0%, #0f0c0a 100%); border-color: #8c6a33; box-shadow: inset 0 0 0 3px #0b0907, inset 0 0 0 4px #4d3a1c, 0 30px 90px rgba(0,0,0,.9), 0 0 60px rgba(245,169,60,.08)">
+    <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn bl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn br" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+
+    <div style="display: flex; flex-direction: column; gap: 18px">
+      <div style="position: relative; width: 380px; height: 380px; box-sizing: border-box; border: 1px solid #f5a93c; background: radial-gradient(circle at 50% 45%, rgba(245,169,60,.32) 0, rgba(245,169,60,.06) 45%, transparent 70%), linear-gradient(180deg, #1c150d, #0c0a08); box-shadow: 0 0 0 1px #000, 0 0 0 4px #1a130a, 0 0 0 5px #6b4e1f, 0 0 40px rgba(245,169,60,.25), inset 0 0 40px rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center">
+        <svg viewBox="0 0 24 24" width="220" height="220" aria-hidden="true" style="fill: none; stroke: #f5b14c; stroke-width: .8; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 12px rgba(245,169,60,.6))">
+          <path d="M4 17l-1-9 4.5 4L12 5l4.5 7L21 8l-1 9z"></path>
+          <path d="M4 17h16v2.5H4z"></path>
+          <path d="M12 5V3.5M7.5 12l-.5-1.5M16.5 12l.5-1.5"></path>
+          <circle cx="12" cy="14.5" r="1.1"></circle><circle cx="7.6" cy="15" r=".7"></circle><circle cx="16.4" cy="15" r=".7"></circle>
+          <path d="M6 21c1.5-.8 3-.8 4.5 0s3 .8 4.5 0 3-.8 3 0" stroke-opacity=".6"></path>
+        </svg>
+        <span style="position: absolute; left: 12px; top: 12px; width: 14px; height: 14px; transform: rotate(45deg); background: #e9c56a; box-shadow: 0 0 0 1px #2a1d06, 0 0 8px rgba(233,197,106,.9)"></span>
+        <span style="position: absolute; right: 12px; bottom: 10px; font: 12px 'Alegreya Sans', sans-serif; color: #a99d86">Icono por defecto · Yelmo</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; padding: 16px 18px; background: rgba(0,0,0,.3); border: 1px solid #2c2419">
+        <div style="display: flex; flex-direction: column; gap: 4px"><span class="k">Peso</span><span class="v">1,5 kg</span></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><span class="k">Valor</span><span class="v" style="color: #e8c46c">25.000 PO</span></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><span class="k">Cantidad</span><span class="v">1</span></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><span class="k">Ranura</span><span class="v">Cabeza</span></div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 18px; min-width: 0">
+      <header style="display: flex; align-items: flex-start; gap: 16px">
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 8px">
+          <h2 id="dt-t" style="margin: 0; font-family: 'Cinzel', serif; font-size: 36px; font-weight: 700; line-height: 1.1; color: #f5b14c; text-shadow: 0 0 22px rgba(245,169,60,.35)">Corona del Rey Ahogado</h2>
+          <div style="display: flex; align-items: center; gap: 10px; font: 16px 'Alegreya Sans', sans-serif; color: #b9ab90">
+            <span>Objeto maravilloso · Cabeza</span>
+            <span style="padding: 3px 12px; border: 1px solid #f5a93c; border-radius: 12px; color: #f5b14c; background: rgba(245,169,60,.1)">Legendario</span>
+            <span style="display: flex; align-items: center; gap: 6px; color: #ecd593"><span style="width: 8px; height: 8px; transform: rotate(45deg); background: #e9c56a"></span>Requiere sintonización</span>
+          </div>
+        </div>
+        <button type="button" aria-label="Cerrar" style="width: 40px; height: 40px; flex: none; display: flex; align-items: center; justify-content: center; border: 1px solid #4d3e25; border-radius: 50%; background: #0d0b09; color: #c9b88f; cursor: pointer"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      </header>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border: 1px solid #3e321f; background: linear-gradient(180deg, #1a1510, #100d0a)"><span class="k">Salvación SAB</span><span style="font: 700 28px 'Cinzel', serif; color: #f2e6c8">+2</span></div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border: 1px solid #3e321f; background: linear-gradient(180deg, #1a1510, #100d0a)"><span class="k">Cargas</span><span style="font: 700 28px 'Cinzel', serif; color: #f2e6c8">3 <span style="font-size: 18px; color: #9d917b">/ 3</span></span></div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border: 1px solid #3e321f; background: linear-gradient(180deg, #1a1510, #100d0a)"><span class="k">Recarga</span><span style="font: 600 20px 'Cinzel', serif; color: #f2e6c8; padding-top: 6px">Al amanecer</span></div>
+      </div>
+
+      <h3 class="sec">Efectos</h3>
+      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 17px; line-height: 1.45; color: #e3d9c4">
+        <li><b style="color: #f2e6c8">Señor de las mareas.</b> Velocidad nadando igual a tu velocidad caminando y respiras bajo el agua.</li>
+        <li><b style="color: #f2e6c8">Llamada del fondo (1 carga).</b> Lanzas <i>Dominar bestia</i> sobre una criatura acuática, CD 17.</li>
+        <li><b style="color: #f2e6c8">Peso de la corona.</b> Mientras estás sintonizado, tienes desventaja en salvaciones contra ser asustado por muertos vivientes.</li>
+      </ul>
+
+      <h3 class="sec">Descripción</h3>
+      <p style="margin: 0; font-size: 17px; font-style: italic; line-height: 1.5; color: #c9bda4">Oro verdoso cubierto de coral negro. Sigue húmeda aunque lleve días al sol, y quien la toca oye campanas sumergidas.</p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <h3 class="sec">Notas de la party</h3>
+          <p style="margin: 0; font: 15px/1.45 'Alegreya Sans', sans-serif; color: #cfc3aa">«No se la pone nadie hasta hablar con la sacerdotisa de Umbervale.» — Brom</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <h3 class="sec">Historial</h3>
+          <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font: 14px 'Alegreya Sans', sans-serif; color: #b9ab90">
+            <li><b style="color: #4fa07f">Ysolde</b> la encontró en la Cripta de Valdemar · hace 3 días</li>
+            <li><b style="color: #4fa07f">Ysolde</b> la movió a <b style="color: #e2c27a">Alijo de la party</b> · hace 3 días</li>
+          </ol>
+        </div>
+      </div>
+
+      <footer style="margin-top: auto; display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid #2c2419">
+        <span style="flex: 1; display: flex; align-items: center; gap: 8px; white-space: nowrap; font: 15px 'Alegreya Sans', sans-serif; color: #b9ab90">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="fill: none; stroke: #e2c27a; stroke-width: 1.5"><path d="M3 11h18v9H3zM3 11a9 6 0 0 1 18 0M10.5 13h3v3.5h-3z"></path></svg>
+          <span>En <b style="color: #ece4d2">Alijo de la party</b></span>
+        </span>
+        <button type="button" class="btn sec2" style="color: #ef8a84; border-color: #5a2321"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"></path></svg>Eliminar</button>
+        <button type="button" class="btn sec2"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"></path></svg>Editar</button>
+        <button type="button" class="btn sec2"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h14M13 6l6 6-6 6"></path></svg>Dar a…</button>
+        <button type="button" class="btn pri">Equipar y sintonizar</button>
+      </footer>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

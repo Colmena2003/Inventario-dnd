@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Dividir pila</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+body{margin:0;background:#060504}
+.r-c{--rc:#cfc8ba;--rg:rgba(207,200,186,.16)}
+.slot{position:relative;width:44px;height:44px;padding:0;box-sizing:border-box;border:1px solid color-mix(in srgb,var(--rc) 62%,#120e0a);border-radius:2px;background:radial-gradient(circle at 50% 42%,var(--rg,transparent) 0,transparent 72%),linear-gradient(180deg,#18140f 0%,#0d0b09 100%);box-shadow:inset 0 1px 0 rgba(255,232,180,.05),inset 0 -3px 6px rgba(0,0,0,.65),0 0 0 1px #070605;display:flex;align-items:center;justify-content:center;color:var(--rc)}
+.slot svg{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.qty{position:absolute;right:4px;bottom:2px;font:700 14px/1 'Alegreya Sans',sans-serif;color:#f6eedd;text-shadow:0 0 3px #000,0 0 2px #000}
+.panel{position:relative;box-sizing:border-box;background:linear-gradient(180deg,#16120e 0%,#0f0c0a 55%,#0c0a08 100%);border:1px solid #5e4c2c;box-shadow:inset 0 0 0 3px #0b0907,inset 0 0 0 4px #33291a,0 14px 40px rgba(0,0,0,.7)}
+.cn{position:absolute;width:30px;height:30px;fill:none;stroke:#b89a55;stroke-width:1.2;pointer-events:none}
+.cn.tl{left:-3px;top:-3px}.cn.tr{right:-3px;top:-3px;transform:scaleX(-1)}.cn.bl{left:-3px;bottom:-3px;transform:scaleY(-1)}.cn.br{right:-3px;bottom:-3px;transform:scale(-1,-1)}
+.step{width:48px;height:48px;display:flex;align-items:center;justify-content:center;border:1px solid #6b5631;border-radius:50%;background:linear-gradient(180deg,#1d1812,#100d0a);color:#e2c27a;cursor:pointer}
+.step:hover{border-color:#e2c27a;box-shadow:0 0 12px rgba(226,194,122,.3)}
+.chip{height:36px;padding:0 16px;border:1px solid #4d3e25;border-radius:18px;background:#0e0b09;color:#d8ccb3;font:500 15px 'Alegreya Sans',sans-serif;cursor:pointer}
+.chip:hover{border-color:#b89a55;color:#f1dfb0}
+input[type=range]{accent-color:#d9b05a}
+.btn{height:48px;padding:0 26px;border-radius:24px;font:600 15px 'Cinzel',serif;letter-spacing:.05em;cursor:pointer}
+.btn.pri{color:#1a1206;background:linear-gradient(180deg,#f0d38a,#c49a45);border:1px solid #f6e2a8;box-shadow:0 0 0 1px #3a2a0e,0 0 20px rgba(226,194,122,.3)}
+.btn.sec{color:#d8ccb3;background:#0f0c0a;border:1px solid #5e4c2c}
+@keyframes pop{from{opacity:0;transform:translate(-50%,-48%) scale(.97)}to{opacity:1;transform:translate(-50%,-50%)}}
+</style>
+</helmet>
+<div style="position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: 'Alegreya', Georgia, serif; color: #e8dfcc; background: radial-gradient(ellipse 75% 70% at 55% 45%, #1b1611 0%, #0d0b09 58%, #050404 100%)">
+  <div style="position: absolute; left: 0; top: 0">
+    <dc-import name="Topbar" active="grupal" hint-size="1920px,72px"></dc-import>
+  </div>
+  <div style="position: absolute; left: 0; top: 72px">
+    <dc-import name="Retratos" active="2" hint-size="104px,1008px"></dc-import>
+  </div>
+  <div aria-hidden="true" style="position: absolute; left: 124px; top: 90px; display: flex; gap: 16px; opacity: .55">
+    <div class="panel" style="width: 352px; height: 936px"></div>
+    <div class="panel" style="width: 352px; height: 936px"></div>
+    <div class="panel" style="width: 352px; height: 936px"></div>
+    <div class="panel" style="width: 352px; height: 936px"></div>
+    <div class="panel" style="width: 300px; height: 936px"></div>
+  </div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(5,4,3,.55) 0%, rgba(3,2,2,.88) 70%); backdrop-filter: blur(3px)"></div>
+
+  <section role="dialog" aria-modal="true" aria-labelledby="dlg-t" class="panel" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 580px; padding: 30px 36px 30px; display: flex; flex-direction: column; gap: 22px; background: linear-gradient(180deg, #1b1611 0%, #100d0a 100%); box-shadow: inset 0 0 0 3px #0b0907, inset 0 0 0 4px #3e321f, 0 30px 90px rgba(0,0,0,.9); animation: pop .2s ease-out">
+    <svg class="cn tl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn tr" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn bl" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <svg class="cn br" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5"></path><circle cx="10" cy="10" r="1.8" fill="#b89a55"></circle></svg>
+    <header style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+      <h2 id="dlg-t" style="margin: 0; font-family: 'Cinzel', serif; font-size: 26px; font-weight: 600; letter-spacing: .06em; color: #eedcb0">Dividir pila</h2>
+      <svg viewBox="0 0 330 10" width="300" height="10" aria-hidden="true"><path d="M0 5h150M180 5h150" stroke="#4d3e25"></path><path d="M165 1l4 4-4 4-4-4z" fill="#b89a55"></path></svg>
+    </header>
+
+    <div style="display: grid; grid-template-columns: 1fr 40px 1fr; align-items: center; gap: 10px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <div class="slot r-c" style="width: 60px; height: 60px"><svg viewBox="0 0 24 24" width="38" height="38" aria-hidden="true"><path d="M10 3h4M10.5 3v5L6 15a4.2 4.2 0 0 0 3.6 6h4.8a4.2 4.2 0 0 0 3.6-6l-4.5-7V3M7 14.5h10"></path></svg><span class="qty">6</span></div>
+        <div style="display: flex; flex-direction: column; gap: 2px; font-family: 'Alegreya Sans', sans-serif">
+          <span style="font-size: 16px; font-weight: 700; color: #ece6da">Poción de curación</span>
+          <span style="font-size: 14px; color: #b9ab90">De <b style="color: #c08e4f">Brom</b> · quedan {{left}}</span>
+        </div>
+      </div>
+      <svg viewBox="0 0 40 20" width="40" height="20" aria-hidden="true"><path d="M2 10h34M28 3l8 7-8 7" fill="none" stroke="#b89a55" stroke-width="1.6"></path></svg>
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px">
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-family: 'Alegreya Sans', sans-serif">
+          <span style="font-size: 16px; font-weight: 700; color: #ece6da">Nerys Valtëa</span>
+          <span style="font-size: 14px; color: #b9ab90">recibirá {{qty}}</span>
+        </div>
+        <div style="width: 52px; height: 60px; border: 2px solid #9a78d0; background: linear-gradient(180deg, rgba(154,120,208,.5), #0b0907); display: flex; align-items: center; justify-content: center; font: 700 14px 'Cinzel', serif; color: #e9d6a8">NV</div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 18px 0 6px; border-top: 1px solid #2c2419">
+      <label for="qty-range" style="font-family: 'Cinzel', serif; font-size: 18px; color: #e2c27a; letter-spacing: .03em">¿Cuántas pociones mover?</label>
+      <div style="display: flex; align-items: center; gap: 22px">
+        <button type="button" class="step" aria-label="Una menos" onClick="{{dec}}"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round"><path d="M5 12h14"></path></svg></button>
+        <output aria-live="polite" style="min-width: 96px; text-align: center; font-family: 'Cinzel', serif; font-size: 52px; font-weight: 700; line-height: 1; color: #f2e6c8; text-shadow: 0 0 16px rgba(226,194,122,.35)">{{qty}}</output>
+        <button type="button" class="step" aria-label="Una más" onClick="{{inc}}"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round"><path d="M12 5v14M5 12h14"></path></svg></button>
+      </div>
+      <input id="qty-range" type="range" min="1" max="6" value="{{qty}}" onChange="{{onRange}}" style="width: 420px">
+      <div style="display: flex; gap: 10px">
+        <button type="button" class="chip" onClick="{{setOne}}">1</button>
+        <button type="button" class="chip" onClick="{{setHalf}}">Mitad</button>
+        <button type="button" class="chip" onClick="{{setAll}}">Todas</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; background: rgba(0,0,0,.3); border: 1px solid #2c2419; font-family: 'Alegreya Sans', sans-serif">
+      <div style="display: flex; justify-content: space-between; font-size: 14px">
+        <span style="color: #b9ab90">Carga de Nerys tras mover</span>
+        <span style="color: #e8dfcc"><b>{{newW}}</b> / 54 kg <span style="color: #9cc95e">(+{{addW}} kg)</span></span>
+      </div>
+      <div style="position: relative; height: 8px; background: #110e0b; border: 1px solid #3a2f1d">
+        <div style="height: 8px; width: 27%; background: #c9a65a"></div>
+        <div style="{{addBar}}"></div>
+        <span aria-hidden="true" style="position: absolute; left: 33.3%; top: -3px; bottom: -3px; width: 1px; background: #7a6338"></span>
+        <span aria-hidden="true" style="position: absolute; left: 66.6%; top: -3px; bottom: -3px; width: 1px; background: #7a6338"></span>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 4px">
+      <button type="button" class="btn sec">Cancelar</button>
+      <button type="button" class="btn pri">Mover {{qty}} {{noun}}</button>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { qty: 3 }; }
+  renderVals() {
+    const max = 6, unit = 0.5, base = 14.6, cap = 54;
+    const qty = this.state.qty;
+    const set = (n) => this.setState({ qty: Math.max(1, Math.min(max, n)) });
+    const fmt = (n) => n.toFixed(1).replace('.', ',');
+    const add = qty * unit;
+    return {
+      qty, left: max - qty, noun: qty === 1 ? 'poción' : 'pociones',
+      addW: fmt(add), newW: fmt(base + add),
+      addBar: 'position:absolute;top:0;height:8px;left:27%;width:' + (add / cap * 100).toFixed(1) + '%;background:#9cc95e;box-shadow:0 0 8px rgba(156,201,94,.6)',
+      inc: () => set(qty + 1), dec: () => set(qty - 1),
+      setOne: () => set(1), setHalf: () => set(Math.floor(max / 2)), setAll: () => set(max),
+      onRange: (e) => set(parseInt(e.target.value, 10) || 1)
+    };
+  }
+}
+</script>
+</body>
+</html>

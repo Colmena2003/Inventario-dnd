@@ -1,0 +1,46 @@
+{
+  "party": {
+    "id": "party-1",
+    "nombre": "La Compañía",
+    "tesoro": { "ppt": 12, "po": 1248, "pe": 4, "pp": 86, "pc": 340 }
+  },
+  "personajes": [
+    { "id": "aldric", "nombre": "Aldric Varn", "raza": "Humano", "trasfondo": "Soldado", "clases": [{ "clase": "Paladín", "nivel": 5 }], "px": 4300,
+      "pvActual": 44, "pvMax": 52, "ca": 19, "fue": 18, "des": 10, "con": 14, "int": 9, "sab": 12, "car": 16,
+      "condiciones": ["Bendecido", "Agotamiento 1"], "resistencias": ["Necrótico"], "saciedad": 86, "color": "#6F8FB8",
+      "monedas": { "ppt": 2, "po": 312, "pe": 0, "pp": 41, "pc": 87 } },
+    { "id": "nerys", "nombre": "Nerys Valtëa", "raza": "Elfa", "clases": [{ "clase": "Maga", "nivel": 5 }],
+      "pvActual": 26, "pvMax": 31, "ca": 13, "fue": 8, "des": 14, "con": 13, "int": 18, "sab": 12, "car": 10,
+      "condiciones": [], "resistencias": [], "saciedad": 58, "color": "#9A78D0",
+      "monedas": { "ppt": 0, "po": 148, "pe": 0, "pp": 23, "pc": 50 } },
+    { "id": "brom", "nombre": "Brom Hierroforja", "raza": "Enano", "clases": [{ "clase": "Clérigo", "nivel": 5 }],
+      "pvActual": 41, "pvMax": 45, "ca": 18, "fue": 14, "des": 8, "con": 16, "int": 10, "sab": 17, "car": 12,
+      "condiciones": [], "resistencias": ["Veneno"], "saciedad": 27, "color": "#C08E4F",
+      "monedas": { "ppt": 2, "po": 205, "pe": 0, "pp": 12, "pc": 0 } },
+    { "id": "ysolde", "nombre": "Ysolde Mirra", "raza": "Mediana", "clases": [{ "clase": "Pícara", "nivel": 5 }],
+      "pvActual": 18, "pvMax": 36, "ca": 15, "fue": 10, "des": 18, "con": 12, "int": 13, "sab": 11, "car": 14,
+      "condiciones": [], "resistencias": [], "saciedad": 8, "color": "#4FA07F",
+      "monedas": { "ppt": 0, "po": 96, "pe": 0, "pp": 28, "pc": 80 } }
+  ],
+  "objetos": [
+    { "id": "o1", "nombre": "Hoja del Alba Cenicienta", "icono": "sword", "categoria": "Armas", "rareza": "muy raro", "cantidad": 1, "pesoKg": 1.5, "valorPo": 2400,
+      "requiereSintonizacion": true, "sintonizado": true, "ranuraEquipo": "cuerpoACuerpo", "dano": "1d8 cortante (versátil 1d10), +1", "cargas": 2, "cargasMax": 3, "recarga": "Al amanecer",
+      "efectos": "Destello del alba: acción adicional, 1 carga, luz brillante 6 m; los muertos vivientes tienen desventaja al atacarte hasta tu siguiente turno. +1d6 radiante contra muertos vivientes.",
+      "propietario": { "tipo": "personaje", "id": "aldric" }, "equipadoEn": { "ranura": "cuerpoACuerpo", "indice": 0 } },
+    { "id": "o2", "nombre": "Corona del Rey Ahogado", "icono": "helm", "categoria": "Armaduras", "rareza": "legendario", "cantidad": 1, "pesoKg": 1.5, "valorPo": 25000,
+      "requiereSintonizacion": true, "sintonizado": false, "ranuraEquipo": "cabeza", "cargas": 3, "cargasMax": 3, "recarga": "Al amanecer",
+      "descripcion": "Oro verdoso cubierto de coral negro.", "propietario": { "tipo": "alijo" }, "equipadoEn": null },
+    { "id": "o3", "nombre": "Poción de curación", "icono": "potion", "categoria": "Pociones", "rareza": "común", "cantidad": 6, "pesoKg": 0.5, "valorPo": 50,
+      "propietario": { "tipo": "personaje", "id": "brom" }, "equipadoEn": null },
+    { "id": "o4", "nombre": "Raciones de viaje", "icono": "bread", "categoria": "Comida", "subtipo": "ración", "rareza": "común", "cantidad": 12, "pesoKg": 1, "valorPo": 0.5, "saciedad": 30,
+      "propietario": { "tipo": "alijo" }, "equipadoEn": null },
+    { "id": "o5", "nombre": "Barra de adamantina", "icono": "ore", "categoria": "Materiales", "subtipo": "mineral", "rareza": "muy raro", "cantidad": 3, "pesoKg": 6, "valorPo": 500,
+      "propietario": { "tipo": "alijo" }, "equipadoEn": null }
+  ],
+  "recetas": [
+    { "id": "r1", "nombre": "Poción de curación", "resultado": { "objeto": "Poción de curación", "cantidad": 1 }, "herramienta": "Kit de herborista", "tiempo": "1 hora", "cd": 10,
+      "ingredientes": [{ "nombre": "Hierba de sangre", "cantidad": 2 }, { "nombre": "Seta brillante", "cantidad": 1 }, { "nombre": "Frasco vacío", "cantidad": 1 }] },
+    { "id": "r2", "nombre": "Poción de resistencia al fuego", "resultado": { "objeto": "Poción de resistencia al fuego", "cantidad": 1 }, "herramienta": "Kit de alquimista", "tiempo": "4 horas", "cd": 15,
+      "ingredientes": [{ "nombre": "Raíz de mandrágora", "cantidad": 2 }, { "nombre": "Sal de plata", "cantidad": 1 }, { "nombre": "Polvo de rubí", "cantidad": 1 }, { "nombre": "Frasco vacío", "cantidad": 1 }] }
+  ]
+}
