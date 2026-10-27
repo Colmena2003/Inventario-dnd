@@ -27,7 +27,9 @@ Hecho:
 
 - Monedas (se abre pulsando el tesoro de la barra superior): tesoro común con ingresar y retirar (Mayús = de 10 en 10), cambio exacto de monedas, historial, monedas por personaje con ingresos y retiradas (desde o hacia el tesoro, o monedas nuevas/gastadas), repartir botín moneda a moneda o convertido a la moneda más alta, y carga de cada personaje y de la party. Un reparto que deje a alguien con sobrepeso se bloquea.
 
-Pendiente: estadísticas, crafteo, despensa, añadir personajes y objetos, y Supabase.
+- Estadísticas: tarjeta por personaje (características, ataques, resistencias, condiciones —incluidos hambre y carga cuando tienen efecto— y valor, peso y objetos por rareza), radar de características con leyenda que oculta personajes, y barras de valor del inventario y de carga sobre el máximo. «Objetos» cuenta pilas, no unidades.
+
+Pendiente: crafteo, despensa, añadir personajes y objetos, y Supabase.
 
 ## Datos
 

@@ -5,6 +5,7 @@ import { useCofre } from './store/cofre';
 import { ArrastreProvider } from './ui/arrastre';
 import { DividirPila, QuienEres, SintoniaProvider } from './ui/Dialogos';
 import { AvisoActual, Grupal, PieGrupal, type Aviso } from './ui/Grupal';
+import { Estadisticas } from './ui/Estadisticas';
 import { Individual } from './ui/Individual';
 import { PantallaMonedas } from './ui/Monedas';
 import { PESTANAS, Retratos, Topbar, type Pestana } from './ui/Marco';
@@ -100,10 +101,12 @@ export default function App() {
                 <PantallaMonedas avisar={avisar} />
                 <div className="avisos-flot abajo"><AvisoActual aviso={aviso} /></div>
               </>
+            ) : pestana === 'estadisticas' ? (
+              <Estadisticas />
             ) : (
               <section className="pronto">
                 <h2>{titulo}</h2>
-                <p>Esta pantalla todavía no está construida. De momento solo funciona el inventario grupal.</p>
+                <p>Esta pantalla todavía no está construida.</p>
                 <button type="button" className="btn sec" onClick={() => setPestana('grupal')}>Volver al inventario grupal</button>
               </section>
             )}

@@ -57,6 +57,11 @@ export function estadoSaciedad(v: number): EstadoSaciedad {
   return { texto: 'Famélico', color: '#e0534d', efecto: '+1 nivel de agotamiento al día' };
 }
 
+// ── Condiciones ────────────────────────────────────────────────────
+
+/** [5e] Condiciones que perjudican; el resto se muestran como efectos favorables. */
+export const CONDICION_MALA = /agotamiento|envenenad|asustad|cegad|aturdid|paralizad|derribad|apresad|incapacitad|petrificad|ensordecid|hechizad|inconsciente|restringid|maldit/i;
+
 // ── Monedas [5e] ───────────────────────────────────────────────────
 
 export const totalEnPo = (m: Monedas) => m.ppt * 10 + m.po + m.pe / 2 + m.pp / 10 + m.pc / 100;
@@ -242,6 +247,28 @@ export function moverObjeto(e: Estado, objetoId: string, destino: Destino, actor
     : e.movimientos;
 
   return { ...e, objetos, movimientos };
+}
+
+// ── Estadísticas ───────────────────────────────────────────────────
+
+export const RAREZAS: Rareza[] = ['común', 'poco común', 'raro', 'muy raro', 'legendario', 'artefacto'];
+
+export type ResumenInventario = { valorPo: number; pesoKg: number; objetos: number; porRareza: Record<Rareza, number> };
+
+/**
+ * Agregados del inventario de un personaje, equipo incluido. `objetos` y `porRareza` cuentan pilas,
+ * no unidades: 40 flechas son un objeto. El peso incluye las monedas, como la carga.
+ */
+export function resumenInventario(e: Estado, p: Personaje): ResumenInventario {
+  const propios = objetosDe(e, { tipo: 'personaje', id: p.id });
+  const porRareza = Object.fromEntries(RAREZAS.map((r) => [r, 0])) as Record<Rareza, number>;
+  for (const o of propios) porRareza[o.rareza]++;
+  return {
+    valorPo: propios.reduce((s, o) => s + o.valorPo * o.cantidad, 0),
+    pesoKg: pesoPersonajeKg(e, p),
+    objetos: propios.length,
+    porRareza,
+  };
 }
 
 // ── Presentación ───────────────────────────────────────────────────

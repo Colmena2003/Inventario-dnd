@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { estadoInicial } from '../data/semilla';
 import {
   alternarSintonia, ataque, cargaMaxKg, sintonizadosDe, equipadoEn, estadoSaciedad, modificador, moverObjeto, objetosDe, pesoMonedasKg,
-  pesoPersonajeKg, totalEnPo, tramoCarga, validarMovimiento,
+  pesoPersonajeKg, resumenInventario, totalEnPo, tramoCarga, validarMovimiento,
 } from './reglas';
 
 const e0 = estadoInicial();
@@ -106,5 +106,17 @@ describe('sintonización', () => {
 describe('datos de ejemplo', () => {
   it('nadie empieza por encima de su máximo', () => {
     for (const p of e0.personajes) expect(pesoPersonajeKg(e0, p)).toBeLessThanOrEqual(cargaMaxKg(p.fue));
+  });
+});
+
+describe('estadísticas', () => {
+  it('resumen del inventario de un personaje', () => {
+    const p = pj('aldric');
+    const propios = objetosDe(e0, { tipo: 'personaje', id: p.id });
+    const r = resumenInventario(e0, p);
+    expect(r.objetos).toBe(propios.length);
+    expect(Object.values(r.porRareza).reduce((s, n) => s + n, 0)).toBe(propios.length);
+    expect(r.valorPo).toBe(propios.reduce((s, o) => s + o.valorPo * o.cantidad, 0));
+    expect(r.pesoKg).toBeCloseTo(pesoPersonajeKg(e0, p));
   });
 });

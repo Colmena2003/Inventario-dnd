@@ -2,7 +2,7 @@
 
 import { useRef, useState, type CSSProperties } from 'react';
 import {
-  ataque, CLASE_RAREZA, conSigno, equipadoEn, fmtKg, MAX_SINTONIZADOS, modificador, nivelTotal, objetosDe,
+  ataque, CLASE_RAREZA, CONDICION_MALA, conSigno, equipadoEn, fmtKg, MAX_SINTONIZADOS, modificador, nivelTotal, objetosDe,
   pesoPersonajeKg, cargaMaxKg, pxNivelActual, pxSiguienteNivel, sintonizadosDe, tramoCarga,
 } from '../domain/reglas';
 import type { Categoria, Caracteristica, IconoRasgo, Objeto, Personaje, Rareza } from '../domain/tipos';
@@ -42,8 +42,6 @@ const ICONO_RASGO: Record<IconoRasgo, { d: string; c: string }> = {
 
 const ESTRELLA = ICONO_RASGO.estrella.d;
 const ALERTA = 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v6M12 16v.01';
-/** [5e] Condiciones que perjudican; el resto se muestran como efectos favorables. */
-const CONDICION_MALA = /agotamiento|envenenad|asustad|cegad|aturdid|paralizad|derribad|apresad|incapacitad|petrificad|ensordecid|hechizad|inconsciente|restringid|maldit/i;
 
 function Ficha({ p }: { p: Personaje }) {
   const nivel = nivelTotal(p);
