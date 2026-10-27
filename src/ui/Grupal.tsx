@@ -5,39 +5,13 @@ import {
   ataque, cargaMaxKg, CLASE_RAREZA, conSigno, equipadoEn, estadoSaciedad, fmtKg, objetosDe, pesoAlijoKg,
   pesoPersonajeKg, tramoCarga,
 } from '../domain/reglas';
-import type { Categoria, Objeto, Personaje, TipoRanura } from '../domain/tipos';
+import type { Categoria, Personaje, TipoRanura } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
+import { useSintonia } from './Dialogos';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
 import { Esquinas, fmt1, fmtNum, Icono, Orla, Ranura } from './piezas';
-import { useTooltip } from './Tooltip';
-
-// ── Interacción de ranuras ─────────────────────────────────────────
-
-function useInteraccion(busqueda: string) {
-  const { arrastre, empezar } = useArrastre();
-  const { mostrar, ocultar } = useTooltip();
-  const q = busqueda.trim().toLocaleLowerCase('es');
-  return {
-    arrastre,
-    props: (o: Objeto) => ({
-      onPointerDown: (e: React.PointerEvent) => { ocultar(); empezar(e, o); },
-      onPointerEnter: (e: React.PointerEvent) => { if (!arrastre) mostrar(o, e.currentTarget); },
-      onPointerLeave: ocultar,
-    }),
-    clase: (o: Objeto) => {
-      if (arrastre?.objeto.id === o.id) return 'origin';
-      if (q && !o.nombre.toLocaleLowerCase('es').includes(q)) return 'no';
-      return '';
-    },
-  };
-}
-
-/** Rellena con ranuras vacías hasta completar filas. */
-function celdas(objetos: Objeto[], minimo: number, porFila: number) {
-  const total = Math.max(minimo, Math.ceil((objetos.length + 1) / porFila) * porFila);
-  return Array.from({ length: total }, (_, i) => objetos[i]);
-}
+import { celdas, DCHA, IZQ, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 
 // ── Pantalla ───────────────────────────────────────────────────────
 
@@ -59,19 +33,10 @@ export function Grupal({ busqueda }: { busqueda: string }) {
 
 // ── Columna de personaje ──────────────────────────────────────────
 
-const SILUETA_ARMA: Partial<Record<ClaveIcono, string>> = {
-  sword: 'M150 190L182 60M176 84l14 4',
-  staff: 'M146 360L150 60M150 60a8 8 0 1 1 0.1 0',
-  hammer: 'M52 230L30 120M22 112l18-10 6 14-18 10z',
-  bow: 'M40 200c-24-40-20-110 10-150M40 200L12 60',
-};
-
-const IZQ: [TipoRanura, ClaveIcono][] = [['cabeza', 'helm'], ['capa', 'cloak'], ['armadura', 'armor'], ['guantes', 'gloves'], ['botas', 'boots']];
-const DCHA: [TipoRanura, number, ClaveIcono][] = [['amuleto', 0, 'amulet'], ['anillo', 0, 'ring'], ['anillo', 1, 'ring']];
-
 function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number; ancho: number; busqueda: string }) {
+  const onDoble = useSintonia();
   const { estado, validar, cambiarImagen } = useCofre();
-  const { arrastre, props, clase } = useInteraccion(busqueda);
+  const { arrastre, props, clase } = useInteraccion(busqueda, onDoble);
   const fichero = useRef<HTMLInputElement>(null);
 
   const propios = objetosDe(estado, { tipo: 'personaje', id: p.id });
@@ -98,21 +63,6 @@ function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number;
     ? inventario.find((o) => o.id !== arrastre!.objeto.id && o.nombre === arrastre!.objeto.nombre && o.rareza === arrastre!.objeto.rareza && !o.sintonizado)?.id
     : undefined;
   const marca = v?.ok ? 'drop-ok' : 'drop-no';
-
-  const ranuraEquipo = (r: TipoRanura, i: number, fantasma: ClaveIcono, etiqueta: string) => {
-    const o = eq(r, i);
-    const k = `${clave}:${r}:${i}`;
-    let extra = '';
-    if (arrastre) {
-      const compatible = arrastre.objeto.ranuraEquipo === r;
-      if (arrastre.objetivo?.clave === k) extra = compatible && v?.ok ? 'drop-ok' : 'drop-no';
-      else if (!compatible) extra = 'no';
-    }
-    if (o) {
-      return <Ranura key={k} data-drop={k} objeto={o} extra={`${clase(o)} ${extra}`} {...props(o)} />;
-    }
-    return <Ranura key={k} data-drop={k} fantasma={fantasma} etiqueta={`${etiqueta}: vacío`} extra={extra} />;
-  };
 
   const subirImagen = async (f: File | undefined) => {
     if (!f) return;
@@ -155,22 +105,22 @@ function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number;
         {p.imagenUrl ? (
           <img className="retrato-img" src={p.imagenUrl} alt={`Imagen de ${p.nombre}`} />
         ) : (
-          <Silueta tinte={p.color} indice={indice} arma={silueta} />
+          <Silueta tinte={p.color} id={`col${indice}`} arma={silueta} />
         )}
         <button type="button" className="ibtn camara" aria-label="Cambiar imagen del personaje" onClick={() => fichero.current?.click()}>
           <Icono d={UI.camara} />
         </button>
         <input ref={fichero} type="file" accept="image/*" hidden onChange={(e) => { subirImagen(e.target.files?.[0]); e.target.value = ''; }} />
-        <div className="eq-izq">{IZQ.map(([r, ic]) => ranuraEquipo(r, 0, ic, nombreRanura(r)))}</div>
-        <div className="eq-dcha">{DCHA.map(([r, i, ic]) => ranuraEquipo(r, i, ic, nombreRanura(r)))}</div>
+        <div className="eq-izq">{IZQ.map(([r, ic]) => <RanuraEquipo key={r} p={p} ranura={r} indice={0} fantasma={ic} busqueda={busqueda} onDoble={onDoble} />)}</div>
+        <div className="eq-dcha">{DCHA.map(([r, i, ic]) => <RanuraEquipo key={r + i} p={p} ranura={r} indice={i} fantasma={ic} busqueda={busqueda} onDoble={onDoble} />)}</div>
       </div>
 
       <div className="armas">
         <div>
           <span className="lbl">Cuerpo a cuerpo</span>
           <div className="par">
-            {ranuraEquipo('cuerpoACuerpo', 0, 'sword', 'Mano principal')}
-            {ranuraEquipo('cuerpoACuerpo', 1, 'shield', 'Mano secundaria')}
+            <RanuraEquipo p={p} ranura="cuerpoACuerpo" indice={0} fantasma="sword" etiqueta="Mano principal" busqueda={busqueda} onDoble={onDoble} />
+            <RanuraEquipo p={p} ranura="cuerpoACuerpo" indice={1} fantasma="shield" etiqueta="Mano secundaria" busqueda={busqueda} onDoble={onDoble} />
           </div>
         </div>
         <div className="ca" aria-label={`Clase de armadura ${p.ca}`}>
@@ -185,8 +135,8 @@ function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number;
         <div>
           <span className="lbl">A distancia</span>
           <div className="par">
-            {ranuraEquipo('distancia', 0, 'bow', 'A distancia')}
-            {ranuraEquipo('distancia', 1, 'dagger', 'Mano secundaria')}
+            <RanuraEquipo p={p} ranura="distancia" indice={0} fantasma="bow" etiqueta="A distancia" busqueda={busqueda} onDoble={onDoble} />
+            <RanuraEquipo p={p} ranura="distancia" indice={1} fantasma="dagger" etiqueta="Mano secundaria" busqueda={busqueda} onDoble={onDoble} />
           </div>
         </div>
       </div>
@@ -222,55 +172,6 @@ function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number;
       </footer>
     </article>
   );
-}
-
-const nombreRanura = (r: TipoRanura) =>
-  ({ cabeza: 'Cabeza', capa: 'Capa', armadura: 'Armadura', guantes: 'Guantes', botas: 'Botas', amuleto: 'Amuleto', anillo: 'Anillo', cuerpoACuerpo: 'Cuerpo a cuerpo', distancia: 'A distancia' })[r];
-
-function Silueta({ tinte, indice, arma }: { tinte: string; indice: number; arma?: string }) {
-  return (
-    <svg viewBox="0 0 200 400" aria-hidden="true">
-      <defs>
-        <linearGradient id={`fg${indice}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={tinte} stopOpacity=".95" />
-          <stop offset=".6" stopColor={tinte} stopOpacity=".35" />
-          <stop offset="1" stopColor="#0c0a08" stopOpacity=".9" />
-        </linearGradient>
-        <radialGradient id={`aura${indice}`} cx=".5" cy=".45" r=".55">
-          <stop offset="0" stopColor={tinte} stopOpacity=".28" />
-          <stop offset="1" stopColor={tinte} stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <rect x="-40" y="0" width="280" height="400" fill={`url(#aura${indice})`} />
-      <ellipse cx="100" cy="374" rx="78" ry="13" fill="none" stroke={tinte} strokeOpacity=".45" strokeWidth="1.2" />
-      <ellipse cx="100" cy="374" rx="58" ry="8" fill={tinte} opacity=".18" />
-      <path d="M28 362c30-14 120-16 150 2M40 352c40-8 90-8 124 4" fill="none" stroke={tinte} strokeOpacity=".3" strokeWidth="1" />
-      <path d="M68 98L38 360l40-14 12 24 10-20 10 20 12-24 40 14L132 98z" fill="#090706" opacity=".9" />
-      {arma && <path d={arma} fill="none" stroke="#d8d0c0" strokeOpacity=".55" strokeWidth="2.5" strokeLinecap="round" />}
-      <path
-        d="M100 30c14 0 24 10 24 25s-10 26-24 26-24-11-24-26 10-25 24-25zM78 88h44l20 10 12 78-14 6-10-52-6 62 8 118h-28l-10-104-10 104H66l8-118-6-62-10 52-14-6 12-78z"
-        fill={`url(#fg${indice})`} stroke={tinte} strokeOpacity=".6" strokeWidth="1"
-      />
-    </svg>
-  );
-}
-
-/** Reduce la imagen subida para que quepa en el almacenamiento local. */
-function reducirImagen(f: File, lado: number): Promise<string> {
-  return new Promise((ok, mal) => {
-    const img = new Image();
-    img.onload = () => {
-      const k = Math.min(1, lado / Math.max(img.width, img.height));
-      const c = document.createElement('canvas');
-      c.width = Math.round(img.width * k);
-      c.height = Math.round(img.height * k);
-      c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(img.src);
-      ok(c.toDataURL('image/webp', 0.85));
-    };
-    img.onerror = mal;
-    img.src = URL.createObjectURL(f);
-  });
 }
 
 // ── Alijo ──────────────────────────────────────────────────────────
@@ -345,15 +246,12 @@ function Alijo({ busqueda }: { busqueda: string }) {
 
 const LEYENDA: [string, string][] = [['r-c', 'Común'], ['r-u', 'Poco común'], ['r-r', 'Raro'], ['r-m', 'Muy raro'], ['r-l', 'Legendario'], ['r-a', 'Artefacto']];
 
-export type Aviso = { id: number; tipo: 'error'; texto: string } | { id: number; tipo: 'mov'; movId: string };
+export type Aviso =
+  | { id: number; tipo: 'error' | 'info'; texto: string }
+  | { id: number; tipo: 'mov'; movId: string };
 
 export function PieGrupal({ aviso }: { aviso: Aviso | null }) {
-  const { estado } = useCofre();
   const { arrastre } = useArrastre();
-  const mov = aviso?.tipo === 'mov' ? estado.movimientos.find((m) => m.id === aviso.movId) : undefined;
-  const actorPj = mov && estado.personajes.find((p) => p.nombre === mov.actor || p.nombre.split(' ')[0] === mov.actor);
-  const destino = mov && (mov.destino.tipo === 'alijo' ? 'Alijo de la party' : estado.personajes.find((p) => p.id === (mov.destino as { id: string }).id)?.nombre);
-
   return (
     <div className="pie">
       <div className="leyenda">
@@ -372,19 +270,33 @@ export function PieGrupal({ aviso }: { aviso: Aviso | null }) {
           {arrastre.objeto.cantidad > 1 && <span style={{ color: '#8a7f6c' }}>Mayús + soltar para dividir</span>}
           <span style={{ color: '#8a7f6c' }}>Esc para cancelar</span>
         </div>
-      ) : aviso?.tipo === 'error' ? (
-        <div key={aviso.id} className="aviso error" role="alert">{aviso.texto}</div>
-      ) : mov ? (
-        <div key={aviso!.id} className="aviso" role="status">
-          <span className={`slot has ${CLASE_RAREZA[mov.rareza]}`}><Icono d={ICONOS[mov.icono]} /></span>
-          <span>
-            <b style={{ color: actorPj?.color ?? 'var(--oro-claro)' }}>{mov.actor}</b> ha movido{' '}
-            {mov.cantidad > 1 && `${mov.cantidad} × `}<b className={CLASE_RAREZA[mov.rareza]} style={{ color: 'var(--rc)' }}>{mov.objetoNombre}</b> a{' '}
-            <b style={{ color: 'var(--oro-claro)' }}>{destino}</b>
-          </span>
-          <span style={{ color: '#8a7f6c' }}>· ahora</span>
-        </div>
-      ) : null}
+      ) : (
+        <AvisoActual aviso={aviso} />
+      )}
+    </div>
+  );
+}
+
+/** Último aviso: un movimiento («X ha movido Y a Z»), un error o un mensaje. */
+export function AvisoActual({ aviso }: { aviso: Aviso | null }) {
+  const { estado } = useCofre();
+  if (!aviso) return null;
+  if (aviso.tipo !== 'mov') {
+    return <div key={aviso.id} className={`aviso ${aviso.tipo === 'error' ? 'error' : 'info'}`} role={aviso.tipo === 'error' ? 'alert' : 'status'}>{aviso.texto}</div>;
+  }
+  const mov = estado.movimientos.find((m) => m.id === aviso.movId);
+  if (!mov) return null;
+  const actorPj = estado.personajes.find((p) => p.nombre === mov.actor || p.nombre.split(' ')[0] === mov.actor);
+  const destino = mov.destino.tipo === 'alijo' ? 'Alijo de la party' : estado.personajes.find((p) => p.id === (mov.destino as { id: string }).id)?.nombre;
+  return (
+    <div key={aviso.id} className="aviso" role="status">
+      <span className={`slot has ${CLASE_RAREZA[mov.rareza]}`}><Icono d={ICONOS[mov.icono]} /></span>
+      <span>
+        <b style={{ color: actorPj?.color ?? 'var(--oro-claro)' }}>{mov.actor}</b> ha movido{' '}
+        {mov.cantidad > 1 && `${mov.cantidad} × `}<b className={CLASE_RAREZA[mov.rareza]} style={{ color: 'var(--rc)' }}>{mov.objetoNombre}</b> a{' '}
+        <b style={{ color: 'var(--oro-claro)' }}>{destino}</b>
+      </span>
+      <span style={{ color: '#8a7f6c' }}>· ahora</span>
     </div>
   );
 }

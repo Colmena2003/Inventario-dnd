@@ -3,8 +3,9 @@ import type { Destino } from './domain/reglas';
 import type { Objeto } from './domain/tipos';
 import { useCofre } from './store/cofre';
 import { ArrastreProvider } from './ui/arrastre';
-import { DividirPila, QuienEres } from './ui/Dialogos';
-import { Grupal, PieGrupal, type Aviso } from './ui/Grupal';
+import { DividirPila, QuienEres, SintoniaProvider } from './ui/Dialogos';
+import { AvisoActual, Grupal, PieGrupal, type Aviso } from './ui/Grupal';
+import { Individual } from './ui/Individual';
 import { PESTANAS, Retratos, Topbar, type Pestana } from './ui/Marco';
 import { TooltipProvider } from './ui/Tooltip';
 
@@ -46,6 +47,10 @@ export default function App() {
     return () => clearTimeout(t);
   }, [aviso]);
 
+  const avisar = useCallback((texto: string, error?: boolean) => {
+    setAviso({ id: Date.now(), tipo: error ? 'error' : 'info', texto });
+  }, []);
+
   const soltar = useCallback((objeto: Objeto, destino: Destino, conMayus: boolean) => {
     const mismoSitio =
       !destino.equipar && !objeto.equipadoEn &&
@@ -78,10 +83,16 @@ export default function App() {
             <Topbar activa={pestana} onPestana={setPestana} busqueda={busqueda} onBusqueda={setBusqueda} />
             <Retratos activo={activo} onActivo={(id) => { setActivo(id); setPestana('individual'); }} />
 
+            <SintoniaProvider onAviso={avisar}>
             {pestana === 'grupal' ? (
               <>
                 <Grupal busqueda={busqueda} />
                 <PieGrupal aviso={aviso} />
+              </>
+            ) : pestana === 'individual' ? (
+              <>
+                <Individual personajeId={activo} busqueda={busqueda} />
+                <div className="avisos-flot"><AvisoActual aviso={aviso} /></div>
               </>
             ) : (
               <section className="pronto">
@@ -90,6 +101,7 @@ export default function App() {
                 <button type="button" className="btn sec" onClick={() => setPestana('grupal')}>Volver al inventario grupal</button>
               </section>
             )}
+            </SintoniaProvider>
 
             {dividir && (
               <DividirPila

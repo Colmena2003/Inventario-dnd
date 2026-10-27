@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { estadoInicial } from '../data/semilla';
 import {
-  ataque, cargaMaxKg, equipadoEn, estadoSaciedad, modificador, moverObjeto, objetosDe, pesoMonedasKg,
+  alternarSintonia, ataque, cargaMaxKg, sintonizadosDe, equipadoEn, estadoSaciedad, modificador, moverObjeto, objetosDe, pesoMonedasKg,
   pesoPersonajeKg, totalEnPo, tramoCarga, validarMovimiento,
 } from './reglas';
 
@@ -78,6 +78,28 @@ describe('mover objetos', () => {
     const medallon = objeto('Medallón del Juramento');
     const e1 = moverObjeto(e0, medallon.id, { propietario: { tipo: 'alijo' } }, 'Test');
     expect(e1.objetos.find((o) => o.id === medallon.id)!.sintonizado).toBe(false);
+  });
+});
+
+describe('sintonización', () => {
+  it('pide elegir al intentar el 4.º objeto y luego sustituye', () => {
+    // Aldric tiene 3: Hoja del Alba, Medallón y Anillo de protección
+    const e1 = moverObjeto(e0, objeto('Corona del Rey Ahogado').id, { propietario: { tipo: 'personaje', id: 'aldric' } }, 'Test');
+    const corona = objeto('Corona del Rey Ahogado', e1);
+    const r = alternarSintonia(e1, corona.id);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.lleno).toHaveLength(3);
+    const anillo = objeto('Anillo de protección', e1);
+    const r2 = alternarSintonia(e1, corona.id, anillo.id);
+    expect(r2.ok).toBe(true);
+    if (!r2.ok) return;
+    expect(sintonizadosDe(r2.estado, 'aldric').map((o) => o.nombre).sort()).toEqual(['Corona del Rey Ahogado', 'Hoja del Alba Cenicienta', 'Medallón del Juramento']);
+  });
+  it('desintoniza si ya lo estaba y rechaza objetos del alijo', () => {
+    const r = alternarSintonia(e0, objeto('Medallón del Juramento').id);
+    expect(r.ok && sintonizadosDe(r.estado, 'aldric')).toHaveLength(2);
+    expect(alternarSintonia(e0, objeto('Tomo de los Siete Sellos').id).ok).toBe(false);
   });
 });
 

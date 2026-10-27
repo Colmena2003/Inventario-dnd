@@ -15,6 +15,7 @@ export interface Arrastre {
   y: number;
   shift: boolean;
   objetivo: Objetivo | null;
+  /** Elemento bajo el puntero */
   celda: Element | null;
 }
 
@@ -41,7 +42,7 @@ function objetivoEn(x: number, y: number): { objetivo: Objetivo | null; celda: E
   const zona = el?.closest('[data-drop]');
   const clave = zona?.getAttribute('data-drop');
   const destino = clave ? parsearDestino(clave) : null;
-  return { objetivo: clave && destino ? { clave, destino } : null, celda: el?.closest('.slot') ?? null };
+  return { objetivo: clave && destino ? { clave, destino } : null, celda: el };
 }
 
 export function ArrastreProvider({ escala, onSoltar, children }: {

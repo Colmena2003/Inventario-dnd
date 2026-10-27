@@ -24,6 +24,17 @@ export interface Party {
   tesoro: Monedas;
 }
 
+export type IconoRasgo = 'corazon' | 'rayo' | 'ojo' | 'espada' | 'escudo' | 'estrella' | 'libro' | 'mano';
+
+export interface Rasgo {
+  nombre: string;
+  usos?: number;
+  usosMax?: number;
+  recarga?: string;
+  detalle?: string; // texto corto cuando no hay usos: «Pasivo», «+1 CA», «3d6»
+  icono?: IconoRasgo;
+}
+
 export interface Personaje {
   id: string;
   nombre: string;
@@ -37,6 +48,7 @@ export interface Personaje {
   fue: number; des: number; con: number; int: number; sab: number; car: number;
   condiciones: string[];
   resistencias: string[];
+  rasgos?: Rasgo[];
   imagenUrl?: string;
   monedas: Monedas;
   saciedad: number;

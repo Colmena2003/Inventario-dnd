@@ -206,11 +206,55 @@ function objetos(): Objeto[] {
   ];
 }
 
+// Rasgos de Aldric: los del diseño (Individual.dc.html). Los demás, rasgos de clase de nivel 5.
+const EXTRA: Record<string, Partial<Personaje>> = {
+  aldric: {
+    condiciones: ['Bendecido · 8 turnos', 'Agotamiento 1'],
+    resistencias: ['Necrótico · Medallón del Juramento'],
+    rasgos: [
+      { nombre: 'Imposición de manos', usos: 25, usosMax: 25, recarga: 'Descanso largo', icono: 'corazon' },
+      { nombre: 'Castigo divino', detalle: 'Espacios 4 · 2', icono: 'rayo' },
+      { nombre: 'Sentido divino', usos: 3, usosMax: 4, recarga: 'Descanso largo', icono: 'ojo' },
+      { nombre: 'Ataque adicional', detalle: 'Pasivo', icono: 'espada' },
+      { nombre: 'Estilo de combate: Defensa', detalle: '+1 CA', icono: 'escudo' },
+      { nombre: 'Juramento de devoción', usos: 1, usosMax: 1, recarga: 'Descanso corto', detalle: 'Canalizar', icono: 'estrella' },
+    ],
+  },
+  nerys: {
+    trasfondo: 'Sabia', px: 7200,
+    rasgos: [
+      { nombre: 'Recuperación arcana', usos: 1, usosMax: 1, recarga: 'Descanso largo', icono: 'libro' },
+      { nombre: 'Espacios de conjuro', detalle: '4 · 3 · 2', icono: 'estrella' },
+      { nombre: 'Escultor de conjuros', detalle: 'Evocación', icono: 'rayo' },
+      { nombre: 'Trance élfico', detalle: 'Pasivo', icono: 'ojo' },
+    ],
+  },
+  brom: {
+    trasfondo: 'Acólito', px: 6900,
+    rasgos: [
+      { nombre: 'Canalizar divinidad', usos: 1, usosMax: 1, recarga: 'Descanso corto', icono: 'estrella' },
+      { nombre: 'Destruir muertos vivientes', detalle: 'VD ½', icono: 'rayo' },
+      { nombre: 'Discípulo de la vida', detalle: '+2 + nivel', icono: 'corazon' },
+      { nombre: 'Resiliencia enana', detalle: 'Veneno', icono: 'escudo' },
+    ],
+  },
+  ysolde: {
+    trasfondo: 'Criminal', px: 8100,
+    condiciones: ['Envenenado'],
+    rasgos: [
+      { nombre: 'Ataque furtivo', detalle: '3d6', icono: 'espada' },
+      { nombre: 'Acción astuta', detalle: 'Pasivo', icono: 'mano' },
+      { nombre: 'Esquiva asombrosa', detalle: 'Reacción', icono: 'escudo' },
+      { nombre: 'Afortunada', detalle: 'Repite los 1', icono: 'estrella' },
+    ],
+  },
+};
+
 export function estadoInicial(): Estado {
   n = 0;
   return {
     party: ejemplo.party,
-    personajes: ejemplo.personajes.map((p) => ({ trasfondo: undefined, px: undefined, ...p })) as Personaje[],
+    personajes: ejemplo.personajes.map((p) => ({ ...p, ...EXTRA[p.id] })) as Personaje[],
     objetos: objetos(),
     movimientos: [],
   };

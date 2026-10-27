@@ -21,8 +21,11 @@ Hecho:
 - Vista grupal: columnas de 3 a 5 personajes, equipo, CA, ataque y daño calculados, inventario, carga y alijo con filtros.
 - Arrastrar y soltar entre personajes, alijo y ranuras de equipo, con validación de carga y de ranura. Mayús al soltar abre «Dividir pila».
 - Tooltip de objeto, avisos de movimiento, búsqueda que atenúa lo que no coincide e imagen de personaje subida desde el botón de la cámara.
+- Vista individual: ficha (características, PX, condiciones, resistencias y rasgos), equipo grande con indicador de sintonización e inventario con filtros por categoría y orden por rareza, peso, valor o reciente. Se elige el personaje en los retratos.
+- Sintonizar: doble clic en un objeto que lo requiere (también en los rombos de sintonización para quitarla). Con 3 ya sintonizados pide cuál sustituir.
+- Soltar un objeto sobre un retrato se lo da a ese personaje.
 
-Pendiente: las demás pestañas, añadir personajes, sintonizar, monedas, despensa, crafteo, estadísticas y Supabase.
+Pendiente: estadísticas, crafteo, despensa, monedas, añadir personajes y objetos, y Supabase.
 
 ## Datos
 

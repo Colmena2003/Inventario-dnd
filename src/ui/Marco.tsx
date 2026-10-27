@@ -2,6 +2,7 @@
 
 import { cargaMaxKg, estadoSaciedad, pesoPersonajeKg } from '../domain/reglas';
 import { useCofre } from '../store/cofre';
+import { useArrastre } from './arrastre';
 import { UI } from './iconos';
 import { fmt1, fmtNum, iniciales, Icono, Moneda, MONEDAS } from './piezas';
 
@@ -69,8 +70,14 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda }: {
 }
 
 export function Retratos({ activo, onActivo }: { activo: string | null; onActivo: (id: string) => void }) {
-  const { estado } = useCofre();
+  const { estado, validar } = useCofre();
+  const { arrastre } = useArrastre();
   const peso = estado.personajes.reduce((s, p) => s + pesoPersonajeKg(estado, p), 0);
+  // Soltar un objeto sobre un retrato se lo da a ese personaje
+  const marca = (id: string) => {
+    if (arrastre?.objetivo?.clave !== `pj:${id}` || !arrastre.celda?.closest('.retratos')) return '';
+    return validar(arrastre.objeto.id, { propietario: { tipo: 'personaje', id } }).ok ? 'drop-ok' : 'drop-no';
+  };
   const max = estado.personajes.reduce((s, p) => s + cargaMaxKg(p.fue), 0);
   return (
     <nav className="retratos" aria-label="Personajes">
@@ -79,7 +86,7 @@ export function Retratos({ activo, onActivo }: { activo: string | null; onActivo
         return (
           <div key={p.id} className="retrato">
             <button
-              type="button" className="retrato-btn" aria-pressed={p.id === activo}
+              type="button" className={`retrato-btn ${marca(p.id)}`} aria-pressed={p.id === activo} data-drop={`pj:${p.id}`}
               aria-label={`${p.nombre}, ${p.pvActual} de ${p.pvMax} PV, ${sac.texto}`} onClick={() => onActivo(p.id)}
             >
               <svg viewBox="0 0 80 92" width="76" height="88" aria-hidden="true" style={{ display: 'block' }}>

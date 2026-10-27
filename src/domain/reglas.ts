@@ -108,6 +108,40 @@ export const MAX_SINTONIZADOS = 3;
 export const sintonizadosDe = (e: Estado, personajeId: string) =>
   e.objetos.filter((o) => o.sintonizado && o.propietario.tipo === 'personaje' && o.propietario.id === personajeId);
 
+export type ResultadoSintonia =
+  | { ok: true; estado: Estado }
+  | { ok: false; motivo: string; lleno?: Objeto[] };
+
+/**
+ * [5e] Un personaje puede estar sintonizado con 3 objetos como máximo. Si ya tiene 3, hay que
+ * indicar cuál deja (`sustituir`); si no, se devuelve la lista para que la interfaz pregunte.
+ * Con el objeto ya sintonizado, lo desintoniza.
+ */
+export function alternarSintonia(e: Estado, objetoId: string, sustituir?: string): ResultadoSintonia {
+  const o = e.objetos.find((x) => x.id === objetoId);
+  if (!o) return { ok: false, motivo: 'El objeto ya no existe' };
+  if (!o.requiereSintonizacion) return { ok: false, motivo: `${o.nombre} no requiere sintonización` };
+  if (o.propietario.tipo !== 'personaje') return { ok: false, motivo: 'Solo un personaje puede sintonizarse con un objeto' };
+  const fijar = (id: string, v: boolean) => (x: Objeto) => (x.id === id ? { ...x, sintonizado: v } : x);
+  if (o.sintonizado) return { ok: true, estado: { ...e, objetos: e.objetos.map(fijar(o.id, false)) } };
+
+  const actuales = sintonizadosDe(e, o.propietario.id);
+  if (actuales.length >= MAX_SINTONIZADOS) {
+    const quitar = actuales.find((x) => x.id === sustituir);
+    if (!quitar) return { ok: false, motivo: 'Límite de sintonización alcanzado', lleno: actuales };
+    return { ok: true, estado: { ...e, objetos: e.objetos.map(fijar(quitar.id, false)).map(fijar(o.id, true)) } };
+  }
+  return { ok: true, estado: { ...e, objetos: e.objetos.map(fijar(o.id, true)) } };
+}
+
+// ── Experiencia [5e] ───────────────────────────────────────────────
+
+const PX_NIVEL = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000];
+
+/** PX necesarios para el siguiente nivel (null en el 20). */
+export const pxSiguienteNivel = (nivel: number) => (nivel >= 20 ? null : PX_NIVEL[nivel]);
+export const pxNivelActual = (nivel: number) => PX_NIVEL[Math.max(1, Math.min(20, nivel)) - 1];
+
 // ── Mover objetos ──────────────────────────────────────────────────
 
 export type Destino = { propietario: Propietario; equipar?: Equipado };

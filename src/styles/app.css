@@ -157,6 +157,7 @@
   border: 1px solid var(--borde-suave); border-radius: 17px; font-size: 14px; color: #ddd3c0; animation: rise .3s ease-out;
 }
 .aviso.error { border-color: var(--no); color: #ffd6d3; background: #2b0e0d; padding-left: 14px; }
+.aviso.info { padding-left: 14px; border-color: var(--oro); color: #ecd593; }
 .aviso .slot { width: 24px; height: 24px; border-radius: 50%; cursor: default; }
 .ayuda-arrastre { display: flex; align-items: center; gap: 16px; height: 34px; padding: 0 16px; background: rgba(16, 12, 9, .92); border: 1px solid var(--borde-suave); border-radius: 17px; font-size: 14px; color: #ddd3c0; }
 .ayuda-arrastre > span { display: flex; align-items: center; gap: 6px; }

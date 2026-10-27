@@ -4,6 +4,7 @@ import App from './App';
 import { CofreProvider } from './store/cofre';
 import './styles/sistema.css';
 import './styles/app.css';
+import './styles/individual.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

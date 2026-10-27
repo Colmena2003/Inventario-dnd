@@ -1,7 +1,7 @@
-// Diálogos: dividir pila (pantalla 3 del diseño) y elegir quién usa la app.
+// Diálogos: dividir pila (pantalla 3 del diseño), límite de sintonización (Estados) y elegir quién usa la app.
 
-import { useEffect, useState } from 'react';
-import { cargaMaxKg, pesoPersonajeKg, type Destino } from '../domain/reglas';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { cargaMaxKg, CLASE_RAREZA, MAX_SINTONIZADOS, pesoPersonajeKg, type Destino } from '../domain/reglas';
 import type { Objeto } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { UI } from './iconos';
@@ -113,6 +113,90 @@ export function DividirPila({ objeto, destino, onCancelar, onMover }: {
             Mover {n}
           </button>
         </div>
+      </section>
+    </>
+  );
+}
+
+// ── Sintonización ──────────────────────────────────────────────────
+
+const CtxSintonia = createContext<(o: Objeto) => void>(() => {});
+
+/** Doble clic en un objeto: lo sintoniza o lo desintoniza; con 3 ya sintonizados, pregunta cuál sustituir. */
+export const useSintonia = () => useContext(CtxSintonia);
+
+export function SintoniaProvider({ onAviso, children }: { onAviso: (texto: string, error?: boolean) => void; children: ReactNode }) {
+  const { sintonizar } = useCofre();
+  const [lleno, setLleno] = useState<{ objeto: Objeto; actuales: Objeto[] } | null>(null);
+
+  const pedir = useCallback((o: Objeto) => {
+    if (!o.requiereSintonizacion) return;
+    const r = sintonizar(o.id);
+    if (r.ok) onAviso(o.sintonizado ? `${o.nombre} ya no está sintonizado` : `${o.nombre} sintonizado (requiere un descanso corto)`);
+    else if (r.lleno) setLleno({ objeto: o, actuales: r.lleno });
+    else onAviso(r.motivo, true);
+  }, [sintonizar, onAviso]);
+
+  return (
+    <CtxSintonia.Provider value={pedir}>
+      {children}
+      {lleno && (
+        <LimiteSintonia
+          {...lleno}
+          onCancelar={() => setLleno(null)}
+          onSustituir={(id) => {
+            const r = sintonizar(lleno.objeto.id, id);
+            if (r.ok) onAviso(`${lleno.objeto.nombre} sintonizado (requiere un descanso corto)`);
+            else onAviso(r.motivo, true);
+            setLleno(null);
+          }}
+        />
+      )}
+    </CtxSintonia.Provider>
+  );
+}
+
+function LimiteSintonia({ objeto, actuales, onCancelar, onSustituir }: {
+  objeto: Objeto;
+  actuales: Objeto[];
+  onCancelar: () => void;
+  onSustituir: (id: string) => void;
+}) {
+  const [elegido, setElegido] = useState(actuales[0]?.id);
+  useEscape(onCancelar);
+  return (
+    <>
+      <div className="velo" onClick={onCancelar} />
+      <section role="dialog" aria-modal="true" aria-labelledby="ls-t" className="panel dialogo ls-dialogo">
+        <Esquinas />
+        <div className="ls-objeto">
+          <Ranura objeto={{ ...objeto, cantidad: 1 }} aria-hidden="true" style={{ width: 72, height: 72, cursor: 'default' }} />
+          <span className={`ls-nombre ${CLASE_RAREZA[objeto.rareza]}`}>{objeto.nombre}</span>
+          <span className="ls-sub">{objeto.rareza.charAt(0).toUpperCase() + objeto.rareza.slice(1)} · requiere sintonización</span>
+          <span className="ls-rombos" aria-hidden="true">
+            {actuales.map((a) => <i key={a.id} className={CLASE_RAREZA[a.rareza]} />)}
+            <i className="nuevo" />
+          </span>
+          <span className="ls-ocupadas">{actuales.length} / {MAX_SINTONIZADOS} ocupadas</span>
+        </div>
+        <fieldset className="ls-lista">
+          <legend id="ls-t">Límite de sintonización alcanzado</legend>
+          <p>
+            Un personaje solo puede estar sintonizado con {MAX_SINTONIZADOS} objetos. Elige cuál deja de estarlo para
+            sintonizar {objeto.nombre}. Sintonizar lleva un descanso corto.
+          </p>
+          {actuales.map((a) => (
+            <label key={a.id} className={`ls-opcion ${elegido === a.id ? 'on' : ''}`}>
+              <input type="radio" name="ls" checked={elegido === a.id} onChange={() => setElegido(a.id)} />
+              <Ranura objeto={{ ...a, cantidad: 1, requiereSintonizacion: false }} aria-hidden="true" style={{ width: 36, height: 36, cursor: 'default' }} />
+              <span>{a.nombre} · <span className={CLASE_RAREZA[a.rareza]} style={{ color: 'var(--rc)' }}>{a.rareza.charAt(0).toUpperCase() + a.rareza.slice(1)}</span></span>
+            </label>
+          ))}
+          <div className="acciones">
+            <button type="button" className="btn sec" onClick={onCancelar}>Cancelar</button>
+            <button type="button" className="btn pri" disabled={!elegido} onClick={() => elegido && onSustituir(elegido)}>Sustituir sintonización</button>
+          </div>
+        </fieldset>
       </section>
     </>
   );
