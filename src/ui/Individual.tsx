@@ -2,14 +2,18 @@
 
 import { useRef, useState, type CSSProperties } from 'react';
 import {
-  ataque, CLASE_RAREZA, conSigno, equipadoEn, fmtKg, MAX_SINTONIZADOS, modificador, nivelTotal, objetosDe,
+  ataque, CLASE_RAREZA, colocar, CONDICION_MALA, conSigno, equipadoEn, fmtKg, MAX_SINTONIZADOS, modificador, nivelTotal, objetosDe,
   pesoPersonajeKg, cargaMaxKg, pxNivelActual, pxSiguienteNivel, sintonizadosDe, tramoCarga,
 } from '../domain/reglas';
-import type { Categoria, Caracteristica, IconoRasgo, Objeto, Personaje, Rareza } from '../domain/tipos';
+import type { Categoria, Caracteristica, IconoRasgo, Personaje, Propietario } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
+import { celdaDe, claveBase } from './arrastre';
 import { useSintonia } from './Dialogos';
+import { useObjetos } from './EditarObjeto';
+import { opcionesOrden } from './Grupal';
+import { MenuBoton } from './Menus';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
-import { celdas, DCHA, IZQ, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { DCHA, IZQ, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { Esquinas, fmtNum, Icono, Moneda, MONEDAS, Ranura } from './piezas';
 
 export function Individual({ personajeId, busqueda }: { personajeId: string | null; busqueda: string }) {
@@ -42,10 +46,9 @@ const ICONO_RASGO: Record<IconoRasgo, { d: string; c: string }> = {
 
 const ESTRELLA = ICONO_RASGO.estrella.d;
 const ALERTA = 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v6M12 16v.01';
-/** [5e] Condiciones que perjudican; el resto se muestran como efectos favorables. */
-const CONDICION_MALA = /agotamiento|envenenad|asustad|cegad|aturdid|paralizad|derribad|apresad|incapacitad|petrificad|ensordecid|hechizad|inconsciente|restringid|maldit/i;
 
 function Ficha({ p }: { p: Personaje }) {
+  const { editarPersonaje } = useObjetos();
   const nivel = nivelTotal(p);
   const pxSig = pxSiguienteNivel(nivel);
   const pxIni = pxNivelActual(nivel);
@@ -57,6 +60,9 @@ function Ficha({ p }: { p: Personaje }) {
     <section className="panel ficha" aria-label={`Ficha de ${p.nombre}`}>
       <Esquinas />
       <header>
+        <button type="button" className="ibtn ficha-editar" aria-label={`Editar a ${p.nombre}`} title="Editar personaje" onClick={() => editarPersonaje(p)}>
+          <Icono d={UI.lapiz} />
+        </button>
         <h1>{p.nombre}</h1>
         <span className="ficha-sub">{p.raza}{p.trasfondo ? ` · Trasfondo: ${p.trasfondo}` : ''}</span>
         <svg viewBox="0 0 90 90" width="84" height="84" aria-hidden="true">
@@ -146,11 +152,10 @@ function Equipo({ p, busqueda }: { p: Personaje; busqueda: string }) {
   );
 
   return (
-    <section className="equipo" aria-label="Equipo" style={{ '--tinte': p.color } as CSSProperties}>
+    <section className={`equipo ${p.imagenUrl ? 'con-fondo' : ''}`} aria-label="Equipo" style={{ '--tinte': p.color } as CSSProperties}>
+      {p.imagenUrl && <img className="fondo-pj" src={p.imagenUrl} alt={`Imagen de ${p.nombre}`} />}
       <div className="equipo-aura" aria-hidden="true" />
-      {p.imagenUrl ? (
-        <img className="equipo-img" src={p.imagenUrl} alt={`Imagen de ${p.nombre}`} />
-      ) : (
+      {p.imagenUrl ? null : (
         <Silueta className="equipo-fig" tinte={p.color} id={`ind-${p.id}`} arma={silueta} aura={false} />
       )}
 
@@ -220,34 +225,20 @@ const CATEGORIAS: { t: string; cat: Categoria | null; ic: string }[] = [
   { t: 'Varios', cat: 'Varios', ic: ICONOS.bag },
 ];
 
-type Orden = 'rareza' | 'peso' | 'valor' | 'reciente';
-
-const ORDEN_RAREZA: Rareza[] = ['artefacto', 'legendario', 'muy raro', 'raro', 'poco común', 'común'];
-
-function ordenar(objetos: Objeto[], orden: Orden, recientes: Map<string, number>) {
-  const indice = new Map(objetos.map((o, i) => [o.id, i]));
-  const por: Record<Orden, (a: Objeto, b: Objeto) => number> = {
-    rareza: (a, b) => ORDEN_RAREZA.indexOf(a.rareza) - ORDEN_RAREZA.indexOf(b.rareza) || a.nombre.localeCompare(b.nombre, 'es'),
-    peso: (a, b) => b.pesoKg * b.cantidad - a.pesoKg * a.cantidad,
-    valor: (a, b) => b.valorPo * b.cantidad - a.valorPo * a.cantidad,
-    // Lo último que llegó primero; sin movimientos, el orden de alta
-    reciente: (a, b) => (recientes.get(b.id) ?? 0) - (recientes.get(a.id) ?? 0) || indice.get(b.id)! - indice.get(a.id)!,
-  };
-  return objetos.slice().sort(por[orden]);
-}
-
 function Inventario({ p, busqueda }: { p: Personaje; busqueda: string }) {
-  const { estado, validar } = useCofre();
+  const { estado, validar, ordenar } = useCofre();
+  const acciones = useObjetos();
   const sintonia = useSintonia();
   const { arrastre, props, clase } = useInteraccion(busqueda, sintonia);
   const [cat, setCat] = useState(0);
-  const [orden, setOrden] = useState<Orden>('rareza');
+  const dueno: Propietario = { tipo: 'personaje', id: p.id };
 
   const inventario = objetosDe(estado, { tipo: 'personaje', id: p.id }).filter((o) => !o.equipadoEn);
   const filtro = CATEGORIAS[cat].cat;
-  const recientes = new Map<string, number>();
-  for (const m of estado.movimientos) if (!recientes.has(m.objetoId)) recientes.set(m.objetoId, m.fecha);
-  const visibles = ordenar(filtro ? inventario.filter((o) => o.categoria === filtro) : inventario, orden, recientes);
+  // Con «Todo», cada objeto en su celda (se ordena a mano arrastrando); con un filtro, solo los que coinciden
+  const celdasInv = filtro
+    ? [...colocar(inventario, 0, 1).filter((o) => o?.categoria === filtro), ...Array(168)].slice(0, Math.max(168, inventario.length))
+    : colocar(inventario, 168, 12);
 
   const peso = pesoPersonajeKg(estado, p);
   const max = cargaMaxKg(p.fue);
@@ -255,25 +246,20 @@ function Inventario({ p, busqueda }: { p: Personaje; busqueda: string }) {
 
   const clave = `pj:${p.id}`;
   const esOrigen = arrastre?.objeto.propietario.tipo === 'personaje' && arrastre.objeto.propietario.id === p.id;
-  const apunta = !!arrastre && arrastre.objetivo?.clave === clave && !(esOrigen && !arrastre.objeto.equipadoEn);
-  const v = apunta ? validar(arrastre!.objeto.id, { propietario: { tipo: 'personaje', id: p.id } }) : null;
-  const marca = v?.ok ? 'drop-ok' : 'drop-no';
+  const apunta = !!arrastre && claveBase(arrastre.objetivo?.clave ?? '') === clave;
+  const celdaApuntada = apunta ? celdaDe(arrastre!.objetivo?.clave) : undefined;
+  const v = apunta && !esOrigen ? validar(arrastre!.objeto.id, { propietario: { tipo: 'personaje', id: p.id } }) : null;
+  const marca = !v || v.ok ? 'drop-ok' : 'drop-no';
 
   return (
     <section className="panel inventario" aria-label={`Inventario de ${p.nombre}`}>
       <Esquinas />
       <header>
         <h2>Inventario <span>· {inventario.length} objetos</span></h2>
-        <label className="orden">
-          Ordenar por
-          <select value={orden} onChange={(e) => setOrden(e.target.value as Orden)}>
-            <option value="rareza">Rareza</option>
-            <option value="peso">Peso</option>
-            <option value="valor">Valor</option>
-            <option value="reciente">Reciente</option>
-          </select>
-        </label>
-        <button type="button" className="chip on chip-i" aria-disabled="true" title="Próximamente">
+        <MenuBoton className="chip chip-i" etiqueta="Ordenar inventario" lado="dcha" opciones={[{ titulo: 'Ordenar por' }, ...opcionesOrden(ordenar, dueno)]}>
+          <Icono d={UI.ordenar} />Ordenar
+        </MenuBoton>
+        <button type="button" className="chip on chip-i" onClick={() => acciones.nuevo(dueno)}>
           <Icono d={UI.mas} />Añadir objeto
         </button>
       </header>
@@ -285,13 +271,15 @@ function Inventario({ p, busqueda }: { p: Personaje; busqueda: string }) {
         ))}
       </div>
       <div className="rejilla ind" data-drop={clave} role="list" aria-label={`Objetos de ${p.nombre}`}>
-        {celdas(visibles, 168, 12).map((o, i) =>
-          o ? (
-            <Ranura key={o.id} role="listitem" objeto={o} extra={clase(o)} {...props(o)} />
+        {celdasInv.map((o, i) => {
+          const drop = filtro ? undefined : `${clave}#${i}`;
+          const m = i === celdaApuntada || (filtro && apunta && i === 0 && !o) ? marca : '';
+          return o ? (
+            <Ranura key={o.id} role="listitem" data-drop={drop} objeto={o} extra={`${clase(o)} ${m}`} {...props(o)} />
           ) : (
-            <Ranura key={`v${i}`} role="listitem" extra={apunta && i === visibles.length ? marca : ''} />
-          ),
-        )}
+            <Ranura key={`v${i}`} role="listitem" data-drop={drop} extra={m} />
+          );
+        })}
       </div>
       {apunta && v && !v.ok && <div className="aviso error inv-aviso" role="alert">{v.motivo}</div>}
 

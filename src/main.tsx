@@ -6,6 +6,9 @@ import './styles/sistema.css';
 import './styles/app.css';
 import './styles/individual.css';
 import './styles/monedas.css';
+import './styles/estadisticas.css';
+import './styles/despensa.css';
+import './styles/formularios.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

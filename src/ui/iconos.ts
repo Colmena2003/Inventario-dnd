@@ -31,6 +31,11 @@ export const ICONOS = {
   torch: 'M10 21l-1-10h6l-1 10zM12 11c-2.5-1.5-3-4-1-7 0 2 2 2.5 2 4 1-1 1.5-2 1.5-3 1.5 2 1 5-2.5 6z',
   drop: 'M12 3c3 4.5 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-6.5 6-11z',
   mushroom: 'M4 12a8 7 0 0 1 16 0zM10 12v7a2 2 0 0 0 4 0v-7',
+  // Comida (diseno/Despensa.dc.html)
+  bowl: 'M3 11h18a9 9 0 0 1-18 0zM8.5 8c0-1 1-1.2 1-2.2S8.5 4.5 8.5 3.5M12 8c0-1 1-1.2 1-2.2S12 4.5 12 3.5M15.5 8c0-1 1-1.2 1-2.2s-1-1.3-1-2.3',
+  pie: 'M3 14h18l-2 5H5zM4 14c1-5 4.5-8 8-8s7 3 8 8M9 10l1 2M14 9l-1 3',
+  cheese: 'M3 17l8-11 10 6v5zM3 17h18M8 13h.01M14 14h.01M16 11h.01',
+  sack: 'M8 4h8l-1 3c3 1.5 5 4.5 5 8a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6c0-3.5 2-6.5 5-8z',
 } as const;
 
 export type ClaveIcono = keyof typeof ICONOS;
@@ -49,6 +54,12 @@ export const UI = {
   check: 'M5 12.5l4.5 4.5L19 7',
   cruz: 'M6 6l12 12M18 6L6 18',
   flecha: 'M2 10h34M28 3l8 7-8 7',
+  lapiz: 'M4 20l4-1 11-11-3-3L5 16zM14 7l3 3',
+  persona: 'M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5',
+  papelera: 'M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13M10.5 11v5M13.5 11v5',
+  subir: 'M12 16V4M7 9l5-5 5 5M5 20h14',
+  ordenar: 'M7 4v16M4 17l3 3 3-3M14 6h6M14 11h4M14 16h2',
+  imagen: 'M4 5h16v14H4zM4 16l5-5 4 4 2-2 5 5M15 9.5a1.5 1.5 0 1 0 0 .1',
 };
 
 export const ESQUINA = 'M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5';

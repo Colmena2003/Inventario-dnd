@@ -41,9 +41,10 @@ export function TooltipProvider({ lienzo, escala, children }: { lienzo: RefObjec
 
 const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-function FichaObjeto({ objeto: o0, left, top }: Pos) {
+/** Ficha de un objeto. Con `vista`, muestra el objeto tal cual (vista previa del formulario) y no flota. */
+export function FichaObjeto({ objeto: o0, left, top, vista }: Pos & { vista?: boolean }) {
   const { estado } = useCofre();
-  const o = estado.objetos.find((x) => x.id === o0.id) ?? o0;
+  const o = vista ? o0 : estado.objetos.find((x) => x.id === o0.id) ?? o0;
   const dueno = o.propietario.tipo === 'personaje' ? estado.personajes.find((p) => p.id === (o.propietario as { id: string }).id) : undefined;
   const ranuraArma = o.ranuraEquipo === 'distancia' ? 'distancia' : 'cuerpoACuerpo';
   const atq = o.dado && dueno ? ataque(dueno, o, ranuraArma) : null;
@@ -55,7 +56,7 @@ function FichaObjeto({ objeto: o0, left, top }: Pos) {
   const [titEfecto, ...restoEfecto] = (o.efectos ?? '').split(/(?<=\.)\s/);
 
   return (
-    <div role="tooltip" className={`panel tooltip ${CLASE_RAREZA[o.rareza]}`} style={{ left, top }}>
+    <div role={vista ? undefined : 'tooltip'} className={`panel tooltip ${vista ? 'vista' : ''} ${CLASE_RAREZA[o.rareza]}`} style={vista ? undefined : { left, top }}>
       <Esquinas solo="arriba" />
       <div className="tt-cab">
         <Ranura objeto={{ ...o, cantidad: 1 }} extra="hov" aria-hidden="true" />

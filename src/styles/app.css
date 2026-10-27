@@ -99,8 +99,7 @@
 .orla { display: block; margin: 0 auto; }
 
 .figura { position: relative; height: 392px; margin-top: 4px; }
-.figura > svg, .figura > .retrato-img { position: absolute; left: 50%; top: 0; width: 200px; height: 392px; transform: translateX(-50%); }
-.retrato-img { object-fit: contain; object-position: center bottom; -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent); mask-image: linear-gradient(180deg, #000 70%, transparent); }
+.figura > svg { position: absolute; left: 50%; top: 0; width: 200px; height: 392px; transform: translateX(-50%); }
 .figura .camara { position: absolute; right: 60px; top: 2px; z-index: 1; }
 .eq-izq, .eq-dcha { position: absolute; top: 8px; display: flex; flex-direction: column; gap: 8px; z-index: 1; }
 .eq-izq { left: 6px; }
@@ -228,3 +227,16 @@
 .pronto { position: absolute; left: 124px; right: 24px; top: 90px; height: 936px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
 .pronto h2 { margin: 0; font: 600 28px var(--f-titulo); letter-spacing: .05em; color: #eedcb0; }
 .pronto p { margin: 0; font: 16px var(--f-datos); color: var(--texto-2); }
+
+/* Imagen del personaje como fondo de la columna, detrás de las ranuras */
+.columna.con-fondo { isolation: isolate; }
+.columna .fondo-pj {
+  position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); z-index: -1;
+  object-fit: cover; object-position: center 15%; pointer-events: none; user-select: none;
+  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.55) 0, #000 14%, #000 52%, rgba(0,0,0,.28) 72%, rgba(0,0,0,.14) 100%);
+  mask-image: linear-gradient(180deg, rgba(0,0,0,.55) 0, #000 14%, #000 52%, rgba(0,0,0,.28) 72%, rgba(0,0,0,.14) 100%);
+}
+.con-fondo .col-cab h2, .con-fondo .col-sub, .con-fondo .lbl, .con-fondo .ataques, .con-fondo .pie-carga .txt { text-shadow: 0 1px 2px #000, 0 0 8px rgba(0, 0, 0, .9); }
+/* Las ranuras dejan ver el fondo */
+.con-fondo .slot:not(.has) { background: rgba(10, 8, 6, .5); }
+.con-fondo .slot.has { background: radial-gradient(circle at 50% 42%, var(--rg, transparent) 0, transparent 72%), rgba(13, 11, 9, .62); }

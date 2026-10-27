@@ -1,0 +1,51 @@
+/* Pantalla de despensa (diseno/Despensa.dc.html) */
+
+.despensa { position: absolute; left: 124px; top: 90px; width: 1772px; height: 970px; }
+.despensa .h { margin: 0; font: 600 24px var(--f-titulo); letter-spacing: .05em; color: #eedcb0; }
+.despensa .s { font: 14px var(--f-datos); color: var(--texto-2); }
+.despensa .s b { color: #ece4d2; }
+.despensa .k { font: 600 13px var(--f-datos); letter-spacing: .12em; text-transform: uppercase; color: #a99d86; }
+
+.des-hambre { position: absolute; left: 0; top: 0; width: 560px; height: 970px; padding: 24px 26px; display: flex; flex-direction: column; gap: 18px; }
+.des-hambre header { display: flex; flex-direction: column; gap: 4px; }
+.des-fila { position: relative; display: flex; align-items: center; gap: 16px; padding: 14px; border: 1px solid #2c2419; background: rgba(0, 0, 0, .2); transition: border-color .16s, box-shadow .16s; }
+.des-fila.famelico { border-color: #5a2321; background: rgba(120, 24, 20, .14); }
+.des-fila.acepta { border-style: dashed; border-color: #6f8f45; }
+.des-fila.drop-ok { border-color: var(--ok); box-shadow: 0 0 0 1px var(--ok), 0 0 18px rgba(115, 226, 129, .35); }
+.des-fila.drop-no { border-color: var(--no); box-shadow: 0 0 0 1px var(--no), 0 0 18px rgba(239, 90, 85, .35); }
+.des-ini { width: 64px; height: 74px; flex: none; display: flex; align-items: center; justify-content: center; border: 2px solid; font: 700 16px var(--f-titulo); color: #e9d6a8; overflow: hidden; }
+.des-ini img { width: 100%; height: 100%; object-fit: cover; }
+.des-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+.des-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.des-nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: 600 15px var(--f-titulo); color: #ece4d2; }
+.des-estado { display: flex; align-items: center; gap: 6px; flex: none; font: 600 15px var(--f-datos); }
+.des-estado svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.des-barra { position: relative; height: 12px; background: #110e0b; border: 1px solid #3a2f1d; box-shadow: inset 0 1px 3px #000; }
+.des-barra > div { height: 10px; transition: width .4s ease; }
+.des-barra > span { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--borde); }
+.des-efecto { font: 13px var(--f-datos); color: var(--texto-3); }
+.des-comer { flex: none; height: 40px; padding: 0 16px; display: flex; align-items: center; gap: 8px; border-radius: 20px; cursor: pointer; font: 600 14px var(--f-titulo); letter-spacing: .05em; color: #1a1206; background: linear-gradient(180deg, #f0d38a, #c49a45); border: 1px solid #f6e2a8; box-shadow: 0 0 0 1px #3a2a0e, 0 0 14px rgba(226, 194, 122, .25); }
+.des-comer svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.des-comer:disabled { opacity: .45; cursor: not-allowed; filter: grayscale(.4); }
+.des-reservas { margin-top: auto; display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; background: rgba(0, 0, 0, .3); border: 1px solid #2c2419; }
+.des-dias { font: 600 20px var(--f-titulo); color: #ece4d2; }
+.des-reservas-pie { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.des-reservas-pie .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 18px; flex: none; }
+
+.des-lista { position: absolute; left: 576px; top: 0; width: 1196px; height: 970px; padding: 24px 28px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; }
+.des-lista header { display: flex; align-items: center; gap: 14px; }
+.des-lista header .h { flex: 1; }
+.des-chips { display: flex; gap: 6px; }
+.des-chips .chip { height: 32px; padding: 0 14px; font-size: 14px; border-radius: 16px; }
+.des-grupo { display: flex; flex-direction: column; gap: 12px; }
+.des-rejilla { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.des-comida { display: flex; align-items: center; gap: 14px; padding: 12px; min-width: 0; border: 1px solid #2c2419; background: rgba(0, 0, 0, .25); cursor: pointer; text-align: left; color: inherit; }
+.des-comida:hover { border-color: #6b5631; }
+.des-comida.on { border-color: var(--oro-claro); box-shadow: 0 0 0 1px var(--oro-claro), 0 0 18px rgba(226, 194, 122, .2); background: #15110c; }
+.des-comida.no { opacity: .35; }
+.des-comida .slot { --slot: 56px; flex: none; }
+.des-datos { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.des-datos > span:first-child { font: 600 15px var(--f-datos); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.des-datos > span:nth-child(2) { display: flex; align-items: center; gap: 8px; font: 14px var(--f-datos); color: var(--texto-2); }
+.des-nota { font: 13px var(--f-datos); color: var(--texto-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.des-vacia { margin: 0; }

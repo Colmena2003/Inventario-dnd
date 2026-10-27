@@ -7,7 +7,7 @@ import type { Categoria, Equipado, Estado, Objeto, Personaje, Propietario, Rarez
 
 const R: Record<string, Rareza> = { c: 'común', u: 'poco común', r: 'raro', m: 'muy raro', l: 'legendario', a: 'artefacto' };
 
-type Base = { categoria: Categoria; pesoKg: number; valorPo: number; ranuraEquipo?: TipoRanura };
+type Base = { categoria: Categoria; subtipo?: string; pesoKg: number; valorPo: number; ranuraEquipo?: TipoRanura };
 
 const POR_ICONO: Record<ClaveIcono, Base> = {
   sword: { categoria: 'Armas', pesoKg: 1.5, valorPo: 15, ranuraEquipo: 'cuerpoACuerpo' },
@@ -40,6 +40,10 @@ const POR_ICONO: Record<ClaveIcono, Base> = {
   torch: { categoria: 'Varios', pesoKg: 0.5, valorPo: 0.01 },
   drop: { categoria: 'Varios', pesoKg: 0.3, valorPo: 1 },
   mushroom: { categoria: 'Materiales', pesoKg: 0.05, valorPo: 1 },
+  bowl: { categoria: 'Comida', subtipo: 'plato', pesoKg: 0.8, valorPo: 1 },
+  pie: { categoria: 'Comida', subtipo: 'plato', pesoKg: 0.6, valorPo: 1 },
+  cheese: { categoria: 'Comida', pesoKg: 0.5, valorPo: 0.5 },
+  sack: { categoria: 'Comida', subtipo: 'ingrediente', pesoKg: 2, valorPo: 0.2 },
 };
 
 let n = 0;
@@ -179,7 +183,7 @@ function objetos(): Objeto[] {
     obj(alijo, 'Sal de plata', 'drop', 'c', 5, { categoria: 'Materiales', subtipo: 'reactivo', pesoKg: 0.1 }),
     obj(alijo, 'Escama de dragón verde', 'fang', 'm', 2, { subtipo: 'parte de criatura', valorPo: 500 }),
     obj(alijo, 'Mineral de hierro', 'ore', 'c', 8, { subtipo: 'mineral' }),
-    obj(alijo, 'Queso curado', 'bread', 'c', 2, { subtipo: 'ingrediente', saciedad: 15, pesoKg: 0.5 }),
+    obj(alijo, 'Queso curado', 'cheese', 'c', 2, { subtipo: 'ingrediente', saciedad: 15, efectos: 'Ingrediente: Pastel' }),
     obj(alijo, 'Manzanas', 'apple', 'c', 7, { subtipo: 'ingrediente', saciedad: 5 }),
     obj(alijo, 'Vino de Sembia', 'flask', 'u', 2, { categoria: 'Comida', subtipo: 'plato', saciedad: 5, valorPo: 10 }),
     obj(alijo, 'Antorchas', 'torch', 'c', 10),
@@ -197,7 +201,13 @@ function objetos(): Objeto[] {
     obj(alijo, 'Polvo de hueso', 'drop', 'c', 3, { categoria: 'Materiales', subtipo: 'reactivo', pesoKg: 0.1 }),
     obj(alijo, 'Garra de mantícora', 'fang', 'r', 2, { subtipo: 'parte de criatura', valorPo: 150 }),
     obj(alijo, 'Pergamino de Detectar magia', 'scroll', 'c', 2),
-    obj(alijo, 'Carne de jabalí', 'meat', 'c', 3, { subtipo: 'ingrediente', saciedad: 15 }),
+    obj(alijo, 'Carne de jabalí', 'meat', 'c', 3, { subtipo: 'ingrediente', saciedad: 15, pesoKg: 1, efectos: 'Cocinar: Estofado' }),
+    // Platos de la despensa (Despensa.dc.html)
+    obj(alijo, 'Estofado de jabalí', 'bowl', 'u', 4, { saciedad: 50, efectos: '+1d4 PV temporales' }),
+    obj(alijo, 'Pastel de setas', 'pie', 'u', 2, { saciedad: 40, efectos: 'Ventaja en 1 salvación CON' }),
+    obj(alijo, 'Sopa de lentejas', 'bowl', 'c', 3, { saciedad: 35, pesoKg: 0.7, efectos: 'Caliente: quita frío' }),
+    obj(alijo, 'Hidromiel de los clanes', 'flask', 'r', 1, { categoria: 'Comida', subtipo: 'plato', saciedad: 20, pesoKg: 1, valorPo: 25, efectos: 'Inmune a asustado 1 h' }),
+    obj(alijo, 'Saco de harina', 'sack', 'c', 1, { efectos: 'Ingrediente: Pan, Pastel' }),
     obj(alijo, 'Martillo ligero', 'hammer', 'c', 2, { pesoKg: 1, dado: '1d4', tipoDano: 'contundente', propiedades: ['Ligera', 'Arrojadiza (6/18 m)'] }),
     obj(alijo, 'Flechas', 'dagger', 'c', 40, municion),
     obj(alijo, 'Diario del cartógrafo', 'book', 'c', 1, { categoria: 'Llaves/misión' }),

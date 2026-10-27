@@ -3,6 +3,7 @@
 import { cargaMaxKg, estadoSaciedad, pesoPersonajeKg } from '../domain/reglas';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
+import { useObjetos } from './EditarObjeto';
 import { UI } from './iconos';
 import { fmt1, fmtNum, iniciales, Icono, Moneda, MONEDAS } from './piezas';
 
@@ -72,6 +73,7 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda }: {
 
 export function Retratos({ activo, onActivo }: { activo: string | null; onActivo: (id: string) => void }) {
   const { estado, validar } = useCofre();
+  const { editarPersonaje } = useObjetos();
   const { arrastre } = useArrastre();
   const peso = estado.personajes.reduce((s, p) => s + pesoPersonajeKg(estado, p), 0);
   // Soltar un objeto sobre un retrato se lo da a ese personaje
@@ -116,9 +118,11 @@ export function Retratos({ activo, onActivo }: { activo: string | null; onActivo
           </div>
         );
       })}
-      <button type="button" className="anadir" aria-label="Añadir personaje" aria-disabled="true" title="Próximamente">
-        <Icono d={UI.mas} />
-      </button>
+      {estado.personajes.length < 5 && (
+        <button type="button" className="anadir" aria-label="Añadir personaje" title="Añadir personaje" onClick={() => editarPersonaje()}>
+          <Icono d={UI.mas} />
+        </button>
+      )}
       <div className="carga-lat">
         <span>Carga</span>
         <span>{fmt1(peso)}</span>

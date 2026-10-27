@@ -2,9 +2,13 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import type { Destino } from './domain/reglas';
 import type { Objeto } from './domain/tipos';
 import { useCofre } from './store/cofre';
-import { ArrastreProvider } from './ui/arrastre';
+import { claveComida } from './domain/despensa';
+import { ArrastreProvider, type Objetivo } from './ui/arrastre';
 import { DividirPila, QuienEres, SintoniaProvider } from './ui/Dialogos';
+import { ObjetosProvider } from './ui/EditarObjeto';
 import { AvisoActual, Grupal, PieGrupal, type Aviso } from './ui/Grupal';
+import { Despensa } from './ui/Despensa';
+import { Estadisticas } from './ui/Estadisticas';
 import { Individual } from './ui/Individual';
 import { PantallaMonedas } from './ui/Monedas';
 import { PESTANAS, Retratos, Topbar, type Pestana } from './ui/Marco';
@@ -25,7 +29,7 @@ function useEscala() {
 }
 
 export default function App() {
-  const { estado, actor, mover } = useCofre();
+  const { estado, actor, mover, comer } = useCofre();
   const escala = useEscala();
   const lienzo = useRef<HTMLDivElement>(null);
   const [pestana, setPestana] = useState<Pestana>('grupal');
@@ -52,9 +56,16 @@ export default function App() {
     setAviso({ id: Date.now(), tipo: error ? 'error' : 'info', texto });
   }, []);
 
-  const soltar = useCallback((objeto: Objeto, destino: Destino, conMayus: boolean) => {
+  const soltar = useCallback((objeto: Objeto, objetivo: Objetivo, conMayus: boolean) => {
+    if (objetivo.clave.startsWith('comer:')) {
+      const r = comer(objetivo.clave.slice(6), claveComida(objeto));
+      setAviso({ id: Date.now(), tipo: r.ok ? 'info' : 'error', texto: r.ok ? r.texto : r.motivo });
+      return;
+    }
+    const destino = objetivo.destino;
+    if (!destino) return;
     const mismoSitio =
-      !destino.equipar && !objeto.equipadoEn &&
+      !destino.equipar && !objeto.equipadoEn && destino.posicion === undefined &&
       JSON.stringify(destino.propietario) === JSON.stringify(objeto.propietario);
     if (mismoSitio) return;
     if (conMayus && objeto.cantidad > 1) {
@@ -63,7 +74,7 @@ export default function App() {
     }
     const v = mover(objeto.id, destino);
     if (!v.ok) setAviso({ id: Date.now(), tipo: 'error', texto: v.motivo });
-  }, [mover]);
+  }, [mover, comer]);
 
   const titulo = PESTANAS.find((t) => t.id === pestana)?.label ?? '';
 
@@ -82,12 +93,13 @@ export default function App() {
 
           <TooltipProvider lienzo={lienzo} escala={escala}>
             <Topbar activa={pestana} onPestana={setPestana} busqueda={busqueda} onBusqueda={setBusqueda} />
-            <Retratos activo={activo} onActivo={(id) => { setActivo(id); setPestana('individual'); }} />
 
             <SintoniaProvider onAviso={avisar}>
+            <ObjetosProvider lienzo={lienzo} escala={escala} onAviso={avisar}>
+            <Retratos activo={activo} onActivo={(id) => { setActivo(id); setPestana('individual'); }} />
             {pestana === 'grupal' ? (
               <>
-                <Grupal busqueda={busqueda} />
+                <Grupal busqueda={busqueda} onFicha={(id) => { setActivo(id); setPestana('individual'); }} />
                 <PieGrupal aviso={aviso} />
               </>
             ) : pestana === 'individual' ? (
@@ -100,13 +112,21 @@ export default function App() {
                 <PantallaMonedas avisar={avisar} />
                 <div className="avisos-flot abajo"><AvisoActual aviso={aviso} /></div>
               </>
+            ) : pestana === 'estadisticas' ? (
+              <Estadisticas />
+            ) : pestana === 'despensa' ? (
+              <>
+                <Despensa busqueda={busqueda} avisar={avisar} />
+                <div className="avisos-flot abajo"><AvisoActual aviso={aviso} /></div>
+              </>
             ) : (
               <section className="pronto">
                 <h2>{titulo}</h2>
-                <p>Esta pantalla todavía no está construida. De momento solo funciona el inventario grupal.</p>
+                <p>Esta pantalla todavía no está construida.</p>
                 <button type="button" className="btn sec" onClick={() => setPestana('grupal')}>Volver al inventario grupal</button>
               </section>
             )}
+            </ObjetosProvider>
             </SintoniaProvider>
 
             {dividir && (
