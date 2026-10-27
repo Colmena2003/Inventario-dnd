@@ -32,8 +32,7 @@
 
 .equipo { position: absolute; left: 580px; top: 90px; width: 660px; height: 970px; }
 .equipo-aura { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 55% at 50% 42%, color-mix(in srgb, var(--tinte) 25%, transparent), transparent 70%); pointer-events: none; }
-.equipo-fig, .equipo-img { position: absolute; left: 150px; top: 70px; width: 360px; height: 720px; }
-.equipo-img { object-fit: cover; -webkit-mask-image: linear-gradient(180deg, #000 75%, transparent); mask-image: linear-gradient(180deg, #000 75%, transparent); }
+.equipo-fig { position: absolute; left: 150px; top: 70px; width: 360px; height: 720px; }
 .sintonia { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 1; }
 .sintonia > span { font: 13px var(--f-titulo); letter-spacing: .1em; color: #c9b88f; white-space: nowrap; }
 .sintonia b { color: #f1dfb0; }
@@ -114,3 +113,16 @@
 .ls-opcion.on { border-color: var(--oro); background: rgba(226, 194, 122, .06); }
 .ls-opcion input { accent-color: #d9b05a; width: 18px; height: 18px; }
 .ls-lista .acciones { margin-top: auto; padding-top: 16px; }
+
+/* Imagen del personaje como fondo de toda la zona de equipo */
+.equipo .fondo-pj {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: center 15%; pointer-events: none; user-select: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 70%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 70%, transparent);
+  mask-composite: intersect;
+}
+.equipo.con-fondo .lbl, .equipo.con-fondo .atq, .equipo.con-fondo .sintonia > span { text-shadow: 0 1px 2px #000, 0 0 8px rgba(0, 0, 0, .9); }
+.equipo.con-fondo .slot:not(.has) { background: rgba(10, 8, 6, .5); }
+.equipo.con-fondo .slot.has { background: radial-gradient(circle at 50% 42%, var(--rg, transparent) 0, transparent 72%), rgba(13, 11, 9, .62); }

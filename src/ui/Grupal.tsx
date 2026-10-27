@@ -11,7 +11,7 @@ import { useArrastre } from './arrastre';
 import { useSintonia } from './Dialogos';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
 import { Esquinas, fmt1, fmtNum, Icono, Orla, Ranura } from './piezas';
-import { celdas, DCHA, IZQ, ImagenPersonaje, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { celdas, DCHA, IZQ, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 
 // ── Pantalla ───────────────────────────────────────────────────────
 
@@ -70,7 +70,8 @@ function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number;
   };
 
   return (
-    <article className="panel columna" aria-label={p.nombre} style={{ width: ancho }} data-drop={clave}>
+    <article className={`panel columna ${p.imagenUrl ? 'con-fondo' : ''}`} aria-label={p.nombre} style={{ width: ancho }} data-drop={clave}>
+      {p.imagenUrl && <img className="fondo-pj" src={p.imagenUrl} alt="" />}
       <Esquinas />
       {arrastre && !esOrigen && v && (
         <>
@@ -102,11 +103,7 @@ function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number;
       <Orla />
 
       <div className="figura">
-        {p.imagenUrl ? (
-          <ImagenPersonaje p={p} className="retrato-img" />
-        ) : (
-          <Silueta tinte={p.color} id={`col${indice}`} arma={silueta} />
-        )}
+        {!p.imagenUrl && <Silueta tinte={p.color} id={`col${indice}`} arma={silueta} />}
         <button type="button" className="ibtn camara" aria-label="Cambiar imagen del personaje" onClick={() => fichero.current?.click()}>
           <Icono d={UI.camara} />
         </button>

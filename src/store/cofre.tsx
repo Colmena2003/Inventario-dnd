@@ -43,7 +43,6 @@ interface Cofre {
   comer: (personajeId: string, claveComida: string) => { ok: true; texto: string } | { ok: false; motivo: string };
   pasarDia: () => void;
   cambiarImagen: (personajeId: string, url: string) => void;
-  encuadrarImagen: (personajeId: string, encuadre: { x: number; y: number }) => void;
   restablecer: () => void;
 }
 
@@ -107,18 +106,14 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   const pasarDia = useCallback(() => setEstado((e) => pasarDiaViaje(e)), []);
 
   const cambiarImagen = useCallback((personajeId: string, url: string) => {
-    setEstado((e) => ({ ...e, personajes: e.personajes.map((p) => (p.id === personajeId ? { ...p, imagenUrl: url, imagenEncuadre: undefined } : p)) }));
-  }, []);
-
-  const encuadrarImagen = useCallback((personajeId: string, encuadre: { x: number; y: number }) => {
-    setEstado((e) => ({ ...e, personajes: e.personajes.map((p) => (p.id === personajeId ? { ...p, imagenEncuadre: encuadre } : p)) }));
+    setEstado((e) => ({ ...e, personajes: e.personajes.map((p) => (p.id === personajeId ? { ...p, imagenUrl: url } : p)) }));
   }, []);
 
   const restablecer = useCallback(() => setEstado(estadoInicial()), []);
 
   const valor = useMemo(
-    () => ({ estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, encuadrarImagen, restablecer }),
-    [estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, encuadrarImagen, restablecer],
+    () => ({ estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, restablecer }),
+    [estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, restablecer],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }
