@@ -3,13 +3,18 @@
 
 import type { Estado } from '../domain/tipos';
 
-const PREFIJO = 'img:';
+export const PREFIJO = 'img:';
 type Guardado = Estado & { imagenes?: Record<string, string> };
 
-function huella(s: string) {
-  let h = 5381;
-  for (let i = 0; i < s.length; i += 7) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
-  return `${s.length.toString(36)}${h.toString(36)}`;
+/** Dos hashes de 32 bits sobre toda la cadena: la clave la comparten todos los navegadores de la party. */
+export function huella(s: string) {
+  let a = 0x811c9dc5, b = 5381;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    a = Math.imul(a ^ c, 0x01000193) >>> 0;
+    b = (Math.imul(b, 33) ^ c) >>> 0;
+  }
+  return `${s.length.toString(36)}${a.toString(36)}${b.toString(36)}`;
 }
 
 export function aGuardar(e: Estado): Guardado {

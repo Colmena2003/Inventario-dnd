@@ -4,6 +4,7 @@ import { cargaMaxKg, estadoSaciedad, pesoPersonajeKg } from '../domain/reglas';
 import { useCofre } from '../store/cofre';
 import { useArrastreApi, useArrastreSel } from './arrastre';
 import { useObjetos } from './EditarObjeto';
+import { EstadoParty } from './Compartir';
 import { UI } from './iconos';
 import { fmt1, fmtNum, iniciales, Icono, Moneda, MONEDAS } from './piezas';
 
@@ -21,11 +22,13 @@ export const PESTANAS: { id: Pestana; label: string; titulo?: string; d: string 
   { id: 'despensa', label: 'Despensa', d: 'M3 11h18a9 9 0 0 1-18 0zM8.5 8c0-1 1-1.2 1-2.2S8.5 4.5 8.5 3.5M12 8c0-1 1-1.2 1-2.2S12 4.5 12 3.5M15.5 8c0-1 1-1.2 1-2.2s-1-1.3-1-2.3' },
 ];
 
-export function Topbar({ activa, onPestana, busqueda, onBusqueda }: {
+export function Topbar({ activa, onPestana, busqueda, onBusqueda, onSubir }: {
   activa: Pestana;
   onPestana: (p: Pestana) => void;
   busqueda: string;
   onBusqueda: (s: string) => void;
+  /** Abre el diálogo para subir los datos a la base de datos compartida. */
+  onSubir: () => void;
 }) {
   const { estado } = useCofre();
   return (
@@ -38,7 +41,7 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda }: {
         </svg>
         <div className="marca-t">
           <b>Cofre de la Compañía</b>
-          <span>Inventario de la party</span>
+          <EstadoParty onSubir={onSubir} />
         </div>
       </div>
       <nav className="tabs" aria-label="Secciones">

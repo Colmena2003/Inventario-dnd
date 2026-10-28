@@ -8,6 +8,7 @@ import { DividirPila, QuienEres, SintoniaProvider } from './ui/Dialogos';
 import { ObjetosProvider } from './ui/EditarObjeto';
 import { AvisoActual, Grupal, PieGrupal, type Aviso } from './ui/Grupal';
 import { Bestiario } from './ui/Bestiario';
+import { SubirDatos } from './ui/Compartir';
 import { Biblioteca } from './ui/Biblioteca';
 import { Despensa } from './ui/Despensa';
 import { Estadisticas } from './ui/Estadisticas';
@@ -32,7 +33,7 @@ function useEscala() {
 }
 
 export default function App() {
-  const { estado, actor, mover, comer, sinGuardar } = useCofre();
+  const { estado, actor, mover, comer, sinGuardar, compartido } = useCofre();
   const escala = useEscala();
   const lienzo = useRef<HTMLDivElement>(null);
   const [pestana, setPestana] = useState<Pestana>('grupal');
@@ -58,6 +59,24 @@ export default function App() {
   useEffect(() => {
     if (sinGuardar) setAviso({ id: Date.now(), tipo: 'error', texto: 'No se ha podido guardar: el almacenamiento del navegador está lleno. Quita alguna imagen.' });
   }, [sinGuardar]);
+
+  // Base de datos compartida: la primera vez que se ve vacía se ofrece subir los datos
+  const [subir, setSubir] = useState(false);
+  const ofrecido = useRef(false);
+  useEffect(() => {
+    if (compartido.modo === 'vacio' && !ofrecido.current) { ofrecido.current = true; setSubir(true); }
+    if (compartido.modo === 'compartido') setSubir(false);
+  }, [compartido.modo]);
+  useEffect(() => {
+    if (compartido.error) setAviso({ id: compartido.error.id, tipo: 'error', texto: compartido.error.texto });
+  }, [compartido.error]);
+  useEffect(() => {
+    if (!compartido.rechazos) return;
+    setAviso({
+      id: Date.now(), tipo: 'error',
+      texto: compartido.modo === 'conectando' ? 'Conectando con la party, espera un momento' : 'Solo lectura: pide al dueño que te dé acceso de editor',
+    });
+  }, [compartido.rechazos]);
 
   const avisar = useCallback((texto: string, error?: boolean) => {
     setAviso({ id: Date.now(), tipo: error ? 'error' : 'info', texto });
@@ -99,7 +118,7 @@ export default function App() {
           <div className="vineta" aria-hidden="true" />
 
           <TooltipProvider lienzo={lienzo} escala={escala}>
-            <Topbar activa={pestana} onPestana={setPestana} busqueda={busqueda} onBusqueda={setBusqueda} />
+            <Topbar activa={pestana} onPestana={setPestana} busqueda={busqueda} onBusqueda={setBusqueda} onSubir={() => setSubir(true)} />
 
             <SintoniaProvider onAviso={avisar}>
             <ObjetosProvider lienzo={lienzo} escala={escala} onAviso={avisar}>
@@ -161,6 +180,8 @@ export default function App() {
               />
             )}
             {quien && <QuienEres onCerrar={() => setQuien(false)} />}
+            {/* Después de «¿Quién eres?», nunca encima */}
+            {subir && !quien && compartido.modo === 'vacio' && <SubirDatos onCerrar={() => setSubir(false)} />}
           </TooltipProvider>
         </div>
       </ArrastreProvider>

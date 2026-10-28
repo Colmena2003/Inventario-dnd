@@ -1,5 +1,6 @@
-// Estado de la app. Hoy vive en el navegador (localStorage); cuando haya Supabase, este módulo
-// es el único que cambia: las pantallas solo usan useCofre().
+// Estado de la app. Publicada en claude.ai, la party lo comparte en la base de datos del artefacto
+// (ver compartido.ts); fuera de ahí, o hasta que alguien sube los datos, vive en el navegador
+// (localStorage). Las pantallas solo usan useCofre().
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { estadoInicial } from '../data/semilla';
@@ -13,6 +14,8 @@ import { cambiarImagenFicha, completarBiblioteca, olvidar, recuperar, registrar 
 import { anotarEncuentro, crearCriatura, editarCriatura, eliminarCriatura, type DatosCriatura } from '../domain/bestiario';
 import type { Estado, Personaje, Propietario } from '../domain/tipos';
 import { aGuardar, deGuardado } from './imagenes';
+import { Sincronizador, type Modo } from './compartido';
+import { encajarImagen } from '../ui/interaccion';
 
 type SinEstado<T> = T extends { estado: Estado } ? Omit<T, 'estado'> : T;
 
@@ -38,8 +41,25 @@ function guardar(clave: string, valor: unknown) {
   }
 }
 
+export interface Compartido {
+  /** local: sin base de datos · conectando · vacio: hay base de datos pero la party aún no ha subido sus datos · compartido */
+  modo: Modo;
+  soloLectura: boolean;
+  /** Cambios que aún se están guardando en la base de datos compartida. */
+  pendientes: number;
+  /** null: la plataforma no lo ha dicho (se sabrá al intentar escribir). */
+  puedeEscribir: boolean | null;
+  /** Último problema con la base de datos compartida, para avisar. */
+  error: { id: number; texto: string } | null;
+  /** Veces que se ha intentado cambiar algo sin poder (conectando o solo lectura), para avisar. */
+  rechazos: number;
+  /** Sube a la base de datos vacía los datos de este navegador o los de ejemplo. */
+  subir: (origen: 'navegador' | 'ejemplo', progreso: (hechos: number, total: number) => void) => Promise<Resultado>;
+}
+
 interface Cofre {
   estado: Estado;
+  compartido: Compartido;
   /** El último guardado en el navegador falló: lo cambiado se perderá al cerrar. */
   sinGuardar: boolean;
   actor: string;
@@ -74,24 +94,93 @@ type Resultado = { ok: true } | { ok: false; motivo: string };
 const Ctx = createContext<Cofre | null>(null);
 
 export function CofreProvider({ children }: { children: ReactNode }) {
-  const [estado, setEstado] = useState<Estado>(() => {
+  const [estado, setEstadoReal] = useState<Estado>(() => {
     const g = leer<Estado>(CLAVE);
     return completarBiblioteca(g ? deGuardado(g) : estadoInicial());
   });
+
+  // ── Base de datos compartida ──────────────────────────────────────
+  const hayClaude = typeof window !== 'undefined' && !!(window as unknown as { claude?: unknown }).claude;
+  const [modo, setModo] = useState<Modo>(hayClaude ? 'conectando' : 'local');
+  const [soloLectura, setSoloLectura] = useState(false);
+  const [pendientesBd, setPendientesBd] = useState(0);
+  const [puedeEscribir, setPuedeEscribir] = useState<boolean | null>(null);
+  const [errorBd, setErrorBd] = useState<{ id: number; texto: string } | null>(null);
+  const [rechazos, setRechazos] = useState(0);
+  const sinc = useRef<Sincronizador | null>(null);
+
+  useEffect(() => {
+    if (!hayClaude) return;
+    let vivo = true;
+    let s: Sincronizador | null = null;
+    void Sincronizador.conectar({
+      estado: (e) => setEstadoReal(e),
+      modo: setModo,
+      pendientes: setPendientesBd,
+      soloLectura: () => setSoloLectura(true),
+      error: (texto) => setErrorBd({ id: Date.now(), texto }),
+    }).then((x) => {
+      if (!vivo) return x?.cerrar();
+      s = sinc.current = x;
+      if (!x) return setModo('local');
+      setPuedeEscribir(x.puedeEscribir);
+      if (x.puedeEscribir === false) setSoloLectura(true);
+    });
+    return () => { vivo = false; s?.cerrar(); sinc.current = null; };
+  }, [hayClaude]);
+
+  // Mientras conecta, o si este visor solo puede leer, no se aplica ningún cambio
+  const bloqueo = useRef<string | null>(null);
+  bloqueo.current = modo === 'conectando' ? 'Conectando con la party, espera un momento'
+    : modo === 'compartido' && soloLectura ? 'Solo lectura: pide al dueño que te dé acceso de editor' : null;
+  const setEstado = useCallback((f: Estado | ((e: Estado) => Estado)) => {
+    if (bloqueo.current) return setRechazos((n) => n + 1);
+    setEstadoReal(f);
+  }, []);
+  const bloqueado = () => (bloqueo.current ? { ok: false as const, motivo: bloqueo.current } : null);
+
+  useEffect(() => {
+    if (modo === 'compartido' && !soloLectura) sinc.current?.publicar(estado);
+  }, [estado, modo, soloLectura]);
+
+  const subir = useCallback(async (origen: 'navegador' | 'ejemplo', progreso: (hechos: number, total: number) => void): Promise<Resultado> => {
+    const s = sinc.current;
+    if (!s) return { ok: false, motivo: 'No hay conexión con la base de datos de la party' };
+    let e = origen === 'ejemplo' ? completarBiblioteca(estadoInicial()) : estado;
+    // Las imágenes guardadas antes pueden no caber en un documento compartido: se reducen
+    const cache = new Map<string, Promise<string>>();
+    const encajar = async <T extends { imagenUrl?: string }>(x: T): Promise<T> => {
+      if (!x.imagenUrl) return x;
+      if (!cache.has(x.imagenUrl)) cache.set(x.imagenUrl, encajarImagen(x.imagenUrl).catch(() => ''));
+      const url = await cache.get(x.imagenUrl)!;
+      return { ...x, imagenUrl: url || undefined };
+    };
+    e = {
+      ...e,
+      personajes: await Promise.all(e.personajes.map(encajar)),
+      objetos: await Promise.all(e.objetos.map(encajar)),
+      biblioteca: e.biblioteca && await Promise.all(e.biblioteca.map(encajar)),
+      bestiario: e.bestiario && await Promise.all(e.bestiario.map(encajar)),
+    };
+    return s.subir(e, progreso);
+  }, [estado]);
   const [actor, setActorState] = useState<string>(() => leer<string>(CLAVE_ACTOR) ?? '');
 
   // Se guarda fuera del clic que lo provoca, para que soltar un objeto no espere a serializarlo todo;
   // si se cierra la página antes, se guarda en ese momento
   const pendiente = useRef<Estado | null>(null);
   const [sinGuardar, setSinGuardar] = useState(false);
+  const guardaEnNavegador = modo === 'local' || modo === 'vacio';
   useEffect(() => {
+    // Compartido, los datos están en la base de datos; la copia del navegador se queda como estaba
+    if (!guardaEnNavegador) return;
     pendiente.current = estado;
     const t = window.setTimeout(() => {
       pendiente.current = null;
       setSinGuardar(!guardar(CLAVE, aGuardar(estado)));
     }, 250);
     return () => window.clearTimeout(t);
-  }, [estado]);
+  }, [estado, guardaEnNavegador]);
   useEffect(() => {
     const ya = () => { if (pendiente.current) guardar(CLAVE, aGuardar(pendiente.current)); pendiente.current = null; };
     window.addEventListener('pagehide', ya);
@@ -109,7 +198,9 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   );
 
   const mover = useCallback(
-    (objetoId: string, destino: Destino, cantidad?: number) => {
+    (objetoId: string, destino: Destino, cantidad?: number): Validacion => {
+      const b = bloqueado();
+      if (b) return b;
       const v = validarMovimiento(estado, objetoId, destino, cantidad);
       if (v.ok) setEstado((e) => moverObjeto(e, objetoId, destino, actor || 'Alguien', cantidad));
       return v;
@@ -119,6 +210,8 @@ export function CofreProvider({ children }: { children: ReactNode }) {
 
   const sintonizar = useCallback(
     (objetoId: string, sustituir?: string): SinEstado<ResultadoSintonia> => {
+    const b = bloqueado();
+    if (b) return b;
       const r = alternarSintonia(estado, objetoId, sustituir);
       if (!r.ok) return r;
       setEstado(r.estado);
@@ -129,6 +222,8 @@ export function CofreProvider({ children }: { children: ReactNode }) {
 
   const monedas = useCallback(
     (cambios: Cambio[], descripcion: string): SinEstado<ResultadoMonedas> => {
+    const b = bloqueado();
+    if (b) return b;
       const r = aplicarMonedas(estado, cambios, actor || 'Alguien', descripcion);
       if (!r.ok) return r;
       setEstado(r.estado);
@@ -139,6 +234,8 @@ export function CofreProvider({ children }: { children: ReactNode }) {
 
   const comer = useCallback(
     (personajeId: string, claveComida: string) => {
+      const b = bloqueado();
+      if (b) return b;
       const r = comerComida(estado, personajeId, claveComida);
       if (!r.ok) return r;
       setEstado(r.estado);
@@ -154,6 +251,8 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const crearObjeto = useCallback((datos: DatosObjeto): Resultado => {
+    const b = bloqueado();
+    if (b) return b;
     const r = crear(estado, datos, actor);
     if (!r.ok) return r;
     setEstado(registrar(r.estado, r.id));
@@ -161,6 +260,8 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   }, [estado, actor]);
 
   const editarObjeto = useCallback((id: string, datos: DatosObjeto): Resultado => {
+    const b = bloqueado();
+    if (b) return b;
     const r = editar(estado, id, datos);
     if (!r.ok) return r;
     setEstado(registrar(r.estado, id));
@@ -171,6 +272,8 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   const eliminarObjeto = useCallback((id: string) => setEstado((e) => eliminar(registrar(e, id), id)), []);
 
   const recuperarFicha = useCallback((fichaId: string, propietario: Propietario, cantidad: number): Resultado => {
+    const b = bloqueado();
+    if (b) return b;
     const r = recuperar(estado, fichaId, propietario, cantidad, actor);
     if (!r.ok) return r;
     setEstado(r.estado);
@@ -178,6 +281,8 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   }, [estado, actor]);
 
   const olvidarFicha = useCallback((fichaId: string): Resultado => {
+    const b = bloqueado();
+    if (b) return b;
     const r = olvidar(estado, fichaId);
     if (!r.ok) return r;
     setEstado(r.estado);
@@ -207,6 +312,8 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const guardarCriatura = useCallback((id: string | undefined, datos: DatosCriatura) => {
+    const b = bloqueado();
+    if (b) return b;
     const r = id ? editarCriatura(estado, id, datos) : crearCriatura(estado, datos, actor);
     if (!r.ok) return r;
     setEstado(r.estado);
@@ -215,11 +322,16 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   const eliminarCriaturaCb = useCallback((id: string) => setEstado((e) => eliminarCriatura(e, id)), []);
   const anotarEncuentroCb = useCallback((id: string, derrotada: boolean) => setEstado((e) => anotarEncuentro(e, id, derrotada)), []);
 
-  const restablecer = useCallback(() => setEstado(completarBiblioteca(estadoInicial())), []);
+  const restablecer = useCallback(() => setEstado(completarBiblioteca(estadoInicial())), [setEstado]);
+
+  const compartido = useMemo<Compartido>(
+    () => ({ modo, soloLectura, pendientes: pendientesBd, puedeEscribir, error: errorBd, rechazos, subir }),
+    [modo, soloLectura, pendientesBd, puedeEscribir, errorBd, rechazos, subir],
+  );
 
   const valor = useMemo(
-    () => ({ estado, sinGuardar, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, recuperarFicha, olvidarFicha, cambiarImagenFicha: cambiarImagenFichaCb, guardarCriatura, eliminarCriatura: eliminarCriaturaCb, anotarEncuentro: anotarEncuentroCb, restablecer }),
-    [guardarCriatura, eliminarCriaturaCb, anotarEncuentroCb, recuperarFicha, olvidarFicha, cambiarImagenFichaCb, sinGuardar, estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, restablecer],
+    () => ({ estado, compartido, sinGuardar, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, recuperarFicha, olvidarFicha, cambiarImagenFicha: cambiarImagenFichaCb, guardarCriatura, eliminarCriatura: eliminarCriaturaCb, anotarEncuentro: anotarEncuentroCb, restablecer }),
+    [compartido, guardarCriatura, eliminarCriaturaCb, anotarEncuentroCb, recuperarFicha, olvidarFicha, cambiarImagenFichaCb, sinGuardar, estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, restablecer],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }

@@ -70,3 +70,26 @@
 .bib-vacia { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
 .bib-vacia h2 { margin: 0; font: 600 26px var(--f-titulo); color: #eedcb0; }
 .bib-vacia p { margin: 0; font: 16px var(--f-datos); color: var(--texto-2); }
+
+/* Conexión con la party (bajo el nombre de la app) y diálogo para subir los datos */
+.ep-estado { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: 12px var(--f-datos); letter-spacing: .14em; text-transform: uppercase; color: var(--texto-3); }
+.ep-estado::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; }
+.ep-estado.ok { color: #9cc95e; }
+.ep-estado.guardando, .ep-estado.conectando { color: var(--oro-claro); }
+.ep-estado.guardando::before, .ep-estado.conectando::before { animation: latido 1s ease-in-out infinite alternate; }
+.ep-estado.lectura { color: #e0883a; }
+.ep-estado.vacio { color: #e0883a; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+@keyframes latido { from { opacity: .35; } to { opacity: 1; } }
+.dialogo.sd { width: 760px; }
+.sd p { margin: 0; text-align: left; font: 16px/1.5 var(--f-datos); color: #ddd3c0; }
+.sd .sd-nota { font-size: 14px; color: var(--texto-2); }
+.sd-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.sd-opcion { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 18px; text-align: left; cursor: pointer; font: inherit; color: var(--texto); border: 1px solid #574628; background: linear-gradient(180deg, #1a1611, #0f0c0a); }
+.sd-opcion:hover:not(:disabled) { border-color: var(--oro); box-shadow: 0 0 18px rgba(226, 194, 122, .2); }
+.sd-opcion:disabled { opacity: .5; cursor: progress; }
+.sd-opcion svg { width: 26px; height: 26px; fill: none; stroke: var(--oro-claro); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.sd-opcion b { font: 600 17px var(--f-titulo); color: #f1e3bf; }
+.sd-opcion span { font: 14px var(--f-datos); color: var(--texto-2); }
+.sd-progreso { display: flex; flex-direction: column; gap: 6px; font: 14px var(--f-datos); color: var(--texto-2); }
+.sd-progreso > div { height: 8px; background: #110e0b; border: 1px solid #3a2f1d; }
+.sd-progreso > div > div { height: 6px; background: linear-gradient(90deg, #8a7040, var(--oro-claro)); transition: width .2s; }

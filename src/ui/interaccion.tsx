@@ -179,20 +179,52 @@ export function Silueta({ tinte, id, arma, className, aura = true }: { tinte: st
   );
 }
 
-/** Reduce la imagen subida para que quepa en el almacenamiento local. */
-export function reducirImagen(f: File, lado: number): Promise<string> {
+/** Lo que puede ocupar una imagen (en caracteres de data URL): cabe en un documento compartido de 256 KiB. */
+export const MAX_IMAGEN = 230 * 1024;
+
+function cargar(src: string): Promise<HTMLImageElement> {
   return new Promise((ok, mal) => {
     const img = new Image();
-    img.onload = () => {
-      const k = Math.min(1, lado / Math.max(img.width, img.height));
-      const c = document.createElement('canvas');
-      c.width = Math.round(img.width * k);
-      c.height = Math.round(img.height * k);
-      c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(img.src);
-      ok(c.toDataURL('image/webp', 0.85));
-    };
+    img.onload = () => ok(img);
     img.onerror = mal;
-    img.src = URL.createObjectURL(f);
+    img.src = src;
   });
+}
+
+/**
+ * Dibuja la imagen con `lado` como máximo y la codifica en WebP (JPEG en los navegadores que no
+ * codifican WebP), bajando la calidad y después el tamaño hasta que quepa en `MAX_IMAGEN`.
+ */
+function codificar(img: HTMLImageElement, lado: number): string {
+  let escala = Math.min(1, lado / Math.max(img.width, img.height));
+  for (let intento = 0; intento < 12; intento++) {
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.width * escala));
+    c.height = Math.max(1, Math.round(img.height * escala));
+    c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+    for (const calidad of [0.85, 0.7, 0.55]) {
+      let url = c.toDataURL('image/webp', calidad);
+      if (!url.startsWith('data:image/webp')) url = c.toDataURL('image/jpeg', calidad);
+      if (url.length <= MAX_IMAGEN) return url;
+    }
+    escala *= 0.8;
+  }
+  throw new Error('La imagen no se puede reducir lo suficiente');
+}
+
+/** Reduce la imagen subida para que quepa en el almacenamiento (local o compartido). */
+export async function reducirImagen(f: File, lado: number): Promise<string> {
+  const src = URL.createObjectURL(f);
+  try {
+    return codificar(await cargar(src), lado);
+  } finally {
+    URL.revokeObjectURL(src);
+  }
+}
+
+/** Una imagen ya guardada que no cabe en un documento compartido, reducida; las que caben no se tocan. */
+export async function encajarImagen(url: string): Promise<string> {
+  if (url.length <= MAX_IMAGEN || !url.startsWith('data:')) return url;
+  const img = await cargar(url);
+  return codificar(img, Math.max(img.width, img.height));
 }

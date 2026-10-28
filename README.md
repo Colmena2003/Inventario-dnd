@@ -42,15 +42,28 @@ Hecho:
 - Bestiario (pestaña propia): criaturas con las que se ha enfrentado la party, con su imagen en grande. Solo el nombre es obligatorio; lo que no se sabe (PV, una característica, la tercera acción que aún no ha usado…) se deja vacío y la ficha lo muestra como «sin descubrir», con huecos de habilidad explícitos. Actitud agresiva, no agresiva o desconocida; bloque de estadísticas (CA, PV, velocidad, VD con sus PX, características, defensas, sentidos e idiomas), rasgos, acciones, reacciones y acciones legendarias, notas, dónde se la encontró y contadores de encuentros y abatidas. El botín se elige de la biblioteca (o como texto libre) y se ve con el icono, imagen y rareza del objeto; pulsarlo abre el objeto en grande para recuperarlo. Las criaturas de ejemplo solo aparecen en partidas nuevas.
 - Las pestañas «Inventario grupal» e «Inventarios individuales» se muestran como «Grupal» e «Individual» para que quepan todas; el nombre completo sigue al pasar el ratón y para lectores de pantalla.
 
-Pendiente: crafteo y Supabase.
+- Datos compartidos por toda la party: publicada en claude.ai, la app guarda todo en la base de datos del propio artefacto (capacidad `db`) y cada cambio llega en vivo a quien la tenga abierta. La primera vez, el dueño sube los datos de su navegador o empieza con los de ejemplo. Un visor que solo puede leer ve la partida pero no puede cambiarla (se le avisa). Bajo el nombre de la app se ve el estado: «Compartido con la party», «Guardando…», «solo lectura» o «Sin compartir».
+
+Pendiente: crafteo.
 
 ## Datos
 
-De momento todo vive en el navegador (`localStorage`), empezando por los datos de ejemplo de `src/data/semilla.ts`, que amplían `datos-ejemplo.json` con los objetos del diseño. Para volver a empezar, borra los datos del sitio en el navegador (hace falta para ver los platos de la despensa que se añadieron a los datos de ejemplo).
+Publicada en claude.ai, la partida vive en la base de datos compartida del artefacto (`src/store/compartido.ts`, `src/store/documentos.ts`): un documento por personaje, objeto, ficha de la biblioteca y criatura, las imágenes en documentos propios (como mucho 256 KiB cada uno: las imágenes se reducen hasta caber) y la party, los movimientos y el registro de monedas en tres más. Cada cambio escribe solo los documentos que cambian; si dos personas cambian lo mismo a la vez, gana la última escritura de ese documento. Quién puede escribir lo decide el menú «Compartir» del artefacto (ver «Compartir con la party» abajo).
 
-Toda la lectura y escritura pasa por `src/store/cofre.tsx`, que es lo que habrá que cambiar para usar Supabase. Las reglas están en `src/domain/reglas.ts` como funciones puras.
+Fuera de claude.ai (desarrollo, fichero suelto), o hasta que el dueño sube los datos, todo vive en el navegador (`localStorage`), empezando por los datos de ejemplo de `src/data/semilla.ts`, que amplían `datos-ejemplo.json` con los objetos del diseño. Para volver a empezar, borra los datos del sitio en el navegador (hace falta para ver los platos de la despensa que se añadieron a los datos de ejemplo).
+
+Toda la lectura y escritura pasa por `src/store/cofre.tsx`. Las reglas están en `src/domain/reglas.ts` como funciones puras.
 
 Las imágenes se guardan como data URL. Al escribir en `localStorage` las repetidas (la de un objeto y la de su ficha en la biblioteca) se guardan una sola vez (`src/store/imagenes.ts`). Las de objeto se reducen a 640 px de lado; con muchas imágenes el límite de unos 5 MB de `localStorage` se puede llenar, y entonces la sesión sigue en memoria pero no se guarda.
+
+## Compartir con la party
+
+Para que los demás puedan escribir (y no solo mirar), en el menú «Compartir» del artefacto:
+
+- En un plan personal, invita a cada jugador por correo como **Editor** y quita el acceso «cualquiera con el enlace»: mientras el enlace público esté activo, los invitados de fuera de la organización solo pueden leer.
+- En un plan de equipo (Team/Enterprise), los miembros de la organización que abren el artefacto escriben salvo que su nivel sea de solo lectura.
+
+Todos necesitan una cuenta de claude.ai con la sesión iniciada; sin sesión no se ven los datos compartidos.
 
 ## Supuestos
 
