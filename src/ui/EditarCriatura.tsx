@@ -7,13 +7,11 @@ import {
 } from '../domain/bestiario';
 import { CLASE_RAREZA, conSigno, modificador, nuevoId } from '../domain/reglas';
 import type { Caracteristica, HabilidadCriatura, TipoHabilidad } from '../domain/tipos';
+import { guardarImagen } from '../store/archivos';
 import { useCofre } from '../store/cofre';
 import { useEscape } from './Dialogos';
 import { ICONOS, UI } from './iconos';
-import { reducirImagen } from './interaccion';
 import { Esquinas, Icono } from './piezas';
-
-const LADO_IMAGEN_CRIATURA = 1100;
 
 type Textos = {
   nombre: string; tipo: string; tamano: string; alineamiento: string; desafio: string; px: string; ca: string; caNota: string;
@@ -84,7 +82,7 @@ export function EditarCriatura({ id, onCerrar, onEliminada }: {
 
   const subir = async (f: File | undefined) => {
     if (!f) return;
-    try { setImagen(await reducirImagen(f, LADO_IMAGEN_CRIATURA)); } catch { setError('No se ha podido leer la imagen'); }
+    try { setImagen(await guardarImagen(f, 'criatura')); } catch { setError('No se ha podido leer la imagen'); }
   };
 
   const campo = (k: keyof Textos, titulo: string, extra: React.InputHTMLAttributes<HTMLInputElement> = {}) => (

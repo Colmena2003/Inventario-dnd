@@ -5,15 +5,12 @@ import { createContext, useCallback, useContext, useRef, useState, type ReactNod
 import { ejemplares } from '../domain/biblioteca';
 import { ataque, CLASE_RAREZA, MAX_SINTONIZADOS, nombreDe, NOMBRE_RANURA, sintonizadosDe } from '../domain/reglas';
 import type { DatosFicha, Ficha, Objeto, Personaje, Propietario } from '../domain/tipos';
+import { guardarImagen } from '../store/archivos';
 import { useCofre } from '../store/cofre';
 import { useEscape, useSintonia } from './Dialogos';
 import { useObjetos } from './EditarObjeto';
 import { ICONOS, UI } from './iconos';
-import { reducirImagen } from './interaccion';
 import { Esquinas, fmt1, fmtNum, Icono } from './piezas';
-
-/** Lado de las imágenes de objeto: lo bastante grande para verse bien en la vista grande. */
-export const LADO_IMAGEN_OBJETO = 640;
 
 type Abierto = { tipo: 'objeto'; id: string } | { tipo: 'ficha'; id: string };
 
@@ -52,7 +49,7 @@ function VistaGrande({ abierto, onCerrar, onAviso }: { abierto: Abierto; onCerra
   const subir = async (f: File | undefined) => {
     if (!f) return;
     let url: string;
-    try { url = await reducirImagen(f, LADO_IMAGEN_OBJETO); } catch { return onAviso('No se ha podido leer la imagen', true); }
+    try { url = await guardarImagen(f, 'objeto'); } catch { return onAviso('No se ha podido leer la imagen', true); }
     poner(url);
   };
   const poner = (url: string | undefined) => {

@@ -4,15 +4,14 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { objetoEnBlanco, type DatosObjeto } from '../domain/objetos';
 import { CLASE_RAREZA, NOMBRE_RANURA, RAREZAS, nombreDe } from '../domain/reglas';
 import type { Categoria, Objeto, Personaje, Propietario, TipoRanura } from '../domain/tipos';
+import { guardarImagen } from '../store/archivos';
 import { useCofre } from '../store/cofre';
 import { useSintonia, useEscape } from './Dialogos';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
-import { reducirImagen } from './interaccion';
 import { ListaMenu, type OpcionMenu } from './Menus';
 import { EditarPersonaje } from './EditarPersonaje';
 import { Esquinas, Icono, Ranura } from './piezas';
 import { FichaObjeto } from './Tooltip';
-import { LADO_IMAGEN_OBJETO } from './VistaObjeto';
 
 type Avisar = (texto: string, error?: boolean) => void;
 
@@ -208,7 +207,7 @@ function FormularioObjeto({ objeto, propietario, onAviso, onCerrar, onEliminar }
 
   const subir = async (f: File | undefined) => {
     if (!f) return;
-    try { fijar('imagenUrl', await reducirImagen(f, LADO_IMAGEN_OBJETO)); } catch { setError('No se ha podido leer la imagen'); }
+    try { fijar('imagenUrl', await guardarImagen(f, 'objeto')); } catch { setError('No se ha podido leer la imagen'); }
   };
 
   const duenos: { p: Propietario; texto: string; color?: string }[] = [

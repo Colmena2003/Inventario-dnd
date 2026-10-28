@@ -54,7 +54,7 @@ Fuera de claude.ai (desarrollo, fichero suelto), o hasta que el dueño sube los 
 
 Toda la lectura y escritura pasa por `src/store/cofre.tsx`. Las reglas están en `src/domain/reglas.ts` como funciones puras.
 
-Las imágenes se guardan como data URL. Al escribir en `localStorage` las repetidas (la de un objeto y la de su ficha en la biblioteca) se guardan una sola vez (`src/store/imagenes.ts`). Las de objeto se reducen a 640 px de lado; con muchas imágenes el límite de unos 5 MB de `localStorage` se puede llenar, y entonces la sesión sigue en memoria pero no se guarda.
+Las imágenes: quien puede editar el artefacto (Editor o dueño) las sube al almacén de archivos del artefacto (capacidad `assets`, hasta 20 MiB por archivo), grandes y con calidad alta (objetos 1200 px, personajes 1600 px, criaturas 2400 px; `src/store/archivos.ts`), y en los datos queda la ruta `/_blob/<id>`. Para los demás, y fuera de claude.ai, se guardan como data URL reducida. Al escribir en `localStorage` las repetidas (la de un objeto y la de su ficha en la biblioteca) se guardan una sola vez (`src/store/imagenes.ts`). Las de objeto se reducen a 640 px de lado; con muchas imágenes el límite de unos 5 MB de `localStorage` se puede llenar, y entonces la sesión sigue en memoria pero no se guarda.
 
 ## Compartir con la party
 

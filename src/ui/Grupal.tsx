@@ -6,6 +6,7 @@ import {
   pesoPersonajeKg, tramoCarga,
 } from '../domain/reglas';
 import type { Categoria, Personaje, Propietario, TipoRanura } from '../domain/tipos';
+import { guardarImagen } from '../store/archivos';
 import { useCofre } from '../store/cofre';
 import { dentroDe, useArrastreApi, useArrastreSel } from './arrastre';
 import { useObjetos } from './EditarObjeto';
@@ -13,7 +14,7 @@ import { MenuBoton, type OpcionMenu } from './Menus';
 import { useSintonia } from './Dialogos';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
 import { Esquinas, fmt1, fmtNum, Icono, Orla } from './piezas';
-import { DCHA, IZQ, RanuraEquipo, reducirImagen, RejillaObjetos, Silueta, SILUETA_ARMA } from './interaccion';
+import { DCHA, IZQ, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA } from './interaccion';
 
 // ── Pantalla ───────────────────────────────────────────────────────
 
@@ -64,7 +65,7 @@ function Columna({ p, indice, ancho, busqueda, onFicha }: { p: Personaje; indice
 
   const subirImagen = async (f: File | undefined) => {
     if (!f) return;
-    cambiarImagen(p.id, await reducirImagen(f, 600));
+    cambiarImagen(p.id, await guardarImagen(f, 'personaje'));
   };
 
   return (

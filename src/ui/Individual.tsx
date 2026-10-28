@@ -6,6 +6,7 @@ import {
   pesoPersonajeKg, cargaMaxKg, pxNivelActual, pxSiguienteNivel, sintonizadosDe, tramoCarga,
 } from '../domain/reglas';
 import type { Categoria, Caracteristica, IconoRasgo, Personaje, Propietario } from '../domain/tipos';
+import { guardarImagen } from '../store/archivos';
 import { useCofre } from '../store/cofre';
 import { claveBase, useArrastreSel } from './arrastre';
 import { useSintonia } from './Dialogos';
@@ -13,7 +14,7 @@ import { useObjetos } from './EditarObjeto';
 import { opcionesOrden } from './Grupal';
 import { MenuBoton } from './Menus';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
-import { DCHA, IZQ, RanuraEquipo, reducirImagen, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { DCHA, IZQ, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { Esquinas, fmtNum, Icono, Moneda, MONEDAS } from './piezas';
 
 export function Individual({ personajeId, busqueda }: { personajeId: string | null; busqueda: string }) {
@@ -180,7 +181,7 @@ function Equipo({ p, busqueda }: { p: Personaje; busqueda: string }) {
       </button>
       <input
         ref={fichero} type="file" accept="image/*" hidden
-        onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiarImagen(p.id, await reducirImagen(f, 900)); }}
+        onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiarImagen(p.id, await guardarImagen(f, 'personaje')); }}
       />
 
       <div className="equipo-izq">{IZQ.map(([r, ic]) => ranura(r, 0, ic))}</div>

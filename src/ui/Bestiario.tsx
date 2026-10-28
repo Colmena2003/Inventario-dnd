@@ -7,16 +7,13 @@ import {
 } from '../domain/bestiario';
 import { CLASE_RAREZA, conSigno, fmtNum } from '../domain/reglas';
 import type { Actitud, BotinCriatura, Criatura, Estado } from '../domain/tipos';
+import { guardarImagen } from '../store/archivos';
 import { useCofre } from '../store/cofre';
 import { useEscape } from './Dialogos';
 import { EditarCriatura } from './EditarCriatura';
 import { ICONOS, UI } from './iconos';
-import { reducirImagen } from './interaccion';
 import { Esquinas, Icono } from './piezas';
 import { useVistaObjeto } from './VistaObjeto';
-
-/** Lado de las imágenes de criatura: se ven a toda la altura de la ficha. */
-const LADO_IMAGEN_CRIATURA = 1100;
 
 const ORDENES = [
   { id: 'reciente', texto: 'Más recientes' },
@@ -178,7 +175,7 @@ function FichaCriatura({ id, onCerrar, onEditar }: { id: string; onCerrar: () =>
   };
   const subir = async (f: File | undefined) => {
     if (!f) return;
-    try { ponerImagen(await reducirImagen(f, LADO_IMAGEN_CRIATURA)); } catch { setError('No se ha podido leer la imagen'); }
+    try { ponerImagen(await guardarImagen(f, 'criatura')); } catch { setError('No se ha podido leer la imagen'); }
   };
 
   const px = c.px ?? pxDeDesafio(c.desafio);

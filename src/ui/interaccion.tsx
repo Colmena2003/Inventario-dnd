@@ -222,6 +222,30 @@ export async function reducirImagen(f: File, lado: number): Promise<string> {
   }
 }
 
+/**
+ * Versión grande para el almacén de archivos: hasta `lado` píxeles y calidad alta (WebP 0,92, o JPEG
+ * donde no se codifica WebP). Sin el tope de tamaño de los documentos.
+ */
+export async function imagenGrande(f: File, lado: number): Promise<Blob> {
+  const src = URL.createObjectURL(f);
+  try {
+    const img = await cargar(src);
+    const escala = Math.min(1, lado / Math.max(img.width, img.height));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.width * escala));
+    c.height = Math.max(1, Math.round(img.height * escala));
+    c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+    const blob = (tipo: string) => new Promise<Blob | null>((ok) => c.toBlob(ok, tipo, 0.92));
+    const webp = await blob('image/webp');
+    if (webp?.type === 'image/webp') return webp;
+    const jpeg = await blob('image/jpeg');
+    if (!jpeg) throw new Error('No se ha podido codificar la imagen');
+    return jpeg;
+  } finally {
+    URL.revokeObjectURL(src);
+  }
+}
+
 /** Una imagen ya guardada que no cabe en un documento compartido, reducida; las que caben no se tocan. */
 export async function encajarImagen(url: string): Promise<string> {
   if (url.length <= MAX_IMAGEN || !url.startsWith('data:')) return url;
