@@ -49,6 +49,8 @@ export interface Compartido {
   pendientes: number;
   /** null: la plataforma no lo ha dicho (se sabrá al intentar escribir). */
   puedeEscribir: boolean | null;
+  /** Solo el dueño del artefacto sube los datos la primera vez. */
+  esDueno: boolean;
   /** Último problema con la base de datos compartida, para avisar. */
   error: { id: number; texto: string } | null;
   /** Veces que se ha intentado cambiar algo sin poder (conectando o solo lectura), para avisar. */
@@ -105,6 +107,7 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   const [soloLectura, setSoloLectura] = useState(false);
   const [pendientesBd, setPendientesBd] = useState(0);
   const [puedeEscribir, setPuedeEscribir] = useState<boolean | null>(null);
+  const [esDueno, setEsDueno] = useState(false);
   const [errorBd, setErrorBd] = useState<{ id: number; texto: string } | null>(null);
   const [rechazos, setRechazos] = useState(0);
   const sinc = useRef<Sincronizador | null>(null);
@@ -124,6 +127,7 @@ export function CofreProvider({ children }: { children: ReactNode }) {
       s = sinc.current = x;
       if (!x) return setModo('local');
       setPuedeEscribir(x.puedeEscribir);
+      setEsDueno(x.esDueno);
       if (x.puedeEscribir === false) setSoloLectura(true);
     });
     return () => { vivo = false; s?.cerrar(); sinc.current = null; };
@@ -325,8 +329,8 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   const restablecer = useCallback(() => setEstado(completarBiblioteca(estadoInicial())), [setEstado]);
 
   const compartido = useMemo<Compartido>(
-    () => ({ modo, soloLectura, pendientes: pendientesBd, puedeEscribir, error: errorBd, rechazos, subir }),
-    [modo, soloLectura, pendientesBd, puedeEscribir, errorBd, rechazos, subir],
+    () => ({ modo, soloLectura, pendientes: pendientesBd, puedeEscribir, esDueno, error: errorBd, rechazos, subir }),
+    [modo, soloLectura, pendientesBd, puedeEscribir, esDueno, errorBd, rechazos, subir],
   );
 
   const valor = useMemo(

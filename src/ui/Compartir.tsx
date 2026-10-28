@@ -15,7 +15,7 @@ export function EstadoParty({ onSubir }: { onSubir: () => void }) {
   if (c.modo === 'vacio') {
     return (
       <button type="button" className="ep-estado vacio" onClick={onSubir} title="Subir los datos para compartirlos con la party">
-        Sin compartir · subir datos
+        {c.esDueno ? 'Sin compartir · subir datos' : 'Esperando al dueño'}
       </button>
     );
   }
@@ -39,7 +39,7 @@ export function SubirDatos({ onCerrar }: { onCerrar: () => void }) {
   };
 
   const n = (x: unknown[] | undefined) => x?.length ?? 0;
-  const puede = c.puedeEscribir !== false;
+  const puede = c.esDueno && c.puedeEscribir !== false;
   return (
     <>
       <div className="velo arriba" onClick={() => { if (!progreso) onCerrar(); }} />
@@ -69,7 +69,10 @@ export function SubirDatos({ onCerrar }: { onCerrar: () => void }) {
             <p className="sd-nota">Solo hace falta que lo haga una persona. Lo que haya en los navegadores de los demás no se mezcla: se queda como copia local.</p>
           </>
         ) : (
-          <p className="sd-nota">Tu acceso es de solo lectura: pide al dueño del cofre que suba los datos o que te dé acceso de editor.</p>
+          <p className="sd-nota">
+            Solo el dueño del cofre puede subir los datos la primera vez. Cuando lo haga, esta página se pondrá al día sola;
+            mientras tanto, lo que cambies aquí se queda en tu navegador.
+          </p>
         )}
         {progreso && (
           <div className="sd-progreso" role="status">

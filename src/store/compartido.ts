@@ -25,7 +25,7 @@ type Doc = {
 };
 type Coleccion = { onSnapshot(next: (s: { docChanges(): Cambio[] }) => void, error?: (e: Error) => void): () => void };
 type Db = { doc(ruta: string): Doc; collection(ruta: string): Coleccion };
-type Usuario = { can(nombre: string): Promise<boolean | null> };
+type Usuario = { can(nombre: string): Promise<boolean | null>; isOwner(): Promise<boolean> };
 type Claude = { use(nombre: string): Promise<unknown> };
 
 export type Modo = 'local' | 'conectando' | 'vacio' | 'compartido';
@@ -72,7 +72,7 @@ export class Sincronizador {
   private bajas: (() => void)[] = [];
   private cerrado = false;
 
-  private constructor(private db: Db, readonly puedeEscribir: boolean | null, private av: Avisos) {
+  private constructor(private db: Db, readonly puedeEscribir: boolean | null, readonly esDueno: boolean, private av: Avisos) {
     const suscripciones = 1 + 3 + COLECCIONES.length;
     this.faltan = suscripciones;
     this.suscribir();
@@ -84,7 +84,8 @@ export class Sincronizador {
     if (!db) return null;
     const usuario = await capacidad<Usuario>('user');
     const puede = usuario ? await usuario.can('data.write').catch(() => null) : null;
-    return new Sincronizador(db, puede, av);
+    const dueno = usuario ? await usuario.isOwner().catch(() => false) : false;
+    return new Sincronizador(db, puede, dueno, av);
   }
 
   cerrar() {
@@ -246,12 +247,14 @@ export class Sincronizador {
 
   /**
    * Sube una partida entera a la base de datos vacía (los datos de este navegador o los de ejemplo).
-   * Un lease sobre `party/meta` evita que dos personas suban a la vez.
+   * Solo el dueño: la regla de la base de datos reserva `party/meta` para él, así nadie más puede
+   * empezar la partida compartida con otros datos. Un lease sobre `party/meta` evita subir dos veces.
    */
   async subir(e: Estado, progreso: (hechos: number, total: number) => void): Promise<{ ok: true } | { ok: false; motivo: string }> {
     const meta = this.db.doc(DOC_META);
     const lease = await meta.acquire({ holder: `subida-${Math.random().toString(36).slice(2)}`, ttlMs: 300000 }).catch(() => null);
-    if (!lease?.acquired) return { ok: false, motivo: 'Otra persona está subiendo los datos ahora mismo. Espera un momento.' };
+    if (!this.esDueno) return { ok: false, motivo: 'Solo el dueño del cofre puede subir los datos de la party.' };
+    if (!lease?.acquired) return { ok: false, motivo: 'Ya se están subiendo los datos en otra pestaña. Espera un momento.' };
     const m = await meta.get();
     if (m.exists && m.data()?.sembrado === true) return { ok: false, motivo: 'La party ya tiene datos compartidos.' };
 
