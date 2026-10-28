@@ -27,6 +27,7 @@ export function aGuardar(e: Estado): Guardado {
     personajes: e.personajes.map(ref),
     objetos: e.objetos.map(ref),
     biblioteca: e.biblioteca?.map(ref),
+    bestiario: e.bestiario?.map(ref),
     imagenes,
   };
 }
@@ -37,5 +38,7 @@ export function deGuardado(g: Guardado): Estado {
   // La misma cadena para el objeto y su ficha: en memoria tampoco se duplica
   const url = <T extends { imagenUrl?: string }>(x: T): T =>
     x.imagenUrl?.startsWith(PREFIJO) ? { ...x, imagenUrl: imagenes[x.imagenUrl.slice(PREFIJO.length)] } : x;
-  return { ...e, personajes: e.personajes.map(url), objetos: e.objetos.map(url), biblioteca: e.biblioteca?.map(url) };
+  return {
+    ...e, personajes: e.personajes.map(url), objetos: e.objetos.map(url), biblioteca: e.biblioteca?.map(url), bestiario: e.bestiario?.map(url),
+  };
 }

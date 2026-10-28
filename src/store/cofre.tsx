@@ -10,6 +10,7 @@ import { crearObjeto as crear, editarObjeto as editar, eliminarObjeto as elimina
 import { comer as comerComida, pasarDia as pasarDiaViaje } from '../domain/despensa';
 import { aplicarMonedas, type Cambio, type ResultadoMonedas } from '../domain/monedas';
 import { cambiarImagenFicha, completarBiblioteca, olvidar, recuperar, registrar } from '../domain/biblioteca';
+import { anotarEncuentro, crearCriatura, editarCriatura, eliminarCriatura, type DatosCriatura } from '../domain/bestiario';
 import type { Estado, Personaje, Propietario } from '../domain/tipos';
 import { aGuardar, deGuardado } from './imagenes';
 
@@ -61,6 +62,10 @@ interface Cofre {
   recuperarFicha: (fichaId: string, propietario: Propietario, cantidad: number) => Resultado;
   olvidarFicha: (fichaId: string) => Resultado;
   cambiarImagenFicha: (fichaId: string, url: string | undefined) => void;
+  /** Bestiario. Crear devuelve el id de la criatura nueva. */
+  guardarCriatura: (id: string | undefined, datos: DatosCriatura) => { ok: true; id: string } | { ok: false; motivo: string };
+  eliminarCriatura: (id: string) => void;
+  anotarEncuentro: (id: string, derrotada: boolean) => void;
   restablecer: () => void;
 }
 
@@ -201,11 +206,20 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const guardarCriatura = useCallback((id: string | undefined, datos: DatosCriatura) => {
+    const r = id ? editarCriatura(estado, id, datos) : crearCriatura(estado, datos, actor);
+    if (!r.ok) return r;
+    setEstado(r.estado);
+    return { ok: true as const, id: r.id };
+  }, [estado, actor]);
+  const eliminarCriaturaCb = useCallback((id: string) => setEstado((e) => eliminarCriatura(e, id)), []);
+  const anotarEncuentroCb = useCallback((id: string, derrotada: boolean) => setEstado((e) => anotarEncuentro(e, id, derrotada)), []);
+
   const restablecer = useCallback(() => setEstado(completarBiblioteca(estadoInicial())), []);
 
   const valor = useMemo(
-    () => ({ estado, sinGuardar, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, recuperarFicha, olvidarFicha, cambiarImagenFicha: cambiarImagenFichaCb, restablecer }),
-    [recuperarFicha, olvidarFicha, cambiarImagenFichaCb, sinGuardar, estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, restablecer],
+    () => ({ estado, sinGuardar, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, recuperarFicha, olvidarFicha, cambiarImagenFicha: cambiarImagenFichaCb, guardarCriatura, eliminarCriatura: eliminarCriaturaCb, anotarEncuentro: anotarEncuentroCb, restablecer }),
+    [guardarCriatura, eliminarCriaturaCb, anotarEncuentroCb, recuperarFicha, olvidarFicha, cambiarImagenFichaCb, sinGuardar, estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, restablecer],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }

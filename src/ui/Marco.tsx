@@ -8,13 +8,15 @@ import { UI } from './iconos';
 import { fmt1, fmtNum, iniciales, Icono, Moneda, MONEDAS } from './piezas';
 
 /** Pestañas de la barra, más «monedas», a la que se llega pulsando el tesoro. */
-export type Pestana = 'grupal' | 'individual' | 'estadisticas' | 'biblioteca' | 'crafteo' | 'despensa' | 'monedas';
+export type Pestana = 'grupal' | 'individual' | 'estadisticas' | 'biblioteca' | 'bestiario' | 'crafteo' | 'despensa' | 'monedas';
 
-export const PESTANAS: { id: Pestana; label: string; d: string }[] = [
-  { id: 'grupal', label: 'Inventario grupal', d: 'M3 11h18v9H3zM3 11a9 6 0 0 1 18 0M10.5 13h3v3.5h-3z' },
-  { id: 'individual', label: 'Inventarios individuales', d: 'M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5' },
+// `titulo` es el nombre completo (accesible y al pasar el ratón) cuando la etiqueta se acorta para que quepan
+export const PESTANAS: { id: Pestana; label: string; titulo?: string; d: string }[] = [
+  { id: 'grupal', label: 'Grupal', titulo: 'Inventario grupal', d: 'M3 11h18v9H3zM3 11a9 6 0 0 1 18 0M10.5 13h3v3.5h-3z' },
+  { id: 'individual', label: 'Individual', titulo: 'Inventarios individuales', d: 'M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5' },
   { id: 'estadisticas', label: 'Estadísticas', d: 'M12 3l8 4.6v8.8L12 21l-8-4.6V7.6zM12 8l4 2.3v4.4L12 17l-4-2.3v-4.4z' },
   { id: 'biblioteca', label: 'Biblioteca', d: 'M5 5.5A1.5 1.5 0 0 1 6.5 4H19v13H6.5A1.5 1.5 0 0 0 5 18.5zM5 18.5A1.5 1.5 0 0 0 6.5 20H19v-3M12 7.5l1.2 2 2.3.3-1.7 1.6.4 2.3-2.2-1.1-2.2 1.1.4-2.3-1.7-1.6 2.3-.3z' },
+  { id: 'bestiario', label: 'Bestiario', d: UI.calavera },
   { id: 'crafteo', label: 'Crafteo', d: 'M13 4l7 7-2.5 2.5-7-7zM10.5 9.5L3 17l3 3 7.5-7.5' },
   { id: 'despensa', label: 'Despensa', d: 'M3 11h18a9 9 0 0 1-18 0zM8.5 8c0-1 1-1.2 1-2.2S8.5 4.5 8.5 3.5M12 8c0-1 1-1.2 1-2.2S12 4.5 12 3.5M15.5 8c0-1 1-1.2 1-2.2s-1-1.3-1-2.3' },
 ];
@@ -41,7 +43,10 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda }: {
       </div>
       <nav className="tabs" aria-label="Secciones">
         {PESTANAS.map((t) => (
-          <button key={t.id} type="button" className="tab" aria-current={t.id === activa ? 'page' : undefined} onClick={() => onPestana(t.id)}>
+          <button
+            key={t.id} type="button" className="tab" aria-current={t.id === activa ? 'page' : undefined} onClick={() => onPestana(t.id)}
+            aria-label={t.titulo} title={t.titulo}
+          >
             <span className="dot"><Icono d={t.d} /></span>
             <span>{t.label}</span>
           </button>

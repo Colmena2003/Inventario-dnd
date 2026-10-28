@@ -3,7 +3,7 @@
 
 import ejemplo from '../../datos-ejemplo.json';
 import type { ClaveIcono } from '../ui/iconos';
-import type { Categoria, Equipado, Estado, Objeto, Personaje, Propietario, Rareza, TipoRanura } from '../domain/tipos';
+import type { Categoria, Criatura, Equipado, Estado, Objeto, Personaje, Propietario, Rareza, TipoRanura } from '../domain/tipos';
 
 const R: Record<string, Rareza> = { c: 'común', u: 'poco común', r: 'raro', m: 'muy raro', l: 'legendario', a: 'artefacto' };
 
@@ -260,6 +260,47 @@ const EXTRA: Record<string, Partial<Personaje>> = {
   },
 };
 
+// Bestiario de ejemplo: una criatura bien conocida, una a medias (con una habilidad sin descubrir) y una
+// no agresiva. El botín se enlaza con la biblioteca por el nombre del objeto.
+const CRIATURAS: Criatura[] = [
+  {
+    id: 'c-huargo', nombre: 'Huargo', actitud: 'agresiva', tipo: 'Monstruosidad', tamano: 'Grande', alineamiento: 'Neutral malvado',
+    desafio: '1/2', ca: 13, caNota: 'armadura natural', pv: 26, pvDados: '4d10+4', velocidad: '15 m',
+    caracteristicas: { fue: 16, des: 13, con: 13, int: 7, sab: 11, car: 8 },
+    pericias: 'Percepción +4', sentidos: 'Visión en la oscuridad 18 m, Percepción pasiva 14', idiomas: 'Goblin, huargo',
+    habilidades: [
+      { id: 'h-huargo-1', tipo: 'rasgo', nombre: 'Oído y olfato agudos', descripcion: 'Ventaja en las pruebas de Sabiduría (Percepción) que dependan del oído o del olfato.' },
+      { id: 'h-huargo-2', tipo: 'accion', nombre: 'Mordisco', detalle: '+5 al ataque · 2d6+3 perforante', descripcion: 'Si el objetivo es una criatura, debe superar una salvación de Fuerza CD 13 o quedar derribado.' },
+    ],
+    botin: [{ id: 'b-huargo-1', nombre: 'Colmillo de huargo', cantidad: '2d4' }],
+    lugar: 'Linde del Bosque Gris', notas: 'Cazan en manada de tres o cuatro y van a por el más rezagado.',
+    encuentros: 2, derrotadas: 5, creada: 1, actualizada: 1, creadaPor: 'DM',
+  },
+  {
+    id: 'c-ahogado', nombre: 'Ahogado del pantano', actitud: 'agresiva', tipo: 'No muerto', tamano: 'Mediano',
+    ca: 11, velocidad: '6 m, nadar 9 m', caracteristicas: { fue: 15, con: 16 },
+    resistencias: 'Necrótico', inmunidades: 'Veneno; envenenado',
+    habilidades: [
+      { id: 'h-ahogado-1', tipo: 'accion', nombre: 'Garra', detalle: '2d4+2 cortante' },
+      { id: 'h-ahogado-2', tipo: 'accion', nombre: 'Abrazo cenagoso', descripcion: 'Agarra y arrastra bajo el agua. Brom tardó dos turnos en soltarse.' },
+      { id: 'h-ahogado-3', tipo: 'accion' },
+    ],
+    botin: [
+      { id: 'b-ahogado-1', nombre: 'Corona del Rey Ahogado', cantidad: '1', nota: 'Solo la llevaba el más grande' },
+      { id: 'b-ahogado-2', nombre: 'Seta brillante', cantidad: 'a veces' },
+    ],
+    lugar: 'Ciénaga de Muermo', notas: 'Huyen de la luz del día. Se levantan otra vez si no se queman los restos.',
+    encuentros: 1, derrotadas: 3, creada: 2, actualizada: 2, creadaPor: 'DM',
+  },
+  {
+    id: 'c-jabali', nombre: 'Jabalí del robledal', actitud: 'no agresiva', tipo: 'Bestia', tamano: 'Mediano', desafio: '1/4',
+    ca: 11, pv: 11, velocidad: '12 m',
+    habilidades: [{ id: 'h-jabali-1', tipo: 'rasgo', nombre: 'Embestida', descripcion: 'Solo ataca si se le acorrala o se acercan a sus crías.' }],
+    botin: [{ id: 'b-jabali-1', nombre: 'Carne de jabalí', cantidad: '3' }],
+    lugar: 'Robledal de camino a Muermo', encuentros: 1, derrotadas: 1, creada: 3, actualizada: 3,
+  },
+];
+
 export function estadoInicial(): Estado {
   n = 0;
   return {
@@ -267,5 +308,6 @@ export function estadoInicial(): Estado {
     personajes: ejemplo.personajes.map((p) => ({ ...p, ...EXTRA[p.id] })) as Personaje[],
     objetos: objetos(),
     movimientos: [],
+    bestiario: CRIATURAS.map((c) => ({ ...c })),
   };
 }

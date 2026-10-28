@@ -10,6 +10,7 @@ import './styles/estadisticas.css';
 import './styles/despensa.css';
 import './styles/formularios.css';
 import './styles/biblioteca.css';
+import './styles/bestiario.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

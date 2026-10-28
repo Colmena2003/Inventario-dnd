@@ -7,6 +7,7 @@ import { ArrastreProvider, type Objetivo } from './ui/arrastre';
 import { DividirPila, QuienEres, SintoniaProvider } from './ui/Dialogos';
 import { ObjetosProvider } from './ui/EditarObjeto';
 import { AvisoActual, Grupal, PieGrupal, type Aviso } from './ui/Grupal';
+import { Bestiario } from './ui/Bestiario';
 import { Biblioteca } from './ui/Biblioteca';
 import { Despensa } from './ui/Despensa';
 import { Estadisticas } from './ui/Estadisticas';
@@ -124,6 +125,11 @@ export default function App() {
             ) : pestana === 'biblioteca' ? (
               <>
                 <Biblioteca busqueda={busqueda} />
+                <div className="avisos-flot abajo"><AvisoActual aviso={aviso} /></div>
+              </>
+            ) : pestana === 'bestiario' ? (
+              <>
+                <Bestiario busqueda={busqueda} />
                 <div className="avisos-flot abajo"><AvisoActual aviso={aviso} /></div>
               </>
             ) : pestana === 'despensa' ? (

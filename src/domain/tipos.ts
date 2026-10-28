@@ -123,11 +123,74 @@ export interface Movimiento {
   fecha: number;
 }
 
+// ── Bestiario ──────────────────────────────────────────────────────
+// Casi todo es opcional: lo que la party no ha llegado a ver se queda vacío («sin descubrir»).
+
+export type Actitud = 'agresiva' | 'no agresiva' | 'desconocida';
+
+export type TipoHabilidad = 'rasgo' | 'accion' | 'reaccion' | 'legendaria';
+
+export interface HabilidadCriatura {
+  id: string;
+  tipo: TipoHabilidad;
+  /** Vacío: la party sabe que existe pero no la ha visto (p. ej. aún no ha usado su tercera habilidad). */
+  nombre?: string;
+  descripcion?: string;
+  /** «+5 al ataque», «2d6+3 cortante», «CD 13 CON»… */
+  detalle?: string;
+}
+
+export interface BotinCriatura {
+  id: string;
+  /** Enlazado a una ficha de la biblioteca: se pinta con su icono, imagen y rareza. */
+  fichaId?: string;
+  /** Texto libre si no está en la biblioteca, o para aclarar. */
+  nombre?: string;
+  cantidad?: string; // «1», «2d4», «a veces»
+  nota?: string;
+}
+
+export interface Criatura {
+  id: string;
+  nombre: string;
+  imagenUrl?: string;
+  actitud: Actitud;
+  tipo?: string;         // «Bestia», «No muerto»…
+  tamano?: string;       // «Mediana»
+  alineamiento?: string;
+  desafio?: string;      // «1/2», «5»
+  px?: number;
+  ca?: number;
+  caNota?: string;       // «armadura natural»
+  pv?: number;
+  pvDados?: string;      // «6d8+12»
+  velocidad?: string;    // «9 m, nadar 6 m»
+  caracteristicas?: Partial<Record<Caracteristica, number>>;
+  salvaciones?: string;
+  pericias?: string;
+  resistencias?: string;
+  inmunidades?: string;
+  vulnerabilidades?: string;
+  sentidos?: string;
+  idiomas?: string;
+  habilidades: HabilidadCriatura[];
+  botin: BotinCriatura[];
+  /** Dónde se la encontró, tácticas, debilidades… */
+  notas?: string;
+  lugar?: string;
+  encuentros?: number;
+  derrotadas?: number;
+  creada: number;
+  actualizada: number;
+  creadaPor?: string;
+}
+
 export interface Estado {
   party: Party;
   personajes: Personaje[];
   objetos: Objeto[];
   movimientos: Movimiento[];
   biblioteca?: Ficha[];
+  bestiario?: Criatura[];
   registroMonedas?: { id: string; fecha: number; actor: string; texto: string }[];
 }
