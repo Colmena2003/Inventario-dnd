@@ -7,12 +7,14 @@ import { ArrastreProvider, type Objetivo } from './ui/arrastre';
 import { DividirPila, QuienEres, SintoniaProvider } from './ui/Dialogos';
 import { ObjetosProvider } from './ui/EditarObjeto';
 import { AvisoActual, Grupal, PieGrupal, type Aviso } from './ui/Grupal';
+import { Biblioteca } from './ui/Biblioteca';
 import { Despensa } from './ui/Despensa';
 import { Estadisticas } from './ui/Estadisticas';
 import { Individual } from './ui/Individual';
 import { PantallaMonedas } from './ui/Monedas';
 import { PESTANAS, Retratos, Topbar, type Pestana } from './ui/Marco';
 import { TooltipProvider } from './ui/Tooltip';
+import { VistaObjetoProvider } from './ui/VistaObjeto';
 
 const ANCHO = 1920, ALTO = 1080;
 
@@ -29,7 +31,7 @@ function useEscala() {
 }
 
 export default function App() {
-  const { estado, actor, mover, comer } = useCofre();
+  const { estado, actor, mover, comer, sinGuardar } = useCofre();
   const escala = useEscala();
   const lienzo = useRef<HTMLDivElement>(null);
   const [pestana, setPestana] = useState<Pestana>('grupal');
@@ -51,6 +53,10 @@ export default function App() {
     const t = setTimeout(() => setAviso(null), 6000);
     return () => clearTimeout(t);
   }, [aviso]);
+
+  useEffect(() => {
+    if (sinGuardar) setAviso({ id: Date.now(), tipo: 'error', texto: 'No se ha podido guardar: el almacenamiento del navegador está lleno. Quita alguna imagen.' });
+  }, [sinGuardar]);
 
   const avisar = useCallback((texto: string, error?: boolean) => {
     setAviso({ id: Date.now(), tipo: error ? 'error' : 'info', texto });
@@ -96,6 +102,7 @@ export default function App() {
 
             <SintoniaProvider onAviso={avisar}>
             <ObjetosProvider lienzo={lienzo} escala={escala} onAviso={avisar}>
+            <VistaObjetoProvider onAviso={avisar}>
             <Retratos activo={activo} onActivo={(id) => { setActivo(id); setPestana('individual'); }} />
             {pestana === 'grupal' ? (
               <>
@@ -114,6 +121,11 @@ export default function App() {
               </>
             ) : pestana === 'estadisticas' ? (
               <Estadisticas />
+            ) : pestana === 'biblioteca' ? (
+              <>
+                <Biblioteca busqueda={busqueda} />
+                <div className="avisos-flot abajo"><AvisoActual aviso={aviso} /></div>
+              </>
             ) : pestana === 'despensa' ? (
               <>
                 <Despensa busqueda={busqueda} avisar={avisar} />
@@ -126,6 +138,7 @@ export default function App() {
                 <button type="button" className="btn sec" onClick={() => setPestana('grupal')}>Volver al inventario grupal</button>
               </section>
             )}
+            </VistaObjetoProvider>
             </ObjetosProvider>
             </SintoniaProvider>
 

@@ -1,6 +1,6 @@
 // Pantalla 7 del diseño (alta y edición de objetos), menú contextual de un objeto y confirmación de borrado.
 
-import { createContext, useCallback, useContext, useState, type ReactNode, type RefObject } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode, type RefObject } from 'react';
 import { objetoEnBlanco, type DatosObjeto } from '../domain/objetos';
 import { CLASE_RAREZA, NOMBRE_RANURA, RAREZAS, nombreDe } from '../domain/reglas';
 import type { Categoria, Objeto, Personaje, Propietario, TipoRanura } from '../domain/tipos';
@@ -12,6 +12,7 @@ import { ListaMenu, type OpcionMenu } from './Menus';
 import { EditarPersonaje } from './EditarPersonaje';
 import { Esquinas, Icono, Ranura } from './piezas';
 import { FichaObjeto } from './Tooltip';
+import { LADO_IMAGEN_OBJETO } from './VistaObjeto';
 
 type Avisar = (texto: string, error?: boolean) => void;
 
@@ -73,8 +74,11 @@ export function ObjetosProvider({ lienzo, escala, onAviso, children }: {
     ];
   };
 
+  const editarPersonaje = useCallback((p?: Personaje) => setPj({ p }), []);
+  const valor = useMemo(() => ({ nuevo, editar, menu: abrirMenu, editarPersonaje }), [nuevo, editar, abrirMenu, editarPersonaje]);
+
   return (
-    <C.Provider value={{ nuevo, editar, menu: abrirMenu, editarPersonaje: (p?: Personaje) => setPj({ p }) }}>
+    <C.Provider value={valor}>
       {children}
       {menu && (
         <ListaMenu opciones={opciones(menu.objeto)} onCerrar={() => setMenu(null)} className="flotante" style={{ left: menu.x, top: menu.y }} />
@@ -204,7 +208,7 @@ function FormularioObjeto({ objeto, propietario, onAviso, onCerrar, onEliminar }
 
   const subir = async (f: File | undefined) => {
     if (!f) return;
-    try { fijar('imagenUrl', await reducirImagen(f, 256)); } catch { setError('No se ha podido leer la imagen'); }
+    try { fijar('imagenUrl', await reducirImagen(f, LADO_IMAGEN_OBJETO)); } catch { setError('No se ha podido leer la imagen'); }
   };
 
   const duenos: { p: Propietario; texto: string; color?: string }[] = [

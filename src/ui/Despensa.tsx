@@ -5,7 +5,7 @@ import { claveComida, despensa, diasDeComida, SACIEDAD_POR_DIA, type Comida, typ
 import { CLASE_RAREZA, COLOR_RAREZA, estadoSaciedad } from '../domain/reglas';
 import type { Personaje } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
-import { useArrastre } from './arrastre';
+import { useArrastreApi, useArrastreSel } from './arrastre';
 import { ICONOS, UI } from './iconos';
 import { Esquinas, Icono, iniciales } from './piezas';
 
@@ -98,15 +98,14 @@ export function Despensa({ busqueda, avisar }: { busqueda: string; avisar: Avisa
 }
 
 function FilaHambre({ p, onComer, puede }: { p: Personaje; onComer: () => void; puede: boolean }) {
-  const { arrastre } = useArrastre();
   const sac = estadoSaciedad(p.saciedad);
   const clave = `comer:${p.id}`;
   // Mientras se arrastra comida, la fila indica si el personaje puede comérsela
-  let marca = '';
-  if (arrastre?.objeto.categoria === 'Comida') {
-    const vale = (arrastre.objeto.saciedad ?? 0) > 0 && p.saciedad < 100;
-    marca = arrastre.objetivo?.clave === clave ? (vale ? 'drop-ok' : 'drop-no') : vale ? 'acepta' : '';
-  }
+  const marca = useArrastreSel((a) => {
+    if (a?.objeto.categoria !== 'Comida') return '';
+    const vale = (a.objeto.saciedad ?? 0) > 0 && p.saciedad < 100;
+    return a.objetivo?.clave === clave ? (vale ? 'drop-ok' : 'drop-no') : vale ? 'acepta' : '';
+  });
   return (
     <div className={`des-fila ${p.saciedad < 15 ? 'famelico' : ''} ${marca}`} data-drop={clave}>
       <span className="des-ini" style={{ borderColor: p.color, background: `linear-gradient(180deg, ${p.color}88, #0b0907)` }}>
@@ -131,10 +130,10 @@ function FilaHambre({ p, onComer, puede }: { p: Personaje; onComer: () => void; 
 }
 
 function TarjetaComida({ c, elegida, busqueda, onElegir }: { c: Comida; elegida: boolean; busqueda: string; onElegir: () => void }) {
-  const { arrastre, empezar } = useArrastre();
+  const { empezar } = useArrastreApi();
+  const arrastrando = useArrastreSel((a) => !!a && claveComida(a.objeto) === c.clave);
   const q = busqueda.trim().toLocaleLowerCase('es');
   const atenuada = q && !c.nombre.toLocaleLowerCase('es').includes(q);
-  const arrastrando = arrastre && claveComida(arrastre.objeto) === c.clave;
   const color = c.rareza === 'común' ? '#ece4d2' : COLOR_RAREZA[c.rareza];
   const donde = c.pilas.length === 1 && c.pilas[0].propietario.tipo === 'alijo' ? 'En el alijo' : null;
   return (

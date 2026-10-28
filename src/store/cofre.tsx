@@ -1,7 +1,7 @@
 // Estado de la app. Hoy vive en el navegador (localStorage); cuando haya Supabase, este módulo
 // es el único que cambia: las pantallas solo usan useCofre().
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { estadoInicial } from '../data/semilla';
 import {
   alternarSintonia, moverObjeto, nuevoId, ordenarInventario, validarMovimiento, type CriterioOrden, type Destino, type ResultadoSintonia, type Validacion,
@@ -9,7 +9,9 @@ import {
 import { crearObjeto as crear, editarObjeto as editar, eliminarObjeto as eliminar, type DatosObjeto } from '../domain/objetos';
 import { comer as comerComida, pasarDia as pasarDiaViaje } from '../domain/despensa';
 import { aplicarMonedas, type Cambio, type ResultadoMonedas } from '../domain/monedas';
+import { cambiarImagenFicha, completarBiblioteca, olvidar, recuperar, registrar } from '../domain/biblioteca';
 import type { Estado, Personaje, Propietario } from '../domain/tipos';
+import { aGuardar, deGuardado } from './imagenes';
 
 type SinEstado<T> = T extends { estado: Estado } ? Omit<T, 'estado'> : T;
 
@@ -25,16 +27,20 @@ function leer<T>(clave: string): T | null {
   }
 }
 
+/** Devuelve false si no se ha podido guardar (modo privado, cuota llena): la sesión sigue en memoria. */
 function guardar(clave: string, valor: unknown) {
   try {
     localStorage.setItem(clave, JSON.stringify(valor));
+    return true;
   } catch {
-    // Sin almacenamiento (modo privado, cuota llena): la sesión sigue funcionando en memoria.
+    return false;
   }
 }
 
 interface Cofre {
   estado: Estado;
+  /** El último guardado en el navegador falló: lo cambiado se perderá al cerrar. */
+  sinGuardar: boolean;
   actor: string;
   setActor: (nombre: string) => void;
   validar: (objetoId: string, destino: Destino, cantidad?: number) => Validacion;
@@ -51,6 +57,10 @@ interface Cofre {
   editarPersonaje: (id: string, cambios: Partial<Personaje>) => void;
   crearPersonaje: (datos: Omit<Personaje, 'id'>) => void;
   eliminarPersonaje: (id: string) => void;
+  /** Biblioteca: vuelve a crear un objeto desde su ficha. */
+  recuperarFicha: (fichaId: string, propietario: Propietario, cantidad: number) => Resultado;
+  olvidarFicha: (fichaId: string) => Resultado;
+  cambiarImagenFicha: (fichaId: string, url: string | undefined) => void;
   restablecer: () => void;
 }
 
@@ -59,10 +69,29 @@ type Resultado = { ok: true } | { ok: false; motivo: string };
 const Ctx = createContext<Cofre | null>(null);
 
 export function CofreProvider({ children }: { children: ReactNode }) {
-  const [estado, setEstado] = useState<Estado>(() => leer<Estado>(CLAVE) ?? estadoInicial());
+  const [estado, setEstado] = useState<Estado>(() => {
+    const g = leer<Estado>(CLAVE);
+    return completarBiblioteca(g ? deGuardado(g) : estadoInicial());
+  });
   const [actor, setActorState] = useState<string>(() => leer<string>(CLAVE_ACTOR) ?? '');
 
-  useEffect(() => guardar(CLAVE, estado), [estado]);
+  // Se guarda fuera del clic que lo provoca, para que soltar un objeto no espere a serializarlo todo;
+  // si se cierra la página antes, se guarda en ese momento
+  const pendiente = useRef<Estado | null>(null);
+  const [sinGuardar, setSinGuardar] = useState(false);
+  useEffect(() => {
+    pendiente.current = estado;
+    const t = window.setTimeout(() => {
+      pendiente.current = null;
+      setSinGuardar(!guardar(CLAVE, aGuardar(estado)));
+    }, 250);
+    return () => window.clearTimeout(t);
+  }, [estado]);
+  useEffect(() => {
+    const ya = () => { if (pendiente.current) guardar(CLAVE, aGuardar(pendiente.current)); pendiente.current = null; };
+    window.addEventListener('pagehide', ya);
+    return () => window.removeEventListener('pagehide', ya);
+  }, []);
 
   const setActor = useCallback((nombre: string) => {
     setActorState(nombre);
@@ -122,18 +151,35 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   const crearObjeto = useCallback((datos: DatosObjeto): Resultado => {
     const r = crear(estado, datos, actor);
     if (!r.ok) return r;
-    setEstado(r.estado);
+    setEstado(registrar(r.estado, r.id));
     return { ok: true };
   }, [estado, actor]);
 
   const editarObjeto = useCallback((id: string, datos: DatosObjeto): Resultado => {
     const r = editar(estado, id, datos);
     if (!r.ok) return r;
+    setEstado(registrar(r.estado, id));
+    return { ok: true };
+  }, [estado]);
+
+  // Antes de borrarlo, su ficha apunta quién lo tuvo por última vez
+  const eliminarObjeto = useCallback((id: string) => setEstado((e) => eliminar(registrar(e, id), id)), []);
+
+  const recuperarFicha = useCallback((fichaId: string, propietario: Propietario, cantidad: number): Resultado => {
+    const r = recuperar(estado, fichaId, propietario, cantidad, actor);
+    if (!r.ok) return r;
+    setEstado(r.estado);
+    return { ok: true };
+  }, [estado, actor]);
+
+  const olvidarFicha = useCallback((fichaId: string): Resultado => {
+    const r = olvidar(estado, fichaId);
+    if (!r.ok) return r;
     setEstado(r.estado);
     return { ok: true };
   }, [estado]);
 
-  const eliminarObjeto = useCallback((id: string) => setEstado((e) => eliminar(e, id)), []);
+  const cambiarImagenFichaCb = useCallback((fichaId: string, url: string | undefined) => setEstado((e) => cambiarImagenFicha(e, fichaId, url)), []);
 
   const ordenar = useCallback((dueno: Propietario, criterio: CriterioOrden) => setEstado((e) => ordenarInventario(e, dueno, criterio)), []);
 
@@ -155,11 +201,11 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const restablecer = useCallback(() => setEstado(estadoInicial()), []);
+  const restablecer = useCallback(() => setEstado(completarBiblioteca(estadoInicial())), []);
 
   const valor = useMemo(
-    () => ({ estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, restablecer }),
-    [estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, restablecer],
+    () => ({ estado, sinGuardar, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, recuperarFicha, olvidarFicha, cambiarImagenFicha: cambiarImagenFichaCb, restablecer }),
+    [recuperarFicha, olvidarFicha, cambiarImagenFichaCb, sinGuardar, estado, actor, setActor, validar, mover, sintonizar, monedas, comer, pasarDia, cambiarImagen, crearObjeto, editarObjeto, eliminarObjeto, ordenar, editarPersonaje, crearPersonaje, eliminarPersonaje, restablecer],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }

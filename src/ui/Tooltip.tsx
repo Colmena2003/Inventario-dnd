@@ -1,12 +1,12 @@
 // Ficha flotante de un objeto al pasar el ratón por su ranura.
 
-import { createContext, useCallback, useContext, useState, type ReactNode, type RefObject } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode, type RefObject } from 'react';
 import {
   ataque, CLASE_RAREZA, MAX_SINTONIZADOS, nombreDe, NOMBRE_RANURA, sintonizadosDe,
 } from '../domain/reglas';
 import type { Objeto } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
-import { useArrastre } from './arrastre';
+import { useArrastreSel } from './arrastre';
 import { Esquinas, fmt1, fmtNum, Ranura } from './piezas';
 
 type Pos = { objeto: Objeto; left: number; top: number };
@@ -18,7 +18,7 @@ const ANCHO = 372;
 
 export function TooltipProvider({ lienzo, escala, children }: { lienzo: RefObject<HTMLDivElement>; escala: number; children: ReactNode }) {
   const [pos, setPos] = useState<Pos | null>(null);
-  const { arrastre } = useArrastre();
+  const arrastrando = useArrastreSel((a) => !!a);
 
   const mostrar = useCallback((objeto: Objeto, el: Element) => {
     const base = lienzo.current?.getBoundingClientRect();
@@ -30,11 +30,13 @@ export function TooltipProvider({ lienzo, escala, children }: { lienzo: RefObjec
   }, [lienzo, escala]);
 
   const ocultar = useCallback(() => setPos(null), []);
+  // Valor estable: si cambiara en cada render, mostrar u ocultar la ficha re-renderizaría todas las ranuras
+  const valor = useMemo(() => ({ mostrar, ocultar }), [mostrar, ocultar]);
 
   return (
-    <C.Provider value={{ mostrar, ocultar }}>
+    <C.Provider value={valor}>
       {children}
-      {pos && !arrastre && <FichaObjeto objeto={pos.objeto} left={pos.left} top={pos.top} />}
+      {pos && !arrastrando && <FichaObjeto objeto={pos.objeto} left={pos.left} top={pos.top} />}
     </C.Provider>
   );
 }

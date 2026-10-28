@@ -1,35 +1,103 @@
 // Piezas que comparten la vista grupal y la individual: interacción de ranuras, ranuras de equipo y silueta.
 
+import { useRef, type HTMLAttributes } from 'react';
 import { equipadoEn } from '../domain/reglas';
-import type { Objeto, Personaje, TipoRanura } from '../domain/tipos';
+import type { Objeto, Personaje, Propietario, TipoRanura } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
-import { useArrastre } from './arrastre';
+import { celdaDe, claveBase, useArrastreApi, useArrastreSel } from './arrastre';
 import type { ClaveIcono } from './iconos';
 import { Ranura } from './piezas';
 import { useObjetos } from './EditarObjeto';
 import { useTooltip } from './Tooltip';
+import { useVistaObjeto } from './VistaObjeto';
 
-/** Arrastre, tooltip, doble clic y atenuado por búsqueda para las ranuras con objeto. */
+/** Espera para distinguir un clic (abre el objeto en grande) de un doble clic (sintoniza). */
+const ESPERA_DOBLE = 230;
+
+/**
+ * Arrastre, tooltip, clic (vista grande), doble clic y atenuado por búsqueda para las ranuras con objeto.
+ * No se suscribe al arrastre: quien pinta la ranura decide si es el origen (ver `RejillaObjetos`).
+ */
 export function useInteraccion(busqueda: string, onDoble?: (o: Objeto) => void) {
-  const { arrastre, empezar } = useArrastre();
+  const { empezar, actual } = useArrastreApi();
   const { mostrar, ocultar } = useTooltip();
   const { menu } = useObjetos();
+  const vista = useVistaObjeto();
+  const pendiente = useRef(0);
   const q = busqueda.trim().toLocaleLowerCase('es');
   return {
-    arrastre,
     props: (o: Objeto) => ({
-      onPointerDown: (e: React.PointerEvent) => { ocultar(); empezar(e, o); },
-      onPointerEnter: (e: React.PointerEvent) => { if (!arrastre) mostrar(o, e.currentTarget); },
+      onPointerDown: (e: React.PointerEvent) => {
+        ocultar();
+        empezar(e, o, () => {
+          window.clearTimeout(pendiente.current);
+          if (!onDoble) vista(o);
+          else pendiente.current = window.setTimeout(() => vista(o), ESPERA_DOBLE);
+        });
+      },
+      onPointerEnter: (e: React.PointerEvent) => { if (!actual()) mostrar(o, e.currentTarget); },
       onPointerLeave: ocultar,
-      onDoubleClick: onDoble ? () => onDoble(o) : undefined,
+      onDoubleClick: onDoble ? () => { window.clearTimeout(pendiente.current); onDoble(o); } : undefined,
       onContextMenu: (e: React.MouseEvent) => { ocultar(); menu(e, o); },
     }),
-    clase: (o: Objeto) => {
-      if (arrastre?.objeto.id === o.id) return 'origin';
+    clase: (o: Objeto, origen?: string) => {
+      if (origen === o.id) return 'origin';
       if (q && !o.nombre.toLocaleLowerCase('es').includes(q)) return 'no';
       return '';
     },
   };
+}
+
+export const claveDe = (d: Propietario) => (d.tipo === 'alijo' ? 'alijo' : `pj:${d.id}`);
+
+/**
+ * Rejilla de un inventario. Se suscribe al arrastre por su cuenta y solo se re-renderiza si el objeto
+ * que se arrastra sale de ella o si el puntero apunta a una de sus celdas.
+ */
+export function RejillaObjetos({ celdas, dueno, porCelda, busqueda, onDoble, puedeSoltar, ...resto }: {
+  celdas: (Objeto | undefined)[];
+  dueno: Propietario;
+  /** Cada celda es un destino (orden manual). Sin ello, se marca el primer hueco libre. */
+  porCelda: boolean;
+  busqueda: string;
+  onDoble?: (o: Objeto) => void;
+  /** ¿Puede recibir este objeto? Sin función, siempre. */
+  puedeSoltar?: (o: Objeto) => boolean;
+} & HTMLAttributes<HTMLDivElement> & { 'data-drop'?: string }) {
+  const { actual } = useArrastreApi();
+  const { props, clase } = useInteraccion(busqueda, onDoble);
+  const clave = claveDe(dueno);
+  const [origen, apunta, celda] = useArrastreSel((a) => {
+    if (!a) return '||';
+    const aqui = celdas.some((o) => o?.id === a.objeto.id) ? a.objeto.id : '';
+    const k = a.objetivo?.clave;
+    const sobre = !!k && claveBase(k) === clave;
+    return `${aqui}|${sobre ? 1 : ''}|${sobre ? celdaDe(k) ?? '' : ''}`;
+  }).split('|');
+
+  let marcada = -1, marca = '';
+  const a = apunta ? actual() : null;
+  if (a) {
+    // Lo que ya es de este dueño (aunque esté equipado) no cambia su carga
+    const mismoDueno = JSON.stringify(a.objeto.propietario) === JSON.stringify(dueno);
+    const yaEsta = mismoDueno && !a.objeto.equipadoEn;
+    marcada = porCelda ? (celda === '' ? -1 : Number(celda)) : yaEsta ? -1 : celdas.findIndex((o) => !o);
+    marca = mismoDueno || !puedeSoltar || puedeSoltar(a.objeto) ? 'drop-ok' : 'drop-no';
+  }
+
+  return (
+    <div role="list" {...resto}>
+      {celdas.map((o, i) => {
+        const drop = porCelda ? `${clave}#${i}` : undefined;
+        const m = i === marcada ? marca : '';
+        return o ? (
+          <Ranura key={o.id} role="listitem" data-drop={drop} objeto={o} extra={`${clase(o, origen)} ${m}`} {...props(o)} />
+        ) : (
+          <Ranura key={`v${i}`} role="listitem" data-drop={drop} extra={m} />
+        );
+      })}
+    </div>
+  );
 }
 
 /** Rellena con ranuras vacías hasta completar filas. */
@@ -56,17 +124,22 @@ export function RanuraEquipo({ p, ranura, indice, fantasma, etiqueta, busqueda, 
   onDoble?: (o: Objeto) => void;
 }) {
   const { estado, validar } = useCofre();
-  const { arrastre, props, clase } = useInteraccion(busqueda, onDoble);
+  const { actual } = useArrastreApi();
+  const { props, clase } = useInteraccion(busqueda, onDoble);
   const o = equipadoEn(estado, p.id, ranura, indice);
   const k = `pj:${p.id}:${ranura}:${indice}`;
-  let marca = '';
-  if (arrastre) {
-    const compatible = arrastre.objeto.ranuraEquipo === ranura;
-    if (arrastre.objetivo?.clave === k) {
-      marca = compatible && validar(arrastre.objeto.id, { propietario: { tipo: 'personaje', id: p.id }, equipar: { ranura, indice } }).ok ? 'drop-ok' : 'drop-no';
-    } else if (!compatible) marca = 'no';
+  // «origen|estado»: estado es «no» (no encaja), «sobre» (apunta aquí) o vacío
+  const [origen, sobre] = useArrastreSel((a) => {
+    if (!a) return '|';
+    const es = o && a.objeto.id === o.id ? o.id : '';
+    return `${es}|${a.objeto.ranuraEquipo !== ranura ? 'no' : a.objetivo?.clave === k ? 'sobre' : ''}`;
+  }).split('|');
+  let marca = sobre;
+  if (sobre === 'sobre') {
+    const a = actual();
+    marca = a && validar(a.objeto.id, { propietario: { tipo: 'personaje', id: p.id }, equipar: { ranura, indice } }).ok ? 'drop-ok' : 'drop-no';
   }
-  if (o) return <Ranura data-drop={k} objeto={o} extra={`${extra} ${clase(o)} ${marca}`} {...props(o)} />;
+  if (o) return <Ranura data-drop={k} objeto={o} extra={`${extra} ${clase(o, origen)} ${marca}`} {...props(o)} />;
   return <Ranura data-drop={k} fantasma={fantasma} etiqueta={`${etiqueta ?? nombreRanura(ranura)}: vacío`} extra={`${extra} ${marca}`} />;
 }
 

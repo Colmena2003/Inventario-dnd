@@ -7,14 +7,14 @@ import {
 } from '../domain/reglas';
 import type { Categoria, Caracteristica, IconoRasgo, Personaje, Propietario } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
-import { celdaDe, claveBase } from './arrastre';
+import { claveBase, useArrastreSel } from './arrastre';
 import { useSintonia } from './Dialogos';
 import { useObjetos } from './EditarObjeto';
 import { opcionesOrden } from './Grupal';
 import { MenuBoton } from './Menus';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
-import { DCHA, IZQ, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
-import { Esquinas, fmtNum, Icono, Moneda, MONEDAS, Ranura } from './piezas';
+import { DCHA, IZQ, RanuraEquipo, reducirImagen, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { Esquinas, fmtNum, Icono, Moneda, MONEDAS } from './piezas';
 
 export function Individual({ personajeId, busqueda }: { personajeId: string | null; busqueda: string }) {
   const { estado } = useCofre();
@@ -225,11 +225,22 @@ const CATEGORIAS: { t: string; cat: Categoria | null; ic: string }[] = [
   { t: 'Varios', cat: 'Varios', ic: ICONOS.bag },
 ];
 
+/** Por qué no cabe lo que se arrastra sobre el inventario. */
+function AvisoNoCabe({ p }: { p: Personaje }) {
+  const { validar } = useCofre();
+  const clave = `pj:${p.id}`;
+  const id = useArrastreSel((a) => {
+    if (!a || claveBase(a.objetivo?.clave ?? '') !== clave) return '';
+    return a.objeto.propietario.tipo === 'personaje' && a.objeto.propietario.id === p.id ? '' : a.objeto.id;
+  });
+  const v = id ? validar(id, { propietario: { tipo: 'personaje', id: p.id } }) : null;
+  return v && !v.ok ? <div className="aviso error inv-aviso" role="alert">{v.motivo}</div> : null;
+}
+
 function Inventario({ p, busqueda }: { p: Personaje; busqueda: string }) {
   const { estado, validar, ordenar } = useCofre();
   const acciones = useObjetos();
   const sintonia = useSintonia();
-  const { arrastre, props, clase } = useInteraccion(busqueda, sintonia);
   const [cat, setCat] = useState(0);
   const dueno: Propietario = { tipo: 'personaje', id: p.id };
 
@@ -245,11 +256,6 @@ function Inventario({ p, busqueda }: { p: Personaje; busqueda: string }) {
   const tramo = tramoCarga(peso, max);
 
   const clave = `pj:${p.id}`;
-  const esOrigen = arrastre?.objeto.propietario.tipo === 'personaje' && arrastre.objeto.propietario.id === p.id;
-  const apunta = !!arrastre && claveBase(arrastre.objetivo?.clave ?? '') === clave;
-  const celdaApuntada = apunta ? celdaDe(arrastre!.objetivo?.clave) : undefined;
-  const v = apunta && !esOrigen ? validar(arrastre!.objeto.id, { propietario: { tipo: 'personaje', id: p.id } }) : null;
-  const marca = !v || v.ok ? 'drop-ok' : 'drop-no';
 
   return (
     <section className="panel inventario" aria-label={`Inventario de ${p.nombre}`}>
@@ -270,18 +276,12 @@ function Inventario({ p, busqueda }: { p: Personaje; busqueda: string }) {
           </button>
         ))}
       </div>
-      <div className="rejilla ind" data-drop={clave} role="list" aria-label={`Objetos de ${p.nombre}`}>
-        {celdasInv.map((o, i) => {
-          const drop = filtro ? undefined : `${clave}#${i}`;
-          const m = i === celdaApuntada || (filtro && apunta && i === 0 && !o) ? marca : '';
-          return o ? (
-            <Ranura key={o.id} role="listitem" data-drop={drop} objeto={o} extra={`${clase(o)} ${m}`} {...props(o)} />
-          ) : (
-            <Ranura key={`v${i}`} role="listitem" data-drop={drop} extra={m} />
-          );
-        })}
-      </div>
-      {apunta && v && !v.ok && <div className="aviso error inv-aviso" role="alert">{v.motivo}</div>}
+      <RejillaObjetos
+        className="rejilla ind" data-drop={clave} aria-label={`Objetos de ${p.nombre}`}
+        celdas={celdasInv} dueno={dueno} porCelda={!filtro} busqueda={busqueda} onDoble={sintonia}
+        puedeSoltar={(o) => validar(o.id, { propietario: dueno }).ok}
+      />
+      <AvisoNoCabe p={p} />
 
       <footer>
         <div className="carga-tramos">

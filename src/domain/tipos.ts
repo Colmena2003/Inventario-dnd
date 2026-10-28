@@ -88,6 +88,26 @@ export interface Objeto {
   /** Celda del inventario (orden manual). Sin ella, ocupa el primer hueco libre. */
   posicion?: number;
   creadoPor?: string;
+  /** Ficha de la biblioteca de la que sale (o que lo recuerda). */
+  fichaId?: string;
+}
+
+/** Campos que describen un objeto y se guardan en la biblioteca; no incluye dónde está ni cuántos hay. */
+export const CAMPOS_FICHA = [
+  'nombre', 'imagenUrl', 'icono', 'categoria', 'subtipo', 'rareza', 'pesoKg', 'valorPo', 'requiereSintonizacion', 'ranuraEquipo',
+  'dado', 'tipoDano', 'bonoMagico', 'propiedades', 'extraDano', 'bonoCa', 'cargasMax', 'recarga', 'efectos', 'descripcion', 'notas', 'saciedad',
+] as const;
+
+export type DatosFicha = Pick<Objeto, (typeof CAMPOS_FICHA)[number]>;
+
+/** Entrada de la biblioteca: lo que se sabe de un objeto aunque ya no lo tenga nadie. */
+export interface Ficha extends DatosFicha {
+  id: string;
+  creada: number;
+  actualizada: number;
+  creadaPor?: string;
+  /** Último que lo tuvo (nombre), para recordar de dónde salió. */
+  ultimoDueno?: string;
 }
 
 export interface Movimiento {
@@ -108,5 +128,6 @@ export interface Estado {
   personajes: Personaje[];
   objetos: Objeto[];
   movimientos: Movimiento[];
+  biblioteca?: Ficha[];
   registroMonedas?: { id: string; fecha: number; actor: string; texto: string }[];
 }

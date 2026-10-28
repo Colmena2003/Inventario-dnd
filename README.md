@@ -37,6 +37,9 @@ Hecho:
 - Orden automático por rareza, tipo, valor, peso o nombre (menú del personaje, «Ordenar» del alijo y de la vista individual). Al ordenar se juntan las pilas iguales.
 - Añadir personaje con el «+» de los retratos (hasta 5) y editar o eliminar personajes; al eliminar uno, lo que llevaba pasa al alijo.
 
+- Vista grande de un objeto: un clic (sin arrastrar) en cualquier ranura la abre, con la imagen en grande y toda la ficha (daño y ataque calculados, cargas, habilidades, descripción, notas, sintonización). Desde ahí se sube, cambia o quita la imagen y se va a Editar. En objetos con doble clic (sintonizar) espera un instante para distinguir los dos gestos.
+- Biblioteca de objetos (pestaña propia): cada objeto deja una ficha con su descripción, habilidades e imagen al crearlo o editarlo (y los que ya había, al cargar). La ficha se conserva aunque el objeto se borre, se gaste o se coma; muestra quién lo tiene ahora o quién lo tuvo por última vez, y desde ella se recupera para un personaje o el alijo (con las cargas llenas y comprobando la carga). Solo se puede quitar de la biblioteca lo que ya no tiene nadie. Un objeto nuevo con el mismo nombre y rareza que una ficha se enlaza con ella sin borrar lo que la ficha ya sabía.
+
 Pendiente: crafteo y Supabase.
 
 ## Datos
@@ -44,6 +47,8 @@ Pendiente: crafteo y Supabase.
 De momento todo vive en el navegador (`localStorage`), empezando por los datos de ejemplo de `src/data/semilla.ts`, que amplían `datos-ejemplo.json` con los objetos del diseño. Para volver a empezar, borra los datos del sitio en el navegador (hace falta para ver los platos de la despensa que se añadieron a los datos de ejemplo).
 
 Toda la lectura y escritura pasa por `src/store/cofre.tsx`, que es lo que habrá que cambiar para usar Supabase. Las reglas están en `src/domain/reglas.ts` como funciones puras.
+
+Las imágenes se guardan como data URL. Al escribir en `localStorage` las repetidas (la de un objeto y la de su ficha en la biblioteca) se guardan una sola vez (`src/store/imagenes.ts`). Las de objeto se reducen a 640 px de lado; con muchas imágenes el límite de unos 5 MB de `localStorage` se puede llenar, y entonces la sesión sigue en memoria pero no se guarda.
 
 ## Supuestos
 

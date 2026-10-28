@@ -7,13 +7,13 @@ import {
 } from '../domain/reglas';
 import type { Categoria, Personaje, Propietario, TipoRanura } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
-import { celdaDe, claveBase, useArrastre } from './arrastre';
+import { dentroDe, useArrastreApi, useArrastreSel } from './arrastre';
 import { useObjetos } from './EditarObjeto';
 import { MenuBoton, type OpcionMenu } from './Menus';
 import { useSintonia } from './Dialogos';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
-import { Esquinas, fmt1, fmtNum, Icono, Orla, Ranura } from './piezas';
-import { DCHA, IZQ, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { Esquinas, fmt1, fmtNum, Icono, Orla } from './piezas';
+import { DCHA, IZQ, RanuraEquipo, reducirImagen, RejillaObjetos, Silueta, SILUETA_ARMA } from './interaccion';
 
 // ── Pantalla ───────────────────────────────────────────────────────
 
@@ -45,7 +45,6 @@ function Columna({ p, indice, ancho, busqueda, onFicha }: { p: Personaje; indice
   const { estado, validar, cambiarImagen, ordenar } = useCofre();
   const acciones = useObjetos();
   const dueno: Propietario = { tipo: 'personaje', id: p.id };
-  const { arrastre, props, clase } = useInteraccion(busqueda, onDoble);
   const fichero = useRef<HTMLInputElement>(null);
 
   const propios = objetosDe(estado, { tipo: 'personaje', id: p.id });
@@ -61,15 +60,7 @@ function Columna({ p, indice, ancho, busqueda, onFicha }: { p: Personaje; indice
   const silueta = SILUETA_ARMA[(armaCaC ?? armaDist)?.icono as ClaveIcono];
   const clases = p.clases.map((c) => `${c.clase} ${c.nivel}`).join(' / ');
 
-  // Estado de arrastre de esta columna
   const clave = `pj:${p.id}`;
-  const sobre = arrastre?.objetivo?.clave.startsWith(clave) ?? false;
-  const v = arrastre ? validar(arrastre.objeto.id, { propietario: { tipo: 'personaje', id: p.id } }) : null;
-  const esOrigen = arrastre?.objeto.propietario.tipo === 'personaje' && arrastre.objeto.propietario.id === p.id;
-  // Celda del inventario a la que se apunta (se puede soltar en cualquiera para ordenarlo a mano)
-  const apuntaInv = !!arrastre && claveBase(arrastre.objetivo?.clave ?? '') === clave;
-  const celdaApuntada = apuntaInv ? celdaDe(arrastre!.objetivo?.clave) : undefined;
-  const marca = esOrigen || v?.ok ? 'drop-ok' : 'drop-no';
 
   const subirImagen = async (f: File | undefined) => {
     if (!f) return;
@@ -80,17 +71,7 @@ function Columna({ p, indice, ancho, busqueda, onFicha }: { p: Personaje; indice
     <article className={`panel columna ${p.imagenUrl ? 'con-fondo' : ''}`} aria-label={p.nombre} style={{ width: ancho }} data-drop={clave}>
       {p.imagenUrl && <img className="fondo-pj" src={p.imagenUrl} alt="" />}
       <Esquinas />
-      {arrastre && !esOrigen && v && (
-        <>
-          <div className={`marco-drop ${v.ok ? 'ok' : 'mal'} ${sobre ? 'fuerte' : ''}`} />
-          <div className={`insignia ${v.ok ? 'ok' : 'mal'}`}>
-            <Icono d={v.ok ? UI.check : UI.cruz} />
-            {v.ok
-              ? `${sobre ? `Soltar en ${p.nombre.split(' ')[0]}` : 'Puede recibirlo'} · ${fmt1(v.pesoNuevo ?? peso)} / ${max} kg`
-              : v.motivo}
-          </div>
-        </>
-      )}
+      <MarcoColumna p={p} peso={peso} max={max} />
 
       <header className="col-cab">
         <MenuBoton
@@ -162,15 +143,11 @@ function Columna({ p, indice, ancho, busqueda, onFicha }: { p: Personaje; indice
         <div><b>{atqR ? conSigno(atqR.bono) : '—'}</b><i>{atqR?.dano ?? '—'}</i></div>
       </div>
 
-      <div className="rejilla inv" data-drop={clave} role="list" aria-label={`Inventario de ${p.nombre}`}>
-        {colocar(inventario, 35, 7).map((o, i) =>
-          o ? (
-            <Ranura key={o.id} role="listitem" data-drop={`${clave}#${i}`} objeto={o} extra={`${clase(o)} ${i === celdaApuntada ? marca : ''}`} {...props(o)} />
-          ) : (
-            <Ranura key={`v${i}`} role="listitem" data-drop={`${clave}#${i}`} extra={i === celdaApuntada ? marca : ''} />
-          ),
-        )}
-      </div>
+      <RejillaObjetos
+        className="rejilla inv" data-drop={clave} aria-label={`Inventario de ${p.nombre}`}
+        celdas={colocar(inventario, 35, 7)} dueno={dueno} porCelda busqueda={busqueda} onDoble={onDoble}
+        puedeSoltar={(o) => validar(o.id, { propietario: dueno }).ok}
+      />
 
       <footer className="pie-carga">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d={UI.peso} /></svg>
@@ -190,6 +167,33 @@ function Columna({ p, indice, ancho, busqueda, onFicha }: { p: Personaje; indice
   );
 }
 
+/** Marco e insignia de «puede recibirlo» mientras se arrastra. Solo esto se re-renderiza al coger un objeto. */
+function MarcoColumna({ p, peso, max }: { p: Personaje; peso: number; max: number }) {
+  const { validar } = useCofre();
+  const { actual } = useArrastreApi();
+  const clave = `pj:${p.id}`;
+  const estado = useArrastreSel((a) => {
+    if (!a) return '';
+    const esOrigen = a.objeto.propietario.tipo === 'personaje' && a.objeto.propietario.id === p.id;
+    return esOrigen ? '' : `${a.objeto.id}|${dentroDe(a.objetivo?.clave, clave) ? 1 : ''}`;
+  });
+  const a = estado ? actual() : null;
+  if (!a) return null;
+  const sobre = estado.endsWith('|1');
+  const v = validar(a.objeto.id, { propietario: { tipo: 'personaje', id: p.id } });
+  return (
+    <>
+      <div className={`marco-drop ${v.ok ? 'ok' : 'mal'} ${sobre ? 'fuerte' : ''}`} />
+      <div className={`insignia ${v.ok ? 'ok' : 'mal'}`}>
+        <Icono d={v.ok ? UI.check : UI.cruz} />
+        {v.ok
+          ? `${sobre ? `Soltar en ${p.nombre.split(' ')[0]}` : 'Puede recibirlo'} · ${fmt1(v.pesoNuevo ?? peso)} / ${max} kg`
+          : v.motivo}
+      </div>
+    </>
+  );
+}
+
 // ── Alijo ──────────────────────────────────────────────────────────
 
 const FILTROS: { t: string; cats: Categoria[] | null }[] = [
@@ -202,7 +206,6 @@ const FILTROS: { t: string; cats: Categoria[] | null }[] = [
 function Alijo({ busqueda }: { busqueda: string }) {
   const { estado, ordenar } = useCofre();
   const acciones = useObjetos();
-  const { arrastre, props, clase } = useInteraccion(busqueda);
   const [filtro, setFiltro] = useState(0);
   const todos = objetosDe(estado, { tipo: 'alijo' });
   const cats = FILTROS[filtro].cats;
@@ -212,19 +215,11 @@ function Alijo({ busqueda }: { busqueda: string }) {
   const pesoGrupo = pesos.reduce((s, x) => s + x.peso, 0);
   const maxGrupo = estado.personajes.reduce((s, p) => s + cargaMaxKg(p.fue), 0);
 
-  const sobre = claveBase(arrastre?.objetivo?.clave ?? '') === 'alijo';
-  const celdaApuntada = sobre ? celdaDe(arrastre!.objetivo?.clave) : undefined;
-  const desdeOtro = arrastre && arrastre.objeto.propietario.tipo !== 'alijo';
 
   return (
     <aside className="panel alijo" aria-label="Alijo de la party" data-drop="alijo">
       <Esquinas />
-      {desdeOtro && (
-        <>
-          <div className={`marco-drop ok ${sobre ? 'fuerte' : ''}`} />
-          <div className="insignia ok"><Icono d={UI.check} />{sobre ? 'Soltar en el alijo' : 'Al alijo · no cuenta para la carga'}</div>
-        </>
-      )}
+      <MarcoAlijo />
       <header>
         <div className="alijo-fila">
           <button type="button" className="ibtn" aria-label="Añadir objeto al alijo" title="Añadir objeto al alijo" onClick={() => acciones.nuevo({ tipo: 'alijo' })}><Icono d={UI.mas} /></button>
@@ -243,18 +238,11 @@ function Alijo({ busqueda }: { busqueda: string }) {
           <button key={f.t} type="button" className={`chip ${i === filtro ? 'on' : ''}`} aria-pressed={i === filtro} onClick={() => setFiltro(i)}>{f.t}</button>
         ))}
       </div>
-      <div className="rejilla alj" role="list" aria-label="Objetos del alijo">
-        {/* Con «Todo», cada objeto en su celda (se ordena a mano); con un filtro, solo los que coinciden */}
-        {(cats ? [...visibles, ...Array(Math.max(0, 78 - visibles.length))] : colocar(visibles, 78, 6)).map((o, i) => {
-          const drop = cats ? undefined : `alijo#${i}`;
-          const m = i === celdaApuntada ? 'drop-ok' : '';
-          return o ? (
-            <Ranura key={o.id} role="listitem" data-drop={drop} objeto={o} extra={`${clase(o)} ${m}`} {...props(o)} />
-          ) : (
-            <Ranura key={`v${i}`} role="listitem" data-drop={drop} extra={m || (sobre && desdeOtro && cats && i === visibles.length ? 'drop-ok' : '')} />
-          );
-        })}
-      </div>
+      {/* Con «Todo», cada objeto en su celda (se ordena a mano); con un filtro, solo los que coinciden */}
+      <RejillaObjetos
+        className="rejilla alj" aria-label="Objetos del alijo" dueno={{ tipo: 'alijo' }} porCelda={!cats} busqueda={busqueda}
+        celdas={cats ? [...visibles, ...Array(Math.max(1, 78 - visibles.length))] : colocar(visibles, 78, 6)}
+      />
       <footer>
         <div><span>{todos.length} objetos en el alijo</span><span style={{ color: 'var(--texto)' }}><b>{fmtKg(pesoAlijoKg(estado))}</b> kg</span></div>
         <div><span>Carga del grupo</span><span style={{ fontSize: 14, color: 'var(--texto)' }}><b>{fmtKg(pesoGrupo)}</b> / {maxGrupo} kg</span></div>
@@ -269,6 +257,18 @@ function Alijo({ busqueda }: { busqueda: string }) {
   );
 }
 
+function MarcoAlijo() {
+  const estado = useArrastreSel((a) => (!a || a.objeto.propietario.tipo === 'alijo' ? '' : dentroDe(a.objetivo?.clave, 'alijo') ? 'sobre' : 'fuera'));
+  if (!estado) return null;
+  const sobre = estado === 'sobre';
+  return (
+    <>
+      <div className={`marco-drop ok ${sobre ? 'fuerte' : ''}`} />
+      <div className="insignia ok"><Icono d={UI.check} />{sobre ? 'Soltar en el alijo' : 'Al alijo · no cuenta para la carga'}</div>
+    </>
+  );
+}
+
 // ── Pie: leyenda, ayuda de arrastre y avisos ──────────────────────
 
 const LEYENDA: [string, string][] = [['r-c', 'Común'], ['r-u', 'Poco común'], ['r-r', 'Raro'], ['r-m', 'Muy raro'], ['r-l', 'Legendario'], ['r-a', 'Artefacto']];
@@ -278,7 +278,7 @@ export type Aviso =
   | { id: number; tipo: 'mov'; movId: string };
 
 export function PieGrupal({ aviso }: { aviso: Aviso | null }) {
-  const { arrastre } = useArrastre();
+  const objeto = useArrastreSel((a) => a?.objeto ?? null);
   return (
     <div className="pie">
       <div className="leyenda">
@@ -290,11 +290,11 @@ export function PieGrupal({ aviso }: { aviso: Aviso | null }) {
         ))}
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 6 }}><span className="rombo" />Requiere sintonización</span>
       </div>
-      {arrastre ? (
+      {objeto ? (
         <div className="ayuda-arrastre">
           <span><span style={{ width: 12, height: 12, border: '2px solid var(--ok)' }} />Destino válido</span>
           <span><span style={{ width: 12, height: 12, border: '2px solid var(--no)' }} />Destino no válido</span>
-          {arrastre.objeto.cantidad > 1 && <span style={{ color: '#8a7f6c' }}>Mayús + soltar para dividir</span>}
+          {objeto.cantidad > 1 && <span style={{ color: '#8a7f6c' }}>Mayús + soltar para dividir</span>}
           <span style={{ color: '#8a7f6c' }}>Esc para cancelar</span>
         </div>
       ) : (
