@@ -1,22 +1,21 @@
 // Edición rápida de un personaje: identidad, PV, CA, características, estado y color.
 
 import { useState } from 'react';
+import { CLASES, claseDe } from '../domain/clases';
 import { modificador, conSigno } from '../domain/reglas';
 import type { Caracteristica, Personaje } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useEscape } from './Dialogos';
 import { UI } from './iconos';
+import { IconoClase } from './clases';
 import { Esquinas, Icono } from './piezas';
 
 const CARS: [Caracteristica, string][] = [['fue', 'FUE'], ['des', 'DES'], ['con', 'CON'], ['int', 'INT'], ['sab', 'SAB'], ['car', 'CAR']];
 
 const lista = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
-/** «Paladín 5 / Mago 2» → [{clase: 'Paladín', nivel: 5}, {clase: 'Mago', nivel: 2}] */
-const clasesDe = (s: string) =>
-  s.split('/').map((x) => x.trim()).filter(Boolean).map((x) => {
-    const m = x.match(/^(.*?)\s+(\d+)$/);
-    return m ? { clase: m[1].trim(), nivel: Math.max(1, Math.min(20, Number(m[2]))) } : { clase: x, nivel: 1 };
-  });
+
+/** Una fila del selector de clases: varias si el personaje es multiclase. */
+type FilaClase = { clase: string; nivel: string };
 
 const COLORES = ['#6F8FB8', '#9A78D0', '#C08E4F', '#4FA07F', '#B85C5C', '#C9B458'];
 
@@ -35,13 +34,17 @@ export function EditarPersonaje({ p: p0, onCerrar, onAviso }: { p?: Personaje; o
   const p = p0 ?? { ...enBlanco(estado.personajes.length), id: '' };
   const [confirmar, setConfirmar] = useState(false);
   const [f, setF] = useState({
-    nombre: p.nombre, raza: p.raza, trasfondo: p.trasfondo ?? '', clases: p.clases.map((c) => `${c.clase} ${c.nivel}`).join(' / '),
+    nombre: p.nombre, raza: p.raza, trasfondo: p.trasfondo ?? '',
     px: String(p.px ?? 0), pvActual: String(p.pvActual), pvMax: String(p.pvMax), ca: String(p.ca), saciedad: String(p.saciedad),
     fue: String(p.fue), des: String(p.des), con: String(p.con), int: String(p.int), sab: String(p.sab), car: String(p.car),
     condiciones: p.condiciones.join(', '), resistencias: p.resistencias.join(', '), color: p.color,
   });
+  // Las formas antiguas («Maga», «Pícara») se muestran como la clase de la lista
+  const [clases, setClases] = useState<FilaClase[]>(() => p.clases.map((c) => ({ clase: claseDe(c.clase) ?? c.clase, nivel: String(c.nivel) })));
   const [error, setError] = useState<string | null>(null);
   useEscape(onCerrar);
+  const setClase = (i: number, cambios: Partial<FilaClase>) => { setClases((cs) => cs.map((c, j) => (j === i ? { ...c, ...cambios } : c))); setError(null); };
+  const libres = (actual: string) => CLASES.filter((c) => c === actual || !clases.some((x) => x.clase === c));
   const set = (k: keyof typeof f, v: string) => { setF((x) => ({ ...x, [k]: v })); setError(null); };
   const n = (k: keyof typeof f) => Number(f[k]);
 
@@ -51,10 +54,13 @@ export function EditarPersonaje({ p: p0, onCerrar, onAviso }: { p?: Personaje; o
     if (enteros.some((k) => !Number.isInteger(n(k)) || n(k) < 0)) return setError('PX, PV, CA, saciedad y características tienen que ser números enteros sin signo');
     if (n('pvMax') < 1) return setError('Los PV máximos tienen que ser al menos 1');
     if (CARS.some(([k]) => n(k) < 1 || n(k) > 30)) return setError('Las características van de 1 a 30');
-    const clases = clasesDe(f.clases);
-    if (!clases.length) return setError('Indica al menos una clase, por ejemplo «Paladín 5»');
+    if (!clases.length) return setError('Elige al menos una clase');
+    if (clases.some((c) => !Number.isInteger(Number(c.nivel)) || Number(c.nivel) < 1 || Number(c.nivel) > 20)) return setError('El nivel de cada clase va de 1 a 20');
+    const total = clases.reduce((s, c) => s + Number(c.nivel), 0);
+    if (total > 20) return setError(`Entre todas las clases suman ${total} niveles; el máximo es 20`);
     const cambios = {
-      nombre: f.nombre.trim(), raza: f.raza.trim(), trasfondo: f.trasfondo.trim() || undefined, clases, px: n('px'),
+      nombre: f.nombre.trim(), raza: f.raza.trim(), trasfondo: f.trasfondo.trim() || undefined,
+      clases: clases.map((c) => ({ clase: c.clase, nivel: Number(c.nivel) })), px: n('px'),
       pvMax: n('pvMax'), pvActual: Math.min(n('pvActual'), n('pvMax')), ca: n('ca'), saciedad: Math.min(100, n('saciedad')),
       fue: n('fue'), des: n('des'), con: n('con'), int: n('int'), sab: n('sab'), car: n('car'),
       condiciones: lista(f.condiciones), resistencias: lista(f.resistencias), color: f.color,
@@ -84,8 +90,29 @@ export function EditarPersonaje({ p: p0, onCerrar, onAviso }: { p?: Personaje; o
             {campo('raza', 'Raza')}
             {campo('trasfondo', 'Trasfondo')}
           </div>
-          <div className="fo-fila" style={{ gridTemplateColumns: '2fr 1fr 64px' }}>
-            {campo('clases', 'Clases y niveles (separa con /)', { placeholder: 'Paladín 5 / Brujo 1' })}
+          <div className="fo-fila" style={{ gridTemplateColumns: '2fr 1fr 64px', alignItems: 'start' }}>
+            <div className="fo-c"><span className="k">Clase y nivel</span>
+              <div className="ep-clases">
+                {clases.map((c, i) => (
+                  <div key={i} className="ep-clase">
+                    <span className="ep-clase-icono"><IconoClase clase={c.clase} tam={20} /></span>
+                    <select id={i ? undefined : 'ep-clase'} className="fo-in" aria-label="Clase" value={c.clase} onChange={(e) => setClase(i, { clase: e.target.value })}>
+                      {libres(c.clase).map((x) => <option key={x} value={x}>{x}</option>)}
+                      {!claseDe(c.clase) && <option value={c.clase}>{c.clase}</option>}
+                    </select>
+                    <input id={i ? undefined : 'ep-nivel'} className="fo-in" aria-label="Nivel" inputMode="numeric" value={c.nivel} onChange={(e) => setClase(i, { nivel: e.target.value })} />
+                    {clases.length > 1 && (
+                      <button type="button" className="mini" aria-label={`Quitar ${c.clase}`} onClick={() => setClases((cs) => cs.filter((_, j) => j !== i))}><Icono d={UI.cruz} /></button>
+                    )}
+                  </div>
+                ))}
+                {clases.length < CLASES.length && (
+                  <button type="button" className="ep-multiclase" onClick={() => setClases((cs) => [...cs, { clase: libres('')[0], nivel: '1' }])}>
+                    <Icono d={UI.mas} size={14} />{clases.length ? 'Añadir otra clase (multiclase)' : 'Añadir clase'}
+                  </button>
+                )}
+              </div>
+            </div>
             {campo('px', 'PX', { inputMode: 'numeric' })}
             <label className="fo-c"><span className="k">Color</span><input id="ep-color" type="color" className="ep-color" value={f.color} onChange={(e) => set('color', e.target.value)} /></label>
           </div>

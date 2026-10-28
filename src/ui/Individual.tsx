@@ -8,6 +8,8 @@ import {
 import type { Categoria, Caracteristica, IconoRasgo, Personaje, Propietario } from '../domain/tipos';
 import { guardarImagen } from '../store/archivos';
 import { useCofre } from '../store/cofre';
+import { clasePrincipal } from '../domain/clases';
+import { ClasesConIcono, ICONO_CLASE } from './clases';
 import { claveBase, useArrastreSel } from './arrastre';
 import { useSintonia } from './Dialogos';
 import { useObjetos } from './EditarObjeto';
@@ -55,7 +57,7 @@ function Ficha({ p }: { p: Personaje }) {
   const pxIni = pxNivelActual(nivel);
   const px = p.px ?? pxIni;
   const progreso = pxSig ? Math.max(0, Math.min(1, (px - pxIni) / (pxSig - pxIni))) : 1;
-  const clases = p.clases.map((c) => `${c.clase} ${c.nivel}`).join(' / ');
+  const principal = clasePrincipal(p.clases);
 
   return (
     <section className="panel ficha" aria-label={`Ficha de ${p.nombre}`}>
@@ -66,12 +68,18 @@ function Ficha({ p }: { p: Personaje }) {
         </button>
         <h1>{p.nombre}</h1>
         <span className="ficha-sub">{p.raza}{p.trasfondo ? ` · Trasfondo: ${p.trasfondo}` : ''}</span>
-        <svg viewBox="0 0 90 90" width="84" height="84" aria-hidden="true">
+        <svg viewBox="0 0 90 90" width="84" height="84" role="img" aria-label={principal ? `Clase: ${principal}` : undefined} aria-hidden={principal ? undefined : true}>
           <path d="M45 6l10 18 20-4-6 20 15 10-17 8 4 20-19-8-7 16-7-16-19 8 4-20-17-8 15-10-6-20 20 4z" fill="#120f0b" stroke="#a88a4c" strokeWidth="1.2" />
           <path d="M45 24l13 7v14c0 9-6 15-13 19-7-4-13-10-13-19V31z" fill={`color-mix(in srgb, ${p.color} 22%, #0c0a08)`} stroke="#e2c27a" strokeWidth="1.4" />
-          <path d="M45 32v22M38 40h14" stroke="#e2c27a" strokeWidth="1.6" strokeLinecap="round" />
+          {principal ? (
+            <svg x="33" y="31" width="24" height="24" viewBox="0 0 24 24" className="icono-clase">
+              <path d={ICONO_CLASE[principal]} />
+            </svg>
+          ) : (
+            <path d="M45 32v22M38 40h14" stroke="#e2c27a" strokeWidth="1.6" strokeLinecap="round" />
+          )}
         </svg>
-        <span className="ficha-nivel">Nivel {nivel} · {clases}</span>
+        <span className="ficha-nivel">Nivel {nivel} · <ClasesConIcono clases={p.clases} tam={17} /></span>
         <div className="ficha-px" title={pxSig ? `Siguiente nivel con ${fmtNum(pxSig)} PX` : 'Nivel máximo'}>
           <span>PX</span>
           <div><div style={{ width: `${progreso * 100}%` }} /></div>

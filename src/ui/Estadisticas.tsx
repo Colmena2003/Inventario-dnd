@@ -7,6 +7,7 @@ import {
 } from '../domain/reglas';
 import type { Caracteristica, Personaje, Rareza } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
+import { ClasesConIcono } from './clases';
 import { Esquinas, fmtNum, iniciales } from './piezas';
 
 const CARACTERISTICAS: [Caracteristica, string][] = [['fue', 'FUE'], ['des', 'DES'], ['con', 'CON'], ['int', 'INT'], ['sab', 'SAB'], ['car', 'CAR']];
@@ -73,7 +74,7 @@ function Tarjeta({ p }: { p: Personaje }) {
         <Retrato p={p} tam="g" />
         <div className="est-nombre">
           <h2 className="h">{p.nombre}</h2>
-          <span className="s">{p.raza} · {p.clases.map((c) => `${c.clase} ${c.nivel}`).join(' / ')}</span>
+          <span className="s">{p.raza} · <ClasesConIcono clases={p.clases} tam={14} /></span>
         </div>
         <div className="est-ca">
           <svg viewBox="0 0 76 84" width="50" height="56" aria-hidden="true"><path d="M38 3l32 10v26c0 20-14 34-32 42C20 73 6 59 6 39V13z" fill="#0f0c0a" stroke="#b89a55" strokeWidth="2" /></svg>

@@ -10,6 +10,7 @@ import { guardarImagen } from '../store/archivos';
 import { useCofre } from '../store/cofre';
 import { dentroDe, useArrastreApi, useArrastreSel } from './arrastre';
 import { useObjetos } from './EditarObjeto';
+import { ClasesConIcono } from './clases';
 import { MenuBoton, type OpcionMenu } from './Menus';
 import { useSintonia } from './Dialogos';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
@@ -59,7 +60,6 @@ function Columna({ p, indice, ancho, busqueda, onFicha }: { p: Personaje; indice
   const atqM = ataque(p, armaCaC, 'cuerpoACuerpo');
   const atqR = ataque(p, armaDist, 'distancia');
   const silueta = SILUETA_ARMA[(armaCaC ?? armaDist)?.icono as ClaveIcono];
-  const clases = p.clases.map((c) => `${c.clase} ${c.nivel}`).join(' / ');
 
   const clave = `pj:${p.id}`;
 
@@ -94,7 +94,7 @@ function Columna({ p, indice, ancho, busqueda, onFicha }: { p: Personaje; indice
         <div className="oro">{fmtNum(p.monedas.po)}<i aria-label="piezas de oro" /></div>
       </header>
       <div className="col-sub">
-        <span>{p.raza} · {clases} · PV {p.pvActual}/{p.pvMax}</span>
+        <span className="col-sub-linea">{p.raza} · <ClasesConIcono clases={p.clases} tam={15} /> · PV {p.pvActual}/{p.pvMax}</span>
         <div className="saciedad" title={`Saciedad ${p.saciedad}/100 · ${sac.efecto}`}>
           <svg viewBox="0 0 24 24" aria-hidden="true" style={{ stroke: sac.color }}><path d={UI.cuenco} /></svg>
           <div className="pista"><div style={{ height: 6, width: `${p.saciedad}%`, background: `linear-gradient(90deg, ${sac.color}99, ${sac.color})` }} /></div>
