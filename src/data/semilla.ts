@@ -146,7 +146,7 @@ function objetos(): Objeto[] {
     obj(Y, 'Capa de la sombra élfica', 'cloak', 'm', 1, { ...eq('capa'), ...sint, ...mods({ objetivo: 'ventaja', texto: 'pruebas de Sigilo' }, { objetivo: 'hab:sigilo', valor: 1 }) }),
     obj(Y, 'Cuero tachonado', 'armor', 'u', 1, { ...eq('armadura'), pesoKg: 6, armadura: { tipo: 'ligera', caBase: 12 } }),
     obj(Y, 'Guantes de ladrón', 'gloves', 'r', 1, { ...eq('guantes'), ...mods({ objetivo: 'hab:juegoDeManos', valor: 2 }) }),
-    obj(Y, 'Botas de zancada', 'boots', 'r', 1, { ...eq('botas'), ...sint, ...mods({ objetivo: 'vel:caminar', valor: 9, fijar: true }), efectos: 'Tu velocidad a pie es al menos 9 m.' }),
+    obj(Y, 'Botas de zancada', 'boots', 'r', 1, { ...eq('botas'), ...sint, ...mods({ objetivo: 'vel:caminar', valor: 30, fijar: true }), efectos: 'Tu velocidad a pie es al menos 30 pies.' }),
     obj(Y, 'Anillo del ratón', 'ring', 'u', 1, eq('anillo')),
     obj(Y, 'Estoque de Rivenhold', 'dagger', 'r', 1, { ...eq('cuerpoACuerpo'), tipoArma: 'marcial', pesoKg: 1, dado: '1d8', tipoDano: 'perforante', bonoMagico: 1, propiedades: ['sutil'] }),
     obj(Y, 'Daga', 'dagger', 'u', 1, { ...eq('cuerpoACuerpo', 1), tipoArma: 'sencilla', dado: '1d4', tipoDano: 'perforante', propiedades: ['sutil', 'ligera', 'arrojadiza'], rango: '6/18 m' }),
@@ -172,7 +172,7 @@ function objetos(): Objeto[] {
 
     // Alijo
     { ...o5, tipo: 'material' },
-    { ...o2, tipo: 'equipable', ...mods({ objetivo: 'car:sab', valor: 2 }, { objetivo: 'vel:nadar', valor: 9, fijar: true }, { objetivo: 'resistencia', texto: 'frío' }, { objetivo: 'nota', texto: 'Respiras bajo el agua' }) },
+    { ...o2, tipo: 'equipable', ...mods({ objetivo: 'car:sab', valor: 2 }, { objetivo: 'vel:nadar', valor: 30, fijar: true }, { objetivo: 'resistencia', texto: 'frío' }, { objetivo: 'nota', texto: 'Respiras bajo el agua' }) },
     { ...o4, tipo: 'comida', saciedad: 2 },
     obj(alijo, 'Poción de curación', 'potion', 'c', 6, { efectos: 'Recuperas 2d4+2 PV.' }),
     obj(alijo, 'Poción de curación superior', 'potion', 'r', 2, { valorPo: 450, efectos: 'Recuperas 8d4+8 PV.' }),
@@ -270,7 +270,7 @@ const EXTRA: Record<string, Partial<Personaje>> = {
 };
 
 /** Versión del modelo; al subirla, el almacén migra lo guardado (src/domain/objetos.ts). */
-export const VERSION = 4;
+export const VERSION = 5;
 
 /** Una party sin nadie: así empieza un navegador nuevo. Los datos de ejemplo quedan para los tests. */
 export function estadoVacio(): Estado {

@@ -70,9 +70,9 @@ describe('modificadores de objetos', () => {
   });
   it('fijar la velocidad (botas de zancada) antes del hambre y la carga', () => {
     const v = hoja(e0, pj('ysolde')).velocidad.caminar;
-    expect(v.fuentes.find((f) => f.fijado)).toMatchObject({ origen: 'Botas de zancada', valor: 9 });
-    // Famélica (mitad) y sobrecargada (−6 m)
-    expect(v.total).toBe(1.5);
+    expect(v.fuentes.find((f) => f.fijado)).toMatchObject({ origen: 'Botas de zancada', valor: 30 });
+    // Famélica (mitad) y sobrecargada (−20 pies)
+    expect(v.total).toBe(5);
   });
   it('resistencias de objetos', () => {
     expect(hoja(e0, pj('aldric')).resistencias.map((r) => r.texto)).toContain('necrótico');
@@ -126,7 +126,7 @@ describe('hambre', () => {
   it('los efectos se aplican a la hoja', () => {
     const e1 = { ...e0, personajes: e0.personajes.map((p) => (p.id === 'aldric' ? { ...p, saciedad: 0 } : p)) };
     const h = hoja(e1, pj('aldric', e1));
-    expect(h.velocidad.caminar.total).toBe(4.5);
+    expect(h.velocidad.caminar.total).toBe(15);
     expect(h.pvMax.total).toBe(26);
     expect(h.ataques[0].bono.desv).toContain('Hambre');
     expect(h.pasivas.percepcion.total).toBe(hoja(e0, pj('aldric')).pasivas.percepcion.total - 5);
@@ -145,5 +145,16 @@ describe('objetos', () => {
     const m = migrar(viejo, e0);
     expect(m.version).toBe(VERSION);
     expect(pj('nerys', m).saciedad).toBe(4);
+  });
+  it('pasa la velocidad guardada en metros a pies', () => {
+    const viejo = {
+      ...e0, version: 4,
+      personajes: e0.personajes.map((p) => (p.id === 'brom' ? { ...p, velocidad: 7.5, editado: true } : p)),
+      objetos: [...e0.objetos, { ...objeto('Anillo de protección'), id: 'propio', nombre: 'Anillo veloz', modificadores: [{ objetivo: 'vel:caminar', valor: 3 }] }],
+    } as Estado;
+    const m = migrar(viejo, e0);
+    expect(pj('brom', m).velocidad).toBe(25);
+    expect(m.objetos.find((o) => o.id === 'propio')!.modificadores).toEqual([{ objetivo: 'vel:caminar', valor: 10 }]);
+    expect(hoja(m, pj('ysolde', m)).velocidad.caminar.fuentes.find((f) => f.fijado)?.valor).toBe(30);
   });
 });

@@ -106,7 +106,7 @@ function FichaObjeto({ objeto: o0, left, top }: Pos) {
           </span>
         </div>
       )}
-      {arm?.fueMin ? <span className="tt-extra">Requiere FUE {arm.fueMin}{dueno && dueno.fue < arm.fueMin ? ' · −3 m de velocidad' : ''}</span> : null}
+      {arm?.fueMin ? <span className="tt-extra">Requiere FUE {arm.fueMin}{dueno && dueno.fue < arm.fueMin ? ' · −10 pies de velocidad' : ''}</span> : null}
       {arm?.sigiloDesventaja && <span className="tt-extra mal">Desventaja en Sigilo</span>}
       {o.bonoCa ? <span className="tt-extra">+{o.bonoCa + (o.bonoMagico ?? 0)} a la CA</span> : null}
       {props.length > 0 && <div className="tt-chips">{props.map((p) => <span key={p}>{p}</span>)}</div>}

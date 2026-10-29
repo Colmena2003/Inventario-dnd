@@ -49,8 +49,8 @@ export type TramoCarga = { id: 'normal' | 'cargado' | 'sobrecargado'; texto: str
 /** [5e, regla variante] más de ⅓ del máximo es Cargado; más de ⅔, Sobrecargado. */
 export function tramoCarga(peso: number, max: number): TramoCarga {
   const p = max > 0 ? peso / max : 1;
-  if (p > 2 / 3) return { id: 'sobrecargado', texto: 'Sobrecargado · −6 m vel.', color: '#e0534d' };
-  if (p > 1 / 3) return { id: 'cargado', texto: 'Cargado · −3 m vel.', color: '#e0883a' };
+  if (p > 2 / 3) return { id: 'sobrecargado', texto: 'Sobrecargado · −20 pies vel.', color: '#e0534d' };
+  if (p > 1 / 3) return { id: 'cargado', texto: 'Cargado · −10 pies vel.', color: '#e0883a' };
   return { id: 'normal', texto: 'Carga normal', color: '#c9a65a' };
 }
 

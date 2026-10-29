@@ -142,7 +142,7 @@ const CLASES: [RegExp, DatosClase][] = [
 
 export const datosClase = (nombre: string): DatosClase | undefined => CLASES.find(([re]) => re.test(nombre.trim()))?.[1];
 
-/** [5e] Razas Pequeñas y de 7,5 m de velocidad. */
+/** [5e] Razas Pequeñas y de 25 pies de velocidad. */
 export const RAZA_PEQUENA = /median|gnom|kobold|goblin|halfling/i;
 export const RAZA_LENTA = /enan|median|gnom|halfling/i;
 
@@ -237,7 +237,7 @@ export const OBJETIVOS: { grupo: string; items: DefObjetivo[] }[] = [
   {
     grupo: 'Movimiento, sentidos y carga',
     items: [
-      ...MOVIMIENTOS.map(([k, n]) => ({ id: `vel:${k}` as ObjetivoMod, nombre: `Velocidad · ${n.toLowerCase()}`, clase: 'numero' as const, fijable: true, unidad: 'm' })),
+      ...MOVIMIENTOS.map(([k, n]) => ({ id: `vel:${k}` as ObjetivoMod, nombre: `Velocidad · ${n.toLowerCase()}`, clase: 'numero' as const, fijable: true, unidad: 'pies' })),
       { id: 'sentido:oscuridad', nombre: 'Visión en la oscuridad', clase: 'numero', fijable: true, unidad: 'm' },
       { id: 'sentido:ciega', nombre: 'Vista ciega', clase: 'numero', fijable: true, unidad: 'm' },
       { id: 'sentido:temblor', nombre: 'Sentido de la vibración', clase: 'numero', fijable: true, unidad: 'm' },

@@ -103,7 +103,7 @@ export function hoja(e: Estado, p: Personaje): Hoja {
   const competencia = aplicar(valor(bonoCompetencia(nivel), `Nivel ${nivel}`), mods, ['competencia']);
   const prof = competencia.total;
 
-  // Carga (regla variante): Cargado −3 m; Sobrecargado −6 m y desventaja en lo físico
+  // Carga (regla variante): Cargado −10 pies; Sobrecargado −20 pies y desventaja en lo físico
   const cargaMax = cargaMaxDe(e, p);
   const carga = pesoPersonajeKg(e, p);
   const tramo = tramoCarga(carga, cargaMax);
@@ -133,7 +133,7 @@ export function hoja(e: Estado, p: Personaje): Hoja {
   }
   ca = sumar(ca, 'Rasgos', p.caExtra ?? 0);
   ca = aplicar(ca, mods, ['ca']);
-  if (datosArm?.fueMin && car.fue.total < datosArm.fueMin) avisos.push(`${armadura!.nombre} pide FUE ${datosArm.fueMin}: −3 m de velocidad`);
+  if (datosArm?.fueMin && car.fue.total < datosArm.fueMin) avisos.push(`${armadura!.nombre} pide FUE ${datosArm.fueMin}: −10 pies de velocidad`);
 
   // Pruebas: desventajas comunes
   const desvPrueba = (k: Caracteristica, v: Valor) => {
@@ -146,13 +146,13 @@ export function hoja(e: Estado, p: Personaje): Hoja {
   const iniciativa = desvPrueba('des', aplicar(valor(mod.des, 'DES'), mods, ['iniciativa', 'pruebas:todas', 'prueba:des']));
 
   // Velocidad
-  const base = p.velocidad ?? (RAZA_LENTA.test(p.raza) ? 7.5 : 9);
+  const base = p.velocidad ?? (RAZA_LENTA.test(p.raza) ? 25 : 30);
   const velocidad = Object.fromEntries(MOVS.map((m) => {
     let v = aplicar(m === 'caminar' ? valor(base, p.raza) : valor(0, ''), mods, [`vel:${m}`]);
     if (v.total > 0) {
-      if (m === 'caminar' && datosArm?.fueMin && car.fue.total < datosArm.fueMin) v = sumar(v, `FUE baja para ${armadura!.nombre}`, -3);
-      if (tramo.id === 'cargado') v = sumar(v, 'Cargado', -3);
-      if (sobrecargado) v = sumar(v, 'Sobrecargado', -6);
+      if (m === 'caminar' && datosArm?.fueMin && car.fue.total < datosArm.fueMin) v = sumar(v, `FUE baja para ${armadura!.nombre}`, -10);
+      if (tramo.id === 'cargado') v = sumar(v, 'Cargado', -10);
+      if (sobrecargado) v = sumar(v, 'Sobrecargado', -20);
       if (sac.velMitad) v = sumar(v, 'Hambre (mitad)', -Math.max(0, v.total) / 2);
       v = { ...v, total: Math.max(0, v.total) };
     }

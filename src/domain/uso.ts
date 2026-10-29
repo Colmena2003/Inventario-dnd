@@ -274,10 +274,10 @@ const horas = (n: number): Duracion => ({ tipo: 'tiempo', segundos: n * HORA });
 export const EFECTOS_COMUNES: PlantillaEfecto[] = [
   { nombre: 'Bendecir', duracion: min(1), concentracion: true, modificadores: [{ objetivo: 'nota', texto: '+1d4 a tiradas de ataque y salvaciones' }] },
   { nombre: 'Escudo de la fe', duracion: min(10), concentracion: true, modificadores: [{ objetivo: 'ca', valor: 2 }] },
-  { nombre: 'Acelerar', duracion: min(1), concentracion: true, modificadores: [{ objetivo: 'ca', valor: 2 }, { objetivo: 'vel:caminar', valor: 9 }, { objetivo: 'ventaja', texto: 'salvaciones de Destreza' }, { objetivo: 'nota', texto: 'Una acción más por turno' }] },
+  { nombre: 'Acelerar', duracion: min(1), concentracion: true, modificadores: [{ objetivo: 'ca', valor: 2 }, { objetivo: 'vel:caminar', valor: 30 }, { objetivo: 'ventaja', texto: 'salvaciones de Destreza' }, { objetivo: 'nota', texto: 'Una acción más por turno' }] },
   { nombre: 'Agrandar', duracion: min(1), concentracion: true, modificadores: [{ objetivo: 'ventaja', texto: 'pruebas y salvaciones de Fuerza' }, { objetivo: 'danoExtra', texto: '1d4' }] },
   { nombre: 'Ayuda', duracion: horas(8), modificadores: [{ objetivo: 'pvMax', valor: 5 }] },
-  { nombre: 'Paso largo', duracion: horas(1), modificadores: [{ objetivo: 'vel:caminar', valor: 3 }] },
+  { nombre: 'Paso largo', duracion: horas(1), modificadores: [{ objetivo: 'vel:caminar', valor: 10 }] },
   { nombre: 'Visión en la oscuridad', duracion: horas(8), modificadores: [{ objetivo: 'sentido:oscuridad', valor: 18, fijar: true }] },
   { nombre: 'Fuerza de gigante de colina', duracion: horas(1), modificadores: [{ objetivo: 'car:fue', valor: 21, fijar: true }] },
   { nombre: 'Resistencia al fuego', duracion: horas(1), modificadores: [{ objetivo: 'resistencia', texto: 'fuego' }] },

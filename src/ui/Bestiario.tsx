@@ -342,7 +342,7 @@ function EditorCriatura({ inicial, onCerrar, onGuardada, onEliminada }: {
               {texto('caNota', 'De qué', 2, 'armadura natural')}
               {numero('pv', 'PV')}
               {texto('pvDados', 'Dados de golpe', 2, '4d10+4')}
-              {texto('velocidad', 'Velocidad', 2, '9 m, nadar 6 m')}
+              {texto('velocidad', 'Velocidad', 2, '30 pies, nadar 20 pies')}
               {texto('desafio', 'Valor de desafío', 2, '1/2, 3…')}
               {numero('px', 'PX', 2, pxPorDesafio(c.desafio) !== undefined ? `${pxPorDesafio(c.desafio)} (por el VD)` : '?')}
               {texto('alineamiento', 'Alineamiento', 4)}

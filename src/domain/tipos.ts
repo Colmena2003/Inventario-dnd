@@ -94,7 +94,7 @@ export interface Personaje {
   color: string;
   // Datos de la ficha que las reglas necesitan; si faltan, se deducen de la clase y la raza (hoja.ts)
   competencias?: { salvaciones?: Caracteristica[]; habilidades?: Habilidad[]; pericia?: Habilidad[] };
-  /** Velocidad a pie en metros. */
+  /** Velocidad a pie en pies. */
   velocidad?: number;
   tamano?: Tamano;
   /** Característica de lanzamiento de conjuros; null si no lanza. */
@@ -130,7 +130,7 @@ export interface DatosArmadura {
   caBase: number;
   /** Tope del modificador de DES; null = sin tope. Por defecto: ligera sin tope, media 2, pesada 0. */
   desMax?: number | null;
-  /** [5e] Con menos FUE, −3 m de velocidad. */
+  /** [5e] Con menos FUE, −10 pies de velocidad. */
   fueMin?: number;
   sigiloDesventaja?: boolean;
 }

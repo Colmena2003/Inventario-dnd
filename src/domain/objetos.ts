@@ -1,7 +1,7 @@
 // Alta, edición y borrado de objetos, y la migración de lo guardado cuando cambia el modelo.
 
 import { cargaMaxDe, fmtKg, nuevoId, pesoObjeto, pesoPersonajeKg, saciedadDesde100 } from './reglas';
-import type { Estado, Movimiento, Objeto, Propietario, TipoObjeto } from './tipos';
+import type { Estado, Modificador, Movimiento, Objeto, Propietario, TipoObjeto } from './tipos';
 
 /** Deduce el tipo de formulario de un objeto antiguo que no lo tiene guardado. */
 export function inferirTipo(o: Objeto): TipoObjeto {
@@ -87,12 +87,32 @@ export function editarObjeto(e: Estado, datos: Objeto, actor: string): Estado {
 
 export const eliminarObjeto = (e: Estado, id: string): Estado => ({ ...e, objetos: e.objetos.filter((o) => o.id !== id) });
 
+/** Hasta la versión 5 la velocidad iba en metros; 1,5 m son 5 pies. */
+const pies = (metros: number) => Math.round(metros / 0.3);
+const modsEnPies = (ms: Modificador[]) => ms.map((m) => (m.objetivo.startsWith('vel:') && m.valor ? { ...m, valor: pies(m.valor) } : m));
+const conModsEnPies = <T extends { modificadores?: Modificador[]; alUsar?: Objeto['alUsar'] }>(o: T): T => ({
+  ...o,
+  ...(o.modificadores ? { modificadores: modsEnPies(o.modificadores) } : {}),
+  ...(o.alUsar ? { alUsar: { ...o.alUsar, modificadores: modsEnPies(o.alUsar.modificadores) } } : {}),
+});
+const velocidadEnPies = (e: Estado): Estado => ({
+  ...e,
+  personajes: e.personajes.map((p) => ({
+    ...p,
+    ...(p.velocidad != null ? { velocidad: pies(p.velocidad) } : {}),
+    ...(p.efectos ? { efectos: p.efectos.map((ef) => ({ ...ef, modificadores: modsEnPies(ef.modificadores) })) } : {}),
+  })),
+  objetos: e.objetos.map(conModsEnPies),
+  ...(e.biblioteca ? { biblioteca: e.biblioteca.map(conModsEnPies) } : {}),
+});
+
 /**
  * Pone al día un estado guardado con un modelo anterior. Los objetos y personajes de ejemplo toman los
  * datos nuevos de la semilla (armaduras, modificadores…) y conservan dónde están, cuántos hay y su estado.
  */
-export function migrar(guardado: Estado, semilla: Estado): Estado {
-  if ((guardado.version ?? 2) >= (semilla.version ?? 0)) return guardado;
+export function migrar(original: Estado, semilla: Estado): Estado {
+  if ((original.version ?? 2) >= (semilla.version ?? 0)) return original;
+  const guardado = (original.version ?? 2) < 5 ? velocidadEnPies(original) : original;
   const objSemilla = new Map(semilla.objetos.map((o) => [o.id, o]));
   const pjSemilla = new Map(semilla.personajes.map((p) => [p.id, p]));
   const viejo = (guardado.version ?? 2) < 3;

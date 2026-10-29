@@ -114,8 +114,8 @@ function Identidad({ p, cambiar }: Sec) {
           {TAMANOS.map((t) => <option key={t} value={t}>{capital(t)}</option>)}
         </select>
       </Campo>
-      <Campo label="Velocidad (m)" ayuda="Vacío: 9 m, o 7,5 m para enanos, medianos y gnomos">
-        <Numero valor={p.velocidad} min={0} paso={1.5} vacio="Auto" onCambio={(n) => cambiar({ velocidad: n })} />
+      <Campo label="Velocidad (pies)" ayuda="Vacío: 30 pies, o 25 para enanos, medianos y gnomos">
+        <Numero valor={p.velocidad} min={0} paso={5} vacio="Auto" onCambio={(n) => cambiar({ velocidad: n })} />
       </Campo>
       <Campo label="PX"><Numero valor={p.px} min={0} onCambio={(n) => cambiar({ px: n })} /></Campo>
       <Campo label="PV actuales / máximos">
@@ -342,7 +342,7 @@ function Resumen({ p }: { p: Personaje }) {
     ['CA', String(h.ca.total)],
     ['PV máximos', String(h.pvMax.total)],
     ['Iniciativa', conSigno(h.iniciativa.total)],
-    ['Velocidad', `${h.velocidad.caminar.total} m`],
+    ['Velocidad', `${h.velocidad.caminar.total} pies`],
     ['Competencia', conSigno(h.competencia.total)],
     ['Percepción pasiva', String(h.pasivas.percepcion.total)],
     ['CD de conjuros', h.conjuros ? String(h.conjuros.cd.total) : '—'],

@@ -468,7 +468,7 @@ function SeccionArmadura({ o, cambiar }: Sec) {
               {[0, 1, 2, 3, 4].map((n) => <option key={n} value={n}>{n === 0 ? 'No suma DES' : `+${n}`}</option>)}
             </select>
           </Campo>
-          <Campo label="FUE mínima" ayuda="Si no llega: −3 m"><Numero valor={a.fueMin} min={0} vacio="—" onCambio={(n) => fijar({ fueMin: n || undefined })} /></Campo>
+          <Campo label="FUE mínima" ayuda="Si no llega: −10 pies"><Numero valor={a.fueMin} min={0} vacio="—" onCambio={(n) => fijar({ fueMin: n || undefined })} /></Campo>
         </>
       )}
       <Campo label="Bono mágico" ayuda="+X a la CA"><Numero valor={o.bonoMagico} vacio="+0" onCambio={(n) => cambiar({ bonoMagico: n || undefined })} /></Campo>
@@ -642,7 +642,7 @@ const ATAJOS: [string, Modificador][] = [
   ['+1 ataque', { objetivo: 'ataque', valor: 1 }],
   ['+1 daño', { objetivo: 'dano', valor: 1 }],
   ['+5 Percepción pasiva', { objetivo: 'pasiva:percepcion', valor: 5 }],
-  ['+3 m velocidad', { objetivo: 'vel:caminar', valor: 3 }],
+  ['+10 pies de velocidad', { objetivo: 'vel:caminar', valor: 10 }],
   ['Resistencia', { objetivo: 'resistencia', texto: 'fuego' }],
   ['Visión en la oscuridad', { objetivo: 'sentido:oscuridad', valor: 18, fijar: true }],
 ];
@@ -754,8 +754,8 @@ function cambios(a: Hoja, b: Hoja): Cambio[] {
   num('CA', a.ca, b.ca);
   num('PV máximos', a.pvMax, b.pvMax);
   num('Iniciativa', a.iniciativa, b.iniciativa, true);
-  num('Velocidad', a.velocidad.caminar, b.velocidad.caminar, false, ' m');
-  for (const m of ['volar', 'nadar', 'trepar', 'excavar'] as const) num(`Velocidad (${m})`, a.velocidad[m], b.velocidad[m], false, ' m');
+  num('Velocidad', a.velocidad.caminar, b.velocidad.caminar, false, ' pies');
+  for (const m of ['volar', 'nadar', 'trepar', 'excavar'] as const) num(`Velocidad (${m})`, a.velocidad[m], b.velocidad[m], false, ' pies');
   num('Percepción pasiva', a.pasivas.percepcion, b.pasivas.percepcion);
   num('Investigación pasiva', a.pasivas.investigacion, b.pasivas.investigacion);
   num('Perspicacia pasiva', a.pasivas.perspicacia, b.pasivas.perspicacia);

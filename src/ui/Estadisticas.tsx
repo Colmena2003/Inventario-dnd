@@ -158,7 +158,7 @@ function Tarjeta({ h, onElegir }: { h: Hoja; onElegir: () => void }) {
       </div>
       {fila('Cuerpo a cuerpo', 'cuerpoACuerpo')}
       {fila('A distancia', 'distancia')}
-      <div className="est-fila"><span>Iniciativa · Velocidad</span><span><Num v={h.iniciativa} signo /> · <b title={desglose(h.velocidad.caminar)} className={claseCambio(h.velocidad.caminar)}>{m(h.velocidad.caminar.total)} m</b></span></div>
+      <div className="est-fila"><span>Iniciativa · Velocidad</span><span><Num v={h.iniciativa} signo /> · <b title={desglose(h.velocidad.caminar)} className={claseCambio(h.velocidad.caminar)}>{m(h.velocidad.caminar.total)} pies</b></span></div>
       {h.conjuros && <div className="est-fila"><span>Conjuros · CD / ataque</span><span><Num v={h.conjuros.cd} /> / <Num v={h.conjuros.ataque} signo /></span></div>}
       <div className="est-fila">
         <span>Estado</span>
@@ -237,7 +237,7 @@ function Comparativa({ hojas }: { hojas: Hoja[] }) {
     { t: 'Daño medio por golpe', v: (h) => { const a = mejorAtaque(h); return a ? Math.round(dañoMedio(a) * 10) / 10 : null; }, fmt: (n) => fmtNum(n), titulo: (h) => { const a = mejorAtaque(h); return a ? `${a.objeto.nombre}: ${a.dano}` : 'Sin arma'; } },
     { t: 'Iniciativa', v: (h) => h.iniciativa.total, fmt: conSigno, titulo: (h) => desglose(h.iniciativa) },
     { t: 'Percepción pasiva', v: (h) => h.pasivas.percepcion.total, titulo: (h) => desglose(h.pasivas.percepcion) },
-    { t: 'Velocidad', v: (h) => h.velocidad.caminar.total, fmt: (n) => `${m(n)} m`, titulo: (h) => desglose(h.velocidad.caminar) },
+    { t: 'Velocidad', v: (h) => h.velocidad.caminar.total, fmt: (n) => `${m(n)} pies`, titulo: (h) => desglose(h.velocidad.caminar) },
     { t: 'CD de conjuros', v: (h) => h.conjuros?.cd.total ?? null, titulo: (h) => (h.conjuros ? desglose(h.conjuros.cd) : 'No lanza conjuros') },
   ];
   return (
@@ -464,7 +464,7 @@ function Detalle({ h }: { h: Hoja }) {
         <p className="desglose">{desglose(h.ca)}</p>
         <div className="est-fila"><span>PV máximos</span><Num v={h.pvMax} /></div>
         {MOVIMIENTOS.filter(([k]) => h.velocidad[k].total > 0).map(([k, n]) => (
-          <div key={k} className="est-fila"><span>Velocidad · {n.toLowerCase()}</span><b className={claseCambio(h.velocidad[k])} title={desglose(h.velocidad[k])}>{m(h.velocidad[k].total)} m</b></div>
+          <div key={k} className="est-fila"><span>Velocidad · {n.toLowerCase()}</span><b className={claseCambio(h.velocidad[k])} title={desglose(h.velocidad[k])}>{m(h.velocidad[k].total)} pies</b></div>
         ))}
         {h.sentidos.map((s) => <div key={s.nombre} className="est-fila" title={s.origen}><span>{s.nombre}</span><b>{m(s.metros)} m</b></div>)}
         <div className="est-fila"><span>Resistencias</span><span className="txt">{h.resistencias.map((r) => r.texto).join(', ') || '—'}</span></div>

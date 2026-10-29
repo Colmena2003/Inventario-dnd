@@ -100,7 +100,7 @@ function Ficha({ p, h, avisar }: { p: Personaje; h: Hoja; avisar: Avisar }) {
 
       <div className="derivados">
         <div title={desglose(h.iniciativa)}><span>Iniciativa</span><b className={h.iniciativa.desv?.length ? 'desv' : ''}>{conSigno(h.iniciativa.total)}</b></div>
-        <div title={desglose(h.velocidad.caminar)}><span>Velocidad</span><b className={claseVel(h)}>{fmtKg(h.velocidad.caminar.total).replace(',0', '')} m</b></div>
+        <div title={desglose(h.velocidad.caminar)}><span>Velocidad</span><b className={claseVel(h)}>{fmtKg(h.velocidad.caminar.total).replace(',0', '')} pies</b></div>
         <div title={desglose(h.pasivas.percepcion)}><span>Percepción pas.</span><b>{h.pasivas.percepcion.total}</b></div>
         <div title={h.conjuros ? desglose(h.conjuros.cd) : 'No lanza conjuros'}><span>CD conjuros</span><b>{h.conjuros?.cd.total ?? '—'}</b></div>
         <div title={desglose(h.competencia)}><span>Competencia</span><b>{conSigno(h.competencia.total)}</b></div>
