@@ -6,6 +6,7 @@ import {
   EFECTOS_HAMBRE, estadoSaciedad, fmtKg, nombreDe, SACIEDAD_DESCANSO_LARGO, SACIEDAD_MAX,
 } from '../domain/reglas';
 import type { Objeto, Personaje } from '../domain/tipos';
+import { HORA } from '../domain/uso';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
 import { useEditor } from './editorCtx';
@@ -22,7 +23,7 @@ const GRUPOS: { id: string; titulo: string; subtipos: string[] }[] = [
 const FILTROS = [{ id: 'todo', t: 'Todo' }, { id: 'racion', t: 'Raciones' }, { id: 'plato', t: 'Platos' }, { id: 'bebida', t: 'Bebidas' }, { id: 'ingrediente', t: 'Ingredientes' }];
 
 export function Despensa({ avisar, busqueda }: { avisar: (texto: string, error?: boolean) => void; busqueda: string }) {
-  const { estado, comer, cambiarSaciedad, descansar } = useCofre();
+  const { estado, comer, cambiarSaciedad, descansar, pasarTiempo } = useCofre();
   const editor = useEditor();
   const comida = estado.objetos.filter((o) => o.categoria === 'Comida');
   const comestibles = comida.filter((o) => (o.saciedad ?? 0) > 0);
@@ -76,7 +77,14 @@ export function Despensa({ avisar, busqueda }: { avisar: (texto: string, error?:
         <div className="tiempo">
           <span className="k">Paso del tiempo · a toda la party</span>
           <div>
-            <button type="button" className="btn sec" onClick={() => { cambiarSaciedad(todos, -1); avisar('Pasa el tiempo: −1 de saciedad a todos'); }} title="En la mazmorra la saciedad baja 1 cada 30–90 minutos (lo decide el DM)">
+            <button
+              type="button" className="btn sec" title="En la mazmorra la saciedad baja 1 cada 30–90 minutos (lo decide el DM). También pasa 1 hora para los efectos temporales."
+              onClick={() => {
+                cambiarSaciedad(todos, -1);
+                const fin = pasarTiempo(HORA);
+                avisar(`Pasa el tiempo: −1 de saciedad a todos${fin.length ? ` · se acaba ${fin.join(', ')}` : ''}`);
+              }}
+            >
               Pasa el tiempo · −1
             </button>
             <button type="button" className="btn sec" onClick={() => descanso('corto')}>Descanso corto · −1</button>

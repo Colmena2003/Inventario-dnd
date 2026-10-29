@@ -6,6 +6,7 @@ import { describirMod } from '../domain/describir';
 import type { Duracion, Personaje, PlantillaEfecto } from '../domain/tipos';
 import { EFECTOS_COMUNES, HORA, MINUTO, RONDA, textoDuracion } from '../domain/uso';
 import { useCofre } from '../store/cofre';
+import { Capa } from './Capa';
 import { useEscape } from './Dialogos';
 import { CamposDuracion, Campo, EditorModificadores, Seccion } from './EditorObjeto';
 import { UI } from './iconos';
@@ -44,7 +45,7 @@ export function BloqueEfectos({ p, avisar }: { p: Personaje; avisar: (texto: str
         ))}
         <button type="button" className="chip chip-i efecto-anadir" onClick={() => setDialogo(true)}><Icono d={UI.mas} />Añadir</button>
       </div>
-      <div className="pasa-tiempo" role="group" aria-label="Pasar el tiempo de juego">
+      <div className="pasa-tiempo" role="group" aria-label="Pasar el tiempo de juego" title="Baja la duración de los efectos de toda la party. El hambre baja con «Pasa el tiempo» de la despensa.">
         <span>Pasa</span>
         {PASOS.map(([t, s]) => <button key={t} type="button" className="chip" onClick={() => pasar(t, s)}>{t}</button>)}
       </div>
@@ -74,7 +75,7 @@ function DialogoEfecto({ p, onCerrar, avisar }: { p: Personaje; onCerrar: () => 
   };
 
   return (
-    <>
+    <Capa>
       <div className="velo" onClick={onCerrar} />
       <section role="dialog" aria-modal="true" aria-labelledby="ef-t" className="panel editor dialogo-efecto">
         <Esquinas />
@@ -119,6 +120,6 @@ function DialogoEfecto({ p, onCerrar, avisar }: { p: Personaje; onCerrar: () => 
           <button type="button" className="btn pri" onClick={aplicar}>Aplicar efecto</button>
         </footer>
       </section>
-    </>
+    </Capa>
   );
 }

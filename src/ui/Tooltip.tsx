@@ -1,6 +1,6 @@
 // Ficha flotante de un objeto al pasar el ratón por su ranura.
 
-import { createContext, useCallback, useContext, useState, type ReactNode, type RefObject } from 'react';
+import { createContext, useCallback, useContext, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { DES_MAX_POR_TIPO, NOMBRE_TIPO_ARMADURA } from '../domain/catalogo';
 import { describirMod, nombrePropiedad } from '../domain/describir';
 import { objetoActivo } from '../domain/efectos';
@@ -47,6 +47,13 @@ export function TooltipProvider({ lienzo, escala, children }: { lienzo: RefObjec
 const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function FichaObjeto({ objeto: o0, left, top }: Pos) {
+  // Si con todo su contenido no cabe hasta abajo, sube lo justo
+  const ref = useRef<HTMLDivElement>(null);
+  const [arriba, setArriba] = useState(top);
+  useLayoutEffect(() => {
+    const alto = ref.current?.offsetHeight ?? 0;
+    setArriba(Math.max(84, Math.min(top, 1072 - alto)));
+  }, [top, o0.id]);
   const { estado } = useCofre();
   const o = estado.objetos.find((x) => x.id === o0.id) ?? o0;
   const dueno = o.propietario.tipo === 'personaje' ? estado.personajes.find((p) => p.id === (o.propietario as { id: string }).id) : undefined;
@@ -63,7 +70,7 @@ function FichaObjeto({ objeto: o0, left, top }: Pos) {
   const [titEfecto, ...restoEfecto] = (o.efectos ?? '').split(/(?<=\.)\s/);
 
   return (
-    <div role="tooltip" className={`panel tooltip ${CLASE_RAREZA[o.rareza]}`} style={{ left, top }}>
+    <div ref={ref} role="tooltip" className={`panel tooltip ${CLASE_RAREZA[o.rareza]}`} style={{ left, top: arriba }}>
       <Esquinas solo="arriba" />
       <div className="tt-cab">
         <Ranura objeto={{ ...o, cantidad: 1 }} extra="hov" aria-hidden="true" />
@@ -134,11 +141,14 @@ function FichaObjeto({ objeto: o0, left, top }: Pos) {
       {o.ranuraEquipo && !o.equipadoEn && (
         <div className="tt-fila"><span>Se equipa en</span><span>{NOMBRE_RANURA[o.ranuraEquipo]}</span></div>
       )}
-      {usable(o) && (
-        <div className="tt-usar">
-          {o.requiereSintonizacion && !o.sintonizado ? 'Doble clic para sintonizar' : o.categoria === 'Comida' ? 'Doble clic para comer' : o.cargasMax ? 'Doble clic para usar · gasta 1 carga' : 'Doble clic para usar · gasta 1'}
-        </div>
-      )}
+      <div className="tt-usar">
+        {[
+          'Clic: ficha',
+          o.requiereSintonizacion && (!o.sintonizado || !usable(o)) ? `Doble clic: ${o.sintonizado ? 'desintonizar' : 'sintonizar'}`
+            : usable(o) ? `Doble clic: ${o.categoria === 'Comida' ? 'comer' : o.cargasMax ? 'usar (1 carga)' : 'usar (gasta 1)'}` : '',
+          'Clic derecho: más opciones',
+        ].filter(Boolean).join(' · ')}
+      </div>
       <div className="tt-pie">
         <span>{dueno ? <>Lo tiene <b>{dueno.nombre}</b></> : <b>{nombreDe(estado, o.propietario)}</b>}</span>
         <span style={{ display: 'flex', gap: 14 }}>

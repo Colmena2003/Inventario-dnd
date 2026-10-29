@@ -10,6 +10,7 @@ import { CLASE_RAREZA, conSigno, modificador } from '../domain/reglas';
 import type { Actitud, BotinCriatura, Caracteristica, Criatura, HabilidadCriatura, TipoHabilidad } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useAvisar } from './avisos';
+import { Capa } from './Capa';
 import { useDetalle } from './DetalleObjeto';
 import { useEscape } from './Dialogos';
 import { Campo, Numero, Seccion } from './EditorObjeto';
@@ -157,7 +158,7 @@ function FichaCriatura({ c, onCerrar, onEditar }: { c: Criatura; onCerrar: () =>
   );
 
   return (
-    <>
+    <Capa>
       <div className="velo" onClick={onCerrar} />
       <section role="dialog" aria-modal="true" aria-labelledby="cr-t" className={`panel dialogo cr ${claseActitud(c.actitud)}`}>
         <Esquinas />
@@ -279,7 +280,7 @@ function FichaCriatura({ c, onCerrar, onEditar }: { c: Criatura; onCerrar: () =>
           </footer>
         </div>
       </section>
-    </>
+    </Capa>
   );
 }
 
@@ -314,7 +315,7 @@ function EditorCriatura({ inicial, onCerrar, onGuardada, onEliminada }: {
   };
 
   return (
-    <>
+    <Capa>
       <div className="velo" onClick={onCerrar} />
       <section role="dialog" aria-modal="true" aria-labelledby="crf-t" className="panel editor editor-criatura">
         <Esquinas />
@@ -448,6 +449,6 @@ function EditorCriatura({ inicial, onCerrar, onGuardada, onEliminada }: {
           <button type="button" className="btn pri" onClick={guardar}>{inicial ? 'Guardar cambios' : 'Añadir al bestiario'}</button>
         </footer>
       </section>
-    </>
+    </Capa>
   );
 }

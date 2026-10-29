@@ -24,15 +24,18 @@ import { useEditor } from './editorCtx';
 export function Grupal({ busqueda, onVerFicha }: { busqueda: string; onVerFicha: (personajeId: string) => void }) {
   const { estado } = useCofre();
   const n = estado.personajes.length;
-  const anchoCol = Math.min(352, Math.floor((1772 - 300 - 16 * n) / Math.max(n, 1)));
-  const slot = Math.min(44, Math.floor((anchoCol - 16 - 4 - 6 * 4) / 7));
+  // Con pocos personajes las columnas y las ranuras crecen, y el alijo ocupa lo que sobra
+  const maxCol = n <= 2 ? 500 : n === 3 ? 420 : 352;
+  const anchoCol = Math.min(maxCol, Math.floor((1772 - 300 - 16 * n) / Math.max(n, 1)));
+  const slot = Math.min(n <= 2 ? 52 : n === 3 ? 48 : 44, Math.floor((anchoCol - 16 - 4 - 6 * 4) / 7));
+  const anchoAlijo = 1772 - n * (anchoCol + 16);
 
   return (
     <main className="grupal" style={{ '--slot': `${slot}px` } as CSSProperties}>
       {estado.personajes.map((p, i) => (
         <Columna key={p.id} p={p} indice={i} ancho={anchoCol} busqueda={busqueda} onVerFicha={onVerFicha} />
       ))}
-      <Alijo busqueda={busqueda} />
+      <Alijo busqueda={busqueda} ancho={anchoAlijo} slot={slot} />
     </main>
   );
 }
@@ -184,7 +187,9 @@ const FILTROS: { t: string; cats: Categoria[] | null }[] = [
   { t: 'Materiales', cats: ['Materiales'] },
 ];
 
-function Alijo({ busqueda }: { busqueda: string }) {
+function Alijo({ busqueda, ancho, slot }: { busqueda: string; ancho: number; slot: number }) {
+  // Tantas ranuras por fila como quepan en el ancho que le queda
+  const porFila = Math.max(6, Math.floor((ancho - 20) / (slot + 4)));
   const { estado } = useCofre();
   const editor = useEditor();
   const { arrastre } = useInteraccion(busqueda);
@@ -202,7 +207,7 @@ function Alijo({ busqueda }: { busqueda: string }) {
   const desdeOtro = arrastre && arrastre.objeto.propietario.tipo !== 'alijo';
 
   return (
-    <aside className="panel alijo" aria-label="Alijo de la party" data-drop="alijo">
+    <aside className="panel alijo" aria-label="Alijo de la party" data-drop="alijo" style={{ width: ancho, '--por-fila': porFila } as CSSProperties}>
       <Esquinas />
       {desdeOtro && (
         <>
@@ -226,7 +231,7 @@ function Alijo({ busqueda }: { busqueda: string }) {
         </button>
       </div>
       <RejillaObjetos
-        className="rejilla alj" aria-label="Objetos del alijo" objetos={visibles} dueno={{ tipo: 'alijo' }} minimo={78} porFila={6}
+        className="rejilla alj" aria-label="Objetos del alijo" objetos={visibles} dueno={{ tipo: 'alijo' }} minimo={porFila * 13} porFila={porFila}
         busqueda={busqueda} onDoble={onDoble} porCelda={filtro === 0} valido
       />
       <footer>

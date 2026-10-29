@@ -8,6 +8,7 @@ import {
 import { cargaMaxDe, fmtKg, pesoAlijoKg, pesoPersonajeKg, totalEnPo, tramoCarga } from '../domain/reglas';
 import type { Monedas as TMonedas, Personaje } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
+import { Capa } from './Capa';
 import { useEscape } from './Dialogos';
 import { UI } from './iconos';
 import { Esquinas, fmtNum, Icono, iniciales, Moneda, MONEDAS } from './piezas';
@@ -280,7 +281,7 @@ function Carga() {
 function Dialogo({ titulo, onCerrar, children, ancho = 580 }: { titulo: string; onCerrar: () => void; children: React.ReactNode; ancho?: number }) {
   useEscape(onCerrar);
   return (
-    <>
+    <Capa>
       <div className="velo" onClick={onCerrar} />
       <section role="dialog" aria-modal="true" aria-label={titulo} className="panel dialogo" style={{ width: ancho }}>
         <Esquinas />
@@ -290,7 +291,7 @@ function Dialogo({ titulo, onCerrar, children, ancho = 580 }: { titulo: string; 
         </header>
         {children}
       </section>
-    </>
+    </Capa>
   );
 }
 
