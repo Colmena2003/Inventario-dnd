@@ -105,6 +105,12 @@ export interface Personaje {
   caExtra?: number;
   /** Efectos temporales activos. */
   efectos?: EfectoTemporal[];
+  /** Espacios de conjuro gastados por nivel (índice 0 = nivel 1). Se recuperan con un descanso largo. */
+  espaciosUsados?: number[];
+  /** Espacios máximos puestos a mano (subclases como el Caballero arcano); si faltan, salen de la clase. */
+  espaciosMax?: number[];
+  /** Espacios de magia del pacto (brujo) gastados. Se recuperan con un descanso corto. */
+  pactoUsados?: number;
   /** Lo ha cambiado un jugador en el editor: la migración de la semilla ya no lo pisa. */
   editado?: boolean;
 }
@@ -210,6 +216,91 @@ export interface Objeto {
   propietario: Propietario;
   equipadoEn: Equipado | null;
   creadoPor?: string;
+  /** Ficha de la biblioteca de la que sale (biblioteca.ts). */
+  fichaId?: string;
+  /** Celda que ocupa en la rejilla de su dueño; sin ella, va al primer hueco. */
+  posicion?: number;
+}
+
+/** Campos que describen un objeto y no dependen de quién lo tiene ni cuántos hay: lo que guarda la biblioteca. */
+export const CAMPOS_FICHA = [
+  'nombre', 'imagenUrl', 'icono', 'tipo', 'categoria', 'subtipo', 'rareza', 'pesoKg', 'valorPo', 'requiereSintonizacion',
+  'ranuraEquipo', 'funcionaSinEquipar', 'modificadores', 'tipoArma', 'dado', 'dadoVersatil', 'tipoDano', 'bonoMagico', 'bonoAtaque',
+  'bonoDano', 'propiedades', 'otrasPropiedades', 'rango', 'critico', 'danosExtra', 'armadura', 'bonoCa', 'cargasMax', 'recarga',
+  'efectos', 'alUsar', 'descripcion', 'notas', 'saciedad',
+] as const;
+
+export type DatosFicha = Pick<Objeto, (typeof CAMPOS_FICHA)[number]>;
+
+/** Un objeto conocido por la party, lo tenga alguien o no. Se guarda solo al crear o editar objetos. */
+export interface FichaObjeto extends DatosFicha {
+  id: string;
+  creada: number;
+  actualizada: number;
+  creadaPor?: string;
+  /** Quién lo tenía la última vez que alguien lo llevaba: «Murdok», «Alijo de la party». */
+  ultimoDueno?: string;
+}
+
+// ── Bestiario ──────────────────────────────────────────────────────
+
+export type Actitud = 'agresiva' | 'no agresiva' | 'desconocida';
+export type TipoHabilidad = 'rasgo' | 'accion' | 'reaccion' | 'legendaria';
+
+export interface HabilidadCriatura {
+  id: string;
+  tipo: TipoHabilidad;
+  /** Sin nombre ni descripción: la party sabe que tiene algo, pero no qué. */
+  nombre?: string;
+  /** «+5, 2d6+3 perforante» */
+  detalle?: string;
+  descripcion?: string;
+}
+
+/** Lo que suelta: una ficha de la biblioteca o un nombre libre. */
+export interface BotinCriatura {
+  fichaId?: string;
+  nombre?: string;
+  /** «1», «2d4» */
+  cantidad?: string;
+  nota?: string;
+}
+
+/** Una criatura con la que se ha cruzado la party. Lo que no se sabe se queda vacío («sin descubrir»). */
+export interface Criatura {
+  id: string;
+  nombre: string;
+  actitud: Actitud;
+  imagenUrl?: string;
+  tipo?: string;
+  tamano?: string;
+  alineamiento?: string;
+  /** Valor de desafío: «1/2», «3». */
+  desafio?: string;
+  ca?: number;
+  /** «armadura natural» */
+  caNota?: string;
+  pv?: number;
+  pvDados?: string;
+  velocidad?: string;
+  px?: number;
+  caracteristicas?: Partial<Record<Caracteristica, number>>;
+  salvaciones?: string;
+  pericias?: string;
+  resistencias?: string;
+  inmunidades?: string;
+  vulnerabilidades?: string;
+  sentidos?: string;
+  idiomas?: string;
+  habilidades: HabilidadCriatura[];
+  botin: BotinCriatura[];
+  lugar?: string;
+  notas?: string;
+  encuentros?: number;
+  derrotadas?: number;
+  creada: number;
+  actualizada: number;
+  creadaPor?: string;
 }
 
 export interface Movimiento {
@@ -232,4 +323,6 @@ export interface Estado {
   objetos: Objeto[];
   movimientos: Movimiento[];
   registroMonedas?: { id: string; fecha: number; actor: string; texto: string }[];
+  biblioteca?: FichaObjeto[];
+  bestiario?: Criatura[];
 }

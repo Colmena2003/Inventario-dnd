@@ -89,3 +89,45 @@
 .pv-acciones .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 16px; }
 .btn.pv-dano { color: #ffd6d3; background: #2b0e0d; border: 1px solid #8e2420; }
 .btn.pv-cura { color: #d6f0b4; background: #142010; border: 1px solid #4d7a2e; }
+
+/* Filtros de búsqueda de la barra */
+.filtros-ancla { position: relative; display: inline-flex; }
+.rbtn.activo { border-color: var(--oro); color: var(--oro-claro); box-shadow: 0 0 10px rgba(226, 194, 122, .25); }
+.filtros-n { position: absolute; right: -4px; top: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--oro-claro); color: #1a1206; font: 700 11px/18px var(--f-datos); text-align: center; }
+.filtros-panel { position: absolute; right: 0; top: calc(100% + 10px); z-index: 45; width: 560px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; animation: rise .14s ease-out; }
+.filtros-panel .k { font: 600 12px var(--f-datos); letter-spacing: .12em; text-transform: uppercase; color: #a99d86; }
+.filtros-panel .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.filtros-panel .chip { height: 30px; padding: 0 12px; font-size: 13px; }
+.filtros-panel footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 10px; border-top: 1px solid #2c2419; font: 13px var(--f-datos); color: var(--texto-3); }
+.filtros-panel .chip:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Espacios de conjuro */
+.esp-lista { display: flex; flex-direction: column; gap: 6px; }
+.esp-fila { display: flex; align-items: center; gap: 10px; font: 14px var(--f-datos); }
+.esp-nivel { width: 70px; flex: none; font: 600 13px var(--f-titulo); color: #d8c38f; }
+.esp-rombos { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; }
+.esp-rombo { width: 14px; height: 14px; padding: 0; transform: rotate(45deg); border: 1px solid #8fc3ff; background: transparent; cursor: pointer; }
+.esp-rombo.lleno { background: #55a3ff; box-shadow: 0 0 8px rgba(85, 163, 255, .55); }
+.esp-rombo:hover { border-color: #e2c27a; }
+.esp-quedan { color: var(--texto-3); font-size: 13px; }
+
+/* La ficha se desplaza si no cabe (muchos rasgos, efectos o espacios) */
+.ficha { overflow-y: auto; scrollbar-width: thin; scrollbar-color: #4d3e25 transparent; }
+.ficha > * { flex-shrink: 0; }
+
+/* Formulario de criatura (estilo de los editores) */
+.editor.editor-criatura .ed-cuerpo { grid-template-columns: 1fr 420px; }
+.editor-criatura .cr-carta { height: 520px; pointer-events: none; }
+.crf-imagen { width: 100%; height: 220px; }
+.habs-crf { display: flex; flex-direction: column; gap: 10px; }
+.hab-crf { display: grid; grid-template-columns: 150px 1fr 260px 40px; gap: 8px; align-items: center; padding: 10px; border: 1px solid #2c2419; background: rgba(0, 0, 0, .2); }
+.hab-crf textarea { grid-column: 1 / -1; }
+.botin-crf { display: grid; grid-template-columns: 44px 1fr 120px 220px 40px; gap: 8px; align-items: center; }
+.botin-crf .slot { width: 44px; height: 44px; cursor: default; }
+.botin-crf .ayuda { grid-column: 2 / -1; margin-top: -4px; }
+.cr-botin-mini .slot img, .cr-botin-item .slot img, .botin-crf .slot img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Despensa: soltar comida sobre un personaje */
+.fila-hambre.drop-ok { border-color: var(--ok) !important; box-shadow: 0 0 0 1px var(--ok), 0 0 18px rgba(115, 226, 129, .35); }
+.fila-hambre.drop-no { border-color: var(--no) !important; box-shadow: 0 0 0 1px var(--no), 0 0 18px rgba(239, 90, 85, .35); }
+.espacios-pj { grid-template-columns: repeat(9, 1fr); }

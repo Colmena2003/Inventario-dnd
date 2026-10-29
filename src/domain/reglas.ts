@@ -208,7 +208,8 @@ export const pxNivelActual = (nivel: number) => PX_NIVEL[Math.max(1, Math.min(20
 
 // ── Mover objetos ──────────────────────────────────────────────────
 
-export type Destino = { propietario: Propietario; equipar?: Equipado };
+/** Adónde va un objeto. `posicion` es la celda de la rejilla del dueño en la que se suelta. */
+export type Destino = { propietario: Propietario; equipar?: Equipado; posicion?: number };
 
 export type Validacion =
   | { ok: true; pesoNuevo?: number; max?: number }
@@ -267,10 +268,43 @@ const apilables = (a: Objeto, b: Objeto) =>
 let contador = 0;
 export const nuevoId = (prefijo: string) => `${prefijo}-${Date.now().toString(36)}-${(contador++).toString(36)}`;
 
+// ── Rejilla ────────────────────────────────────────────────────────
+
+/**
+ * Coloca los objetos en las celdas de una rejilla: cada uno en su `posicion` si la tiene y está libre, y
+ * el resto en los primeros huecos. Siempre queda al menos una celda libre al final y filas completas.
+ */
+export function rejilla<T extends { posicion?: number }>(lista: T[], minimo: number, porFila: number): (T | undefined)[] {
+  const fijos = new Map<number, T>();
+  const sueltos: T[] = [];
+  for (const o of lista) {
+    const p = o.posicion;
+    if (p !== undefined && Number.isInteger(p) && p >= 0 && !fijos.has(p)) fijos.set(p, o);
+    else sueltos.push(o);
+  }
+  const necesarias = Math.max(Math.max(-1, ...fijos.keys()) + 1, lista.length) + 1;
+  const celdas: (T | undefined)[] = Array.from({ length: Math.max(minimo, Math.ceil(necesarias / porFila) * porFila) }, (_, i) => fijos.get(i));
+  let i = 0;
+  for (const o of sueltos) {
+    while (celdas[i]) i++;
+    celdas[i] = o;
+  }
+  return celdas;
+}
+
+/** Fija la posición actual de todo lo que tiene un dueño en la mano, para poder mover uno sin descolocar al resto. */
+function fijarPosiciones(objetos: Objeto[], p: Propietario): Objeto[] {
+  const donde = new Map<string, number>();
+  rejilla(objetos.filter((o) => esDe(o, p) && !o.equipadoEn), 0, 1).forEach((o, i) => o && donde.set(o.id, i));
+  return objetos.map((o) => (donde.has(o.id) ? { ...o, posicion: donde.get(o.id) } : o));
+}
+
 /**
  * Mueve `cantidad` unidades de un objeto. Si la pila se divide, la parte movida es un objeto nuevo.
- * Al llegar, se junta con una pila igual del destino. Si se equipa en una ranura ocupada,
- * lo que había vuelve al inventario del mismo personaje. Cambiar de dueño quita la sintonización.
+ * Sin `posicion`, al llegar se junta con una pila igual del destino o va al primer hueco. Con `posicion`
+ * va a esa celda: se junta con lo que haya si es igual, se intercambia si lo mueve su dueño entero, y si
+ * no, busca hueco. Si se equipa en una ranura ocupada, lo que había vuelve al inventario del mismo
+ * personaje. Cambiar de dueño quita la sintonización.
  */
 export function moverObjeto(e: Estado, objetoId: string, destino: Destino, actor: string, cantidad?: number): Estado {
   const v = validarMovimiento(e, objetoId, destino, cantidad);
@@ -278,39 +312,60 @@ export function moverObjeto(e: Estado, objetoId: string, destino: Destino, actor
   const o = e.objetos.find((x) => x.id === objetoId)!;
   const n = cantidad ?? o.cantidad;
   const cambiaDueno = !mismoPropietario(o.propietario, destino.propietario);
+  const pos = destino.equipar ? undefined : destino.posicion;
   let objetos = e.objetos.slice();
 
   // Quita lo que ocupaba la ranura de destino
   if (destino.equipar && destino.propietario.tipo === 'personaje') {
     const ocupante = equipadoEn(e, destino.propietario.id, destino.equipar.ranura, destino.equipar.indice);
     if (ocupante && ocupante.id !== o.id) {
-      objetos = objetos.map((x) => (x.id === ocupante.id ? { ...x, equipadoEn: null } : x));
+      objetos = objetos.map((x) => (x.id === ocupante.id ? { ...x, equipadoEn: null, posicion: undefined } : x));
     }
     // Un arma a dos manos libera la mano secundaria
     const { ranura, indice } = destino.equipar;
     const secundaria = esPar(ranura) && indice === 0 && aDosManos(o) ? equipadoEn(e, destino.propietario.id, ranura, 1) : undefined;
     if (secundaria && secundaria.id !== o.id) {
-      objetos = objetos.map((x) => (x.id === secundaria.id ? { ...x, equipadoEn: null } : x));
+      objetos = objetos.map((x) => (x.id === secundaria.id ? { ...x, equipadoEn: null, posicion: undefined } : x));
     }
   }
 
+  if (pos !== undefined) objetos = fijarPosiciones(objetos, destino.propietario);
+  const d = objetos.find((x) => x.id === objetoId)!;
+  const ocupante = pos === undefined ? undefined : objetos.find((x) => x.id !== d.id && esDe(x, destino.propietario) && !x.equipadoEn && x.posicion === pos);
+  const entera = n === d.cantidad;
+  // Soltarlo donde ya estaba no cambia nada
+  if (!cambiaDueno && !destino.equipar && !d.equipadoEn && (pos === undefined || (d.posicion === pos && entera))) return e;
+
   const movido: Objeto = {
-    ...o,
-    id: n < o.cantidad ? nuevoId('o') : o.id,
+    ...d,
+    id: entera ? d.id : nuevoId('o'),
     cantidad: n,
     propietario: destino.propietario,
     equipadoEn: destino.equipar ?? null,
-    sintonizado: cambiaDueno ? false : o.sintonizado && !!destino.equipar,
+    sintonizado: cambiaDueno ? false : d.sintonizado && !!destino.equipar,
+    posicion: pos,
   };
 
-  objetos = n < o.cantidad
-    ? objetos.map((x) => (x.id === o.id ? { ...x, cantidad: x.cantidad - n } : x))
-    : objetos.filter((x) => x.id !== o.id);
+  objetos = entera
+    ? objetos.filter((x) => x.id !== d.id)
+    : objetos.map((x) => (x.id === d.id ? { ...x, cantidad: x.cantidad - n } : x));
 
-  const pila = movido.equipadoEn ? undefined : objetos.find((x) => esDe(x, destino.propietario) && apilables(x, movido));
-  objetos = pila
-    ? objetos.map((x) => (x.id === pila.id ? { ...x, cantidad: x.cantidad + n } : x))
-    : [...objetos, movido];
+  let pila: Objeto | undefined;
+  if (!movido.equipadoEn) {
+    pila = pos !== undefined
+      ? (ocupante && apilables(ocupante, movido) ? ocupante : undefined)
+      : objetos.find((x) => esDe(x, destino.propietario) && apilables(x, movido));
+  }
+  if (pila) {
+    objetos = objetos.map((x) => (x.id === pila!.id ? { ...x, cantidad: x.cantidad + n } : x));
+  } else {
+    if (ocupante) {
+      // Se cambian de sitio si su dueño mueve la pila entera; si no, lo nuevo busca hueco
+      if (!cambiaDueno && !d.equipadoEn && entera) objetos = objetos.map((x) => (x.id === ocupante.id ? { ...x, posicion: d.posicion } : x));
+      else movido.posicion = undefined;
+    }
+    objetos = [...objetos, movido];
+  }
 
   const movimientos = cambiaDueno
     ? [{
@@ -320,6 +375,40 @@ export function moverObjeto(e: Estado, objetoId: string, destino: Destino, actor
     : e.movimientos;
 
   return { ...e, objetos, movimientos };
+}
+
+export type OrdenInventario = 'rareza' | 'categoria' | 'valor' | 'peso' | 'nombre';
+
+export const ORDENES: { id: OrdenInventario; texto: string }[] = [
+  { id: 'rareza', texto: 'Rareza' }, { id: 'categoria', texto: 'Tipo' }, { id: 'valor', texto: 'Valor' }, { id: 'peso', texto: 'Peso' }, { id: 'nombre', texto: 'Nombre' },
+];
+
+const ORDEN_RAREZA: Rareza[] = ['artefacto', 'legendario', 'muy raro', 'raro', 'poco común', 'común'];
+const ORDEN_CATEGORIA = ['Armas', 'Armaduras', 'Pociones', 'Pergaminos', 'Materiales', 'Comida', 'Llaves/misión', 'Varios'];
+
+/** Junta las pilas iguales del inventario (lo no equipado) de un dueño y las coloca en orden desde la primera celda. */
+export function ordenarInventario(e: Estado, p: Propietario, orden: OrdenInventario): Estado {
+  const pilas: Objeto[] = [];
+  for (const o of e.objetos.filter((x) => esDe(x, p) && !x.equipadoEn)) {
+    const igual = pilas.find((x) => apilables(x, o));
+    if (igual) igual.cantidad += o.cantidad;
+    else pilas.push({ ...o });
+  }
+  const nombre = (a: Objeto, b: Objeto) => a.nombre.localeCompare(b.nombre, 'es');
+  const rareza = (a: Objeto, b: Objeto) => ORDEN_RAREZA.indexOf(a.rareza) - ORDEN_RAREZA.indexOf(b.rareza);
+  const por: Record<OrdenInventario, (a: Objeto, b: Objeto) => number> = {
+    rareza: (a, b) => rareza(a, b) || nombre(a, b),
+    categoria: (a, b) => ORDEN_CATEGORIA.indexOf(a.categoria) - ORDEN_CATEGORIA.indexOf(b.categoria) || rareza(a, b) || nombre(a, b),
+    valor: (a, b) => b.valorPo * b.cantidad - a.valorPo * a.cantidad || nombre(a, b),
+    peso: (a, b) => b.pesoKg * b.cantidad - a.pesoKg * a.cantidad || nombre(a, b),
+    nombre,
+  };
+  pilas.sort(por[orden]).forEach((o, i) => { o.posicion = i; });
+  const quedan = new Map(pilas.map((o) => [o.id, o]));
+  return {
+    ...e,
+    objetos: e.objetos.filter((o) => !(esDe(o, p) && !o.equipadoEn) || quedan.has(o.id)).map((o) => quedan.get(o.id) ?? o),
+  };
 }
 
 // ── Presentación ───────────────────────────────────────────────────

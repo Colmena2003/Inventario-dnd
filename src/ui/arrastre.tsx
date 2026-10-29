@@ -1,5 +1,7 @@
 // Arrastrar y soltar con eventos de puntero. Los destinos se marcan con data-drop:
 //   "alijo" · "pj:<id>" (inventario) · "pj:<id>:<ranura>:<indice>" (ranura de equipo)
+//   "alijo#<celda>" · "pj:<id>#<celda>" (una celda concreta de la rejilla) · "comer:<id>" (darle de comer)
+// Pulsar y soltar sin mover es un clic: llama a `alTocar`.
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode, type PointerEvent as RPE } from 'react';
 import { createPortal } from 'react-dom';
@@ -7,7 +9,8 @@ import type { Destino } from '../domain/reglas';
 import type { Objeto, TipoRanura } from '../domain/tipos';
 import { Ranura } from './piezas';
 
-export type Objetivo = { clave: string; destino: Destino };
+/** Dónde se suelta: un destino de movimiento o, en la despensa, el personaje que se lo come. */
+export type Objetivo = { clave: string; destino: Destino | null; comer?: string };
 
 export interface Arrastre {
   objeto: Objeto;
@@ -21,33 +24,41 @@ export interface Arrastre {
 
 interface Ctx {
   arrastre: Arrastre | null;
-  empezar: (e: RPE, objeto: Objeto) => void;
+  empezar: (e: RPE, objeto: Objeto, alTocar?: () => void) => void;
 }
 
 const C = createContext<Ctx>({ arrastre: null, empezar: () => {} });
 export const useArrastre = () => useContext(C);
 
 export function parsearDestino(clave: string): Destino | null {
-  if (clave === 'alijo') return { propietario: { tipo: 'alijo' } };
-  const [t, id, ranura, indice] = clave.split(':');
+  const [base, celda] = clave.split('#');
+  const posicion = celda !== undefined && celda !== '' ? Number(celda) : undefined;
+  if (base === 'alijo') return { propietario: { tipo: 'alijo' }, posicion };
+  const [t, id, ranura, indice] = base.split(':');
   if (t !== 'pj' || !id) return null;
   return {
     propietario: { tipo: 'personaje', id },
     equipar: ranura ? { ranura: ranura as TipoRanura, indice: Number(indice) } : undefined,
+    posicion: ranura ? undefined : posicion,
   };
 }
+
+/** Dueño de una clave de destino sin la celda: "pj:<id>#3" → "pj:<id>". */
+export const baseDe = (clave: string) => clave.split('#')[0];
+export const celdaDe = (clave: string) => { const c = clave.split('#')[1]; return c === undefined ? undefined : Number(c); };
 
 function objetivoEn(x: number, y: number): { objetivo: Objetivo | null; celda: Element | null } {
   const el = document.elementFromPoint(x, y);
   const zona = el?.closest('[data-drop]');
   const clave = zona?.getAttribute('data-drop');
+  if (clave?.startsWith('comer:')) return { objetivo: { clave, destino: null, comer: clave.slice(6) }, celda: el };
   const destino = clave ? parsearDestino(clave) : null;
   return { objetivo: clave && destino ? { clave, destino } : null, celda: el };
 }
 
 export function ArrastreProvider({ escala, onSoltar, children }: {
   escala: number;
-  onSoltar: (objeto: Objeto, destino: Destino, dividir: boolean) => void;
+  onSoltar: (objeto: Objeto, objetivo: Objetivo, dividir: boolean) => void;
   children: ReactNode;
 }) {
   const [arrastre, setArrastre] = useState<Arrastre | null>(null);
@@ -60,7 +71,7 @@ export function ArrastreProvider({ escala, onSoltar, children }: {
     setArrastre(a);
   };
 
-  const empezar = useCallback((e: RPE, objeto: Objeto) => {
+  const empezar = useCallback((e: RPE, objeto: Objeto, alTocar?: () => void) => {
     if (e.button !== 0) return;
     const x0 = e.clientX, y0 = e.clientY;
     let activo = false;
@@ -74,7 +85,8 @@ export function ArrastreProvider({ escala, onSoltar, children }: {
       limpiar();
       const a = ref.current;
       fijar(null);
-      if (activo && a?.objetivo) soltarRef.current(a.objeto, a.objetivo.destino, ev.shiftKey);
+      if (activo && a?.objetivo) soltarRef.current(a.objeto, a.objetivo, ev.shiftKey);
+      else if (!activo) alTocar?.();
     };
     const tecla = (ev: KeyboardEvent) => {
       if (ev.key === 'Escape') {

@@ -1,19 +1,25 @@
 // Piezas compartidas por todas las pantallas: barra superior y barra lateral de retratos.
 
-import { cargaMaxDe, estadoSaciedad, pesoPersonajeKg, SACIEDAD_MAX } from '../domain/reglas';
+import { useEffect, useRef, useState } from 'react';
+import { cuantosFiltros, RASGOS, SIN_FILTROS, type Filtros } from '../domain/filtros';
+import { cargaMaxDe, CLASE_RAREZA, estadoSaciedad, pesoPersonajeKg, SACIEDAD_MAX } from '../domain/reglas';
+import type { Categoria, Rareza } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
 import { useEditorPersonaje } from './EditorPersonaje';
+import { useFiltros } from './filtrosCtx';
 import { UI } from './iconos';
 import { fmt1, fmtNum, iniciales, Icono, Moneda, MONEDAS } from './piezas';
 
 /** Pestañas de la barra, más «monedas», a la que se llega pulsando el tesoro. */
-export type Pestana = 'grupal' | 'individual' | 'estadisticas' | 'crafteo' | 'despensa' | 'monedas';
+export type Pestana = 'grupal' | 'individual' | 'estadisticas' | 'biblioteca' | 'bestiario' | 'crafteo' | 'despensa' | 'monedas';
 
-export const PESTANAS: { id: Pestana; label: string; d: string }[] = [
-  { id: 'grupal', label: 'Inventario grupal', d: 'M3 11h18v9H3zM3 11a9 6 0 0 1 18 0M10.5 13h3v3.5h-3z' },
-  { id: 'individual', label: 'Inventarios individuales', d: 'M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5' },
+export const PESTANAS: { id: Pestana; label: string; titulo?: string; d: string }[] = [
+  { id: 'grupal', label: 'Grupal', titulo: 'Inventario grupal', d: 'M3 11h18v9H3zM3 11a9 6 0 0 1 18 0M10.5 13h3v3.5h-3z' },
+  { id: 'individual', label: 'Individual', titulo: 'Inventarios individuales', d: 'M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5' },
   { id: 'estadisticas', label: 'Estadísticas', d: 'M12 3l8 4.6v8.8L12 21l-8-4.6V7.6zM12 8l4 2.3v4.4L12 17l-4-2.3v-4.4z' },
+  { id: 'biblioteca', label: 'Biblioteca', titulo: 'Biblioteca de objetos', d: UI.biblioteca },
+  { id: 'bestiario', label: 'Bestiario', d: UI.calavera },
   // Crafteo vuelve cuando su pantalla esté hecha:
   // { id: 'crafteo', label: 'Crafteo', d: 'M13 4l7 7-2.5 2.5-7-7zM10.5 9.5L3 17l3 3 7.5-7.5' },
   { id: 'despensa', label: 'Despensa', d: 'M3 11h18a9 9 0 0 1-18 0zM8.5 8c0-1 1-1.2 1-2.2S8.5 4.5 8.5 3.5M12 8c0-1 1-1.2 1-2.2S12 4.5 12 3.5M15.5 8c0-1 1-1.2 1-2.2s-1-1.3-1-2.3' },
@@ -46,7 +52,7 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda, onParty }: {
       </div>
       <nav className="tabs" aria-label="Secciones">
         {PESTANAS.map((t) => (
-          <button key={t.id} type="button" className="tab" aria-current={t.id === activa ? 'page' : undefined} onClick={() => onPestana(t.id)}>
+          <button key={t.id} type="button" className="tab" title={t.titulo} aria-current={t.id === activa ? 'page' : undefined} onClick={() => onPestana(t.id)}>
             <span className="dot"><Icono d={t.d} /></span>
             <span>{t.label}</span>
           </button>
@@ -68,9 +74,7 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda, onParty }: {
           <Icono d={UI.lupa} />
           <input type="search" placeholder="Buscar objetos…" value={busqueda} onChange={(e) => onBusqueda(e.target.value)} />
         </label>
-        <button type="button" className="rbtn" aria-label="Filtros de búsqueda" aria-disabled="true" title="Próximamente">
-          <Icono d={UI.filtro} />
-        </button>
+        <BotonFiltros />
       </div>
       <svg className="topbar-orla" viewBox="0 0 600 14" width="600" height="14" aria-hidden="true">
         <path d="M0 7h270M330 7h270" stroke="#6b5631" strokeWidth="1" />
@@ -78,6 +82,68 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda, onParty }: {
         <path d="M276 7l6-4M276 7l6 4M324 7l-6-4M324 7l-6 4" stroke="#b89a55" strokeWidth="1" fill="none" />
       </svg>
     </header>
+  );
+}
+
+const RAREZAS: Rareza[] = ['común', 'poco común', 'raro', 'muy raro', 'legendario', 'artefacto'];
+const CATEGORIAS: Categoria[] = ['Armas', 'Armaduras', 'Pociones', 'Pergaminos', 'Materiales', 'Comida', 'Llaves/misión', 'Varios'];
+
+/** Embudo de la barra: filtra por rareza, categoría y rasgos. Lo que no cumple se atenúa en todas las pantallas. */
+function BotonFiltros() {
+  const { filtros, setFiltros } = useFiltros();
+  const [abierto, setAbierto] = useState(false);
+  const panel = useRef<HTMLDivElement>(null);
+  const n = cuantosFiltros(filtros);
+  useEffect(() => {
+    if (!abierto) return;
+    const fuera = (e: PointerEvent) => { if (!panel.current?.parentElement?.contains(e.target as Node)) setAbierto(false); };
+    const tecla = (e: KeyboardEvent) => e.key === 'Escape' && setAbierto(false);
+    window.addEventListener('pointerdown', fuera);
+    window.addEventListener('keydown', tecla);
+    return () => { window.removeEventListener('pointerdown', fuera); window.removeEventListener('keydown', tecla); };
+  }, [abierto]);
+  const alternar = <K extends keyof Filtros>(k: K, v: Filtros[K][number]) => {
+    const lista = filtros[k] as Filtros[K][number][];
+    setFiltros({ ...filtros, [k]: lista.includes(v) ? lista.filter((x) => x !== v) : [...lista, v] });
+  };
+  return (
+    <span className="filtros-ancla">
+      <button
+        type="button" className={`rbtn ${n ? 'activo' : ''}`} aria-label={`Filtros de búsqueda${n ? `: ${n} activos` : ''}`} title="Filtros de búsqueda"
+        aria-haspopup="dialog" aria-expanded={abierto} onClick={() => setAbierto((x) => !x)}
+      >
+        <Icono d={UI.filtro} />
+        {n > 0 && <span className="filtros-n">{n}</span>}
+      </button>
+      {abierto && (
+        <div ref={panel} className="panel filtros-panel" role="dialog" aria-label="Filtros de búsqueda">
+          <span className="k">Rareza</span>
+          <div className="chips">
+            {RAREZAS.map((r) => (
+              <button key={r} type="button" className={`chip rz ${CLASE_RAREZA[r]} ${filtros.rarezas.includes(r) ? 'on' : ''}`} aria-pressed={filtros.rarezas.includes(r)} onClick={() => alternar('rarezas', r)}>
+                {r.charAt(0).toUpperCase() + r.slice(1)}
+              </button>
+            ))}
+          </div>
+          <span className="k">Categoría</span>
+          <div className="chips">
+            {CATEGORIAS.map((c) => (
+              <button key={c} type="button" className={`chip ${filtros.categorias.includes(c) ? 'on' : ''}`} aria-pressed={filtros.categorias.includes(c)} onClick={() => alternar('categorias', c)}>{c}</button>
+            ))}
+          </div>
+          <span className="k">Solo los que</span>
+          <div className="chips">
+            {RASGOS.map((r) => (
+              <button key={r.id} type="button" className={`chip ${filtros.rasgos.includes(r.id) ? 'on' : ''}`} aria-pressed={filtros.rasgos.includes(r.id)} onClick={() => alternar('rasgos', r.id)}>{r.texto}</button>
+            ))}
+          </div>
+          <footer>
+            <span>Lo que no cumple se atenúa en todas las pantallas.</span>
+            <button type="button" className="chip" disabled={!n} onClick={() => setFiltros(SIN_FILTROS)}>Quitar filtros</button>
+          </footer>
+        </div>
+      )}
+    </span>
   );
 }
 

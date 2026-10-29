@@ -5,19 +5,23 @@ import { hoja } from '../domain/hoja';
 import {
   cargaMaxDe, CLASE_RAREZA, conSigno, equipadoEn, fmtKg, objetosDe, pesoAlijoKg, pesoPersonajeKg, SACIEDAD_MAX,
 } from '../domain/reglas';
+import { ORDENES } from '../domain/reglas';
 import type { Categoria, Personaje, TipoRanura } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
 import { useDobleClic } from './Dialogos';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
-import { Esquinas, fmt1, fmtNum, Icono, Orla, Ranura } from './piezas';
-import { celdas, DCHA, IZQ, RanuraEquipo, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { ClasesConIcono } from './clases';
+import { useEditorPersonaje } from './EditorPersonaje';
+import { BotonMenu, type OpcionMenu } from './Menu';
+import { Esquinas, fmt1, fmtNum, Icono, Orla } from './piezas';
+import { DCHA, IZQ, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { desglose, tituloAtaque } from './desglose';
 import { useEditor } from './editorCtx';
 
 // ── Pantalla ───────────────────────────────────────────────────────
 
-export function Grupal({ busqueda }: { busqueda: string }) {
+export function Grupal({ busqueda, onVerFicha }: { busqueda: string; onVerFicha: (personajeId: string) => void }) {
   const { estado } = useCofre();
   const n = estado.personajes.length;
   const anchoCol = Math.min(352, Math.floor((1772 - 300 - 16 * n) / Math.max(n, 1)));
@@ -26,7 +30,7 @@ export function Grupal({ busqueda }: { busqueda: string }) {
   return (
     <main className="grupal" style={{ '--slot': `${slot}px` } as CSSProperties}>
       {estado.personajes.map((p, i) => (
-        <Columna key={p.id} p={p} indice={i} ancho={anchoCol} busqueda={busqueda} />
+        <Columna key={p.id} p={p} indice={i} ancho={anchoCol} busqueda={busqueda} onVerFicha={onVerFicha} />
       ))}
       <Alijo busqueda={busqueda} />
     </main>
@@ -35,10 +39,12 @@ export function Grupal({ busqueda }: { busqueda: string }) {
 
 // ── Columna de personaje ──────────────────────────────────────────
 
-function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number; ancho: number; busqueda: string }) {
+function Columna({ p, indice, ancho, busqueda, onVerFicha }: { p: Personaje; indice: number; ancho: number; busqueda: string; onVerFicha: (id: string) => void }) {
   const onDoble = useDobleClic();
-  const { estado, validar, cambiarImagen, prepararImagen } = useCofre();
-  const { arrastre, props, clase } = useInteraccion(busqueda, onDoble);
+  const { estado, validar, cambiarImagen, prepararImagen, ordenar } = useCofre();
+  const { arrastre } = useInteraccion(busqueda, onDoble);
+  const editor = useEditor();
+  const editorPj = useEditorPersonaje();
   const fichero = useRef<HTMLInputElement>(null);
 
   const propios = objetosDe(estado, { tipo: 'personaje', id: p.id });
@@ -50,27 +56,33 @@ function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number;
   const atqM = h.ataques.find((a) => a.ranura === 'cuerpoACuerpo' && a.indice === 0);
   const atqR = h.ataques.find((a) => a.ranura === 'distancia' && a.indice === 0);
   const silueta = SILUETA_ARMA[(armaCaC ?? armaDist)?.icono as ClaveIcono];
-  const clases = p.clases.map((c) => `${c.clase} ${c.nivel}`).join(' / ');
 
   // Estado de arrastre de esta columna
   const clave = `pj:${p.id}`;
   const sobre = arrastre?.objetivo?.clave.startsWith(clave) ?? false;
   const v = arrastre ? validar(arrastre.objeto.id, { propietario: { tipo: 'personaje', id: p.id } }) : null;
   const esOrigen = arrastre?.objeto.propietario.tipo === 'personaje' && arrastre.objeto.propietario.id === p.id;
-  // Celda que se resalta al apuntar al inventario: la pila con la que se juntaría o la primera libre
-  const apuntaInv = !!arrastre && arrastre.objetivo?.clave === clave && !(esOrigen && !arrastre.objeto.equipadoEn);
-  const pilaId = apuntaInv
-    ? inventario.find((o) => o.id !== arrastre!.objeto.id && o.nombre === arrastre!.objeto.nombre && o.rareza === arrastre!.objeto.rareza && !o.sintonizado)?.id
-    : undefined;
-  const marca = v?.ok ? 'drop-ok' : 'drop-no';
+  const dueno = { tipo: 'personaje' as const, id: p.id };
 
   const subirImagen = async (f: File | undefined) => {
     if (!f) return;
     cambiarImagen(p.id, await prepararImagen(f, 600));
   };
 
+  const opciones: OpcionMenu[] = [
+    { texto: 'Ver ficha completa', icono: UI.persona, onClick: () => onVerFicha(p.id) },
+    { texto: 'Editar personaje', icono: UI.lapiz, onClick: () => editorPj.editar(p) },
+    { texto: 'Añadir objeto', icono: UI.mas, onClick: () => editor.nuevo({ propietario: dueno }) },
+    { titulo: 'Ordenar inventario por' },
+    ...ORDENES.map((o) => ({ texto: o.texto, icono: UI.ordenar, onClick: () => ordenar(dueno, o.id) })),
+    'separador',
+    { texto: p.imagenUrl ? 'Cambiar imagen' : 'Subir imagen', icono: UI.camara, onClick: () => fichero.current?.click() },
+    ...(p.imagenUrl ? [{ texto: 'Quitar imagen', icono: UI.papelera, onClick: () => cambiarImagen(p.id, '') }] : []),
+  ];
+
   return (
-    <article className="panel columna" aria-label={p.nombre} style={{ width: ancho }} data-drop={clave}>
+    <article className={`panel columna ${p.imagenUrl ? 'con-fondo' : ''}`} aria-label={p.nombre} style={{ width: ancho }} data-drop={clave}>
+      {p.imagenUrl && <img className="fondo-pj" src={p.imagenUrl} alt="" />}
       <Esquinas />
       {arrastre && !esOrigen && v && (
         <>
@@ -85,14 +97,12 @@ function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number;
       )}
 
       <header className="col-cab">
-        <button type="button" className="ibtn" aria-label={`Opciones de ${p.nombre}`} aria-disabled="true" title="Próximamente">
-          <Icono d={UI.menu} />
-        </button>
+        <BotonMenu className="ibtn" etiqueta={`Opciones de ${p.nombre}`} opciones={opciones}><Icono d={UI.menu} /></BotonMenu>
         <h2 title={p.nombre}>{p.nombre}</h2>
         <div className="oro">{fmtNum(p.monedas.po)}<i aria-label="piezas de oro" /></div>
       </header>
       <div className="col-sub">
-        <span>{p.raza} · {clases} · PV {h.pvActual}/{h.pvMax.total}</span>
+        <span className="col-sub-linea">{p.raza} · <ClasesConIcono clases={p.clases} /> · PV {h.pvActual}/{h.pvMax.total}</span>
         <div className="saciedad" title={`Saciedad ${p.saciedad}/${SACIEDAD_MAX} · ${sac.efectos.join(' · ') || 'Sin efectos'}`}>
           <svg viewBox="0 0 24 24" aria-hidden="true" style={{ stroke: sac.color }}><path d={UI.cuenco} /></svg>
           <div className="pista"><div style={{ height: 6, width: `${(p.saciedad / SACIEDAD_MAX) * 100}%`, background: `linear-gradient(90deg, ${sac.color}99, ${sac.color})` }} /></div>
@@ -102,11 +112,7 @@ function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number;
       <Orla />
 
       <div className="figura">
-        {p.imagenUrl ? (
-          <img className="retrato-img" src={p.imagenUrl} alt={`Imagen de ${p.nombre}`} />
-        ) : (
-          <Silueta tinte={p.color} id={`col${indice}`} arma={silueta} />
-        )}
+        {!p.imagenUrl && <Silueta tinte={p.color} id={`col${indice}`} arma={silueta} />}
         <button type="button" className="ibtn camara" aria-label="Cambiar imagen del personaje" onClick={() => fichero.current?.click()}>
           <Icono d={UI.camara} />
         </button>
@@ -146,15 +152,10 @@ function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number;
         <div title={atqR ? tituloAtaque(atqR) : undefined}><b className={atqR?.bono.desv?.length ? 'desv' : ''}>{atqR ? conSigno(atqR.bono.total) : '—'}</b><i>{atqR?.dano ?? '—'}</i></div>
       </div>
 
-      <div className="rejilla inv" data-drop={clave} role="list" aria-label={`Inventario de ${p.nombre}`}>
-        {celdas(inventario, 35, 7).map((o, i) =>
-          o ? (
-            <Ranura key={o.id} role="listitem" objeto={o} extra={`${clase(o)} ${o.id === pilaId ? marca : ''}`} {...props(o)} />
-          ) : (
-            <Ranura key={`v${i}`} role="listitem" extra={apuntaInv && !pilaId && i === inventario.length ? marca : ''} />
-          ),
-        )}
-      </div>
+      <RejillaObjetos
+        className="rejilla inv" aria-label={`Inventario de ${p.nombre}`} objetos={inventario} dueno={dueno} minimo={35} porFila={7}
+        busqueda={busqueda} onDoble={onDoble} porCelda valido={!!v?.ok}
+      />
 
       <footer className="pie-carga">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d={UI.peso} /></svg>
@@ -186,7 +187,8 @@ const FILTROS: { t: string; cats: Categoria[] | null }[] = [
 function Alijo({ busqueda }: { busqueda: string }) {
   const { estado } = useCofre();
   const editor = useEditor();
-  const { arrastre, props, clase } = useInteraccion(busqueda);
+  const { arrastre } = useInteraccion(busqueda);
+  const onDoble = useDobleClic();
   const [filtro, setFiltro] = useState(0);
   const todos = objetosDe(estado, { tipo: 'alijo' });
   const cats = FILTROS[filtro].cats;
@@ -196,7 +198,7 @@ function Alijo({ busqueda }: { busqueda: string }) {
   const pesoGrupo = pesos.reduce((s, x) => s + x.peso, 0);
   const maxGrupo = estado.personajes.reduce((s, p) => s + cargaMaxDe(estado, p), 0);
 
-  const sobre = arrastre?.objetivo?.clave === 'alijo';
+  const sobre = !!arrastre?.objetivo?.clave.startsWith('alijo');
   const desdeOtro = arrastre && arrastre.objeto.propietario.tipo !== 'alijo';
 
   return (
@@ -223,15 +225,10 @@ function Alijo({ busqueda }: { busqueda: string }) {
           <Icono d={UI.mas} size={13} />
         </button>
       </div>
-      <div className="rejilla alj" role="list" aria-label="Objetos del alijo">
-        {celdas(visibles, 78, 6).map((o, i) =>
-          o ? (
-            <Ranura key={o.id} role="listitem" objeto={o} extra={clase(o)} {...props(o)} />
-          ) : (
-            <Ranura key={`v${i}`} role="listitem" extra={sobre && desdeOtro && i === visibles.length ? 'drop-ok' : ''} />
-          ),
-        )}
-      </div>
+      <RejillaObjetos
+        className="rejilla alj" aria-label="Objetos del alijo" objetos={visibles} dueno={{ tipo: 'alijo' }} minimo={78} porFila={6}
+        busqueda={busqueda} onDoble={onDoble} porCelda={filtro === 0} valido
+      />
       <footer>
         <div><span>{todos.length} objetos en el alijo</span><span style={{ color: 'var(--texto)' }}><b>{fmtKg(pesoAlijoKg(estado))}</b> kg</span></div>
         <div><span>Carga del grupo</span><span style={{ fontSize: 14, color: 'var(--texto)' }}><b>{fmtKg(pesoGrupo)}</b> / {maxGrupo} kg</span></div>

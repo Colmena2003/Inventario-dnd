@@ -3,6 +3,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { CARACTERISTICAS, CONDICIONES, datosClase, HABILIDADES, NOMBRE_CAR, TIPOS_DANO } from '../domain/catalogo';
+import { espaciosMax, pacto } from '../domain/conjuros';
 import { hoja } from '../domain/hoja';
 import { personajeVacio } from '../domain/personajes';
 import { conSigno, modificador, nivelTotal } from '../domain/reglas';
@@ -68,6 +69,7 @@ function Editor({ inicial, onCerrar, onAviso }: { inicial?: Personaje; onCerrar:
           <form className="ed-form" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
             <Identidad p={p} cambiar={cambiar} />
             <Clases p={p} cambiar={cambiar} />
+            <Espacios p={p} cambiar={cambiar} />
             <Caracteristicas p={p} cambiar={cambiar} />
             <Competencias p={p} cambiar={cambiar} />
             <Defensas p={p} cambiar={cambiar} />
@@ -166,6 +168,40 @@ function Clases({ p, cambiar }: Sec) {
       <Campo label="CA extra" ancho={2} ayuda="Estilo Defensa, rasgos… (no objetos)">
         <Numero valor={p.caExtra} vacio="0" onCambio={(n) => cambiar({ caExtra: n || undefined })} />
       </Campo>
+    </Seccion>
+  );
+}
+
+/** Espacios de conjuro: salen solos de las clases; se pueden poner a mano para subclases lanzadoras. */
+function Espacios({ p, cambiar }: Sec) {
+  const aMano = !!p.espaciosMax?.some((n) => n > 0);
+  const auto = espaciosMax({ ...p, espaciosMax: undefined });
+  const pc = pacto(p);
+  const lista = aMano ? p.espaciosMax! : auto;
+  const resumen = auto.length ? auto.map((n, i) => `${n} de nivel ${i + 1}`).join(', ') : 'ninguno';
+  return (
+    <Seccion titulo="Espacios de conjuro" nota={`Según sus clases: ${resumen}${pc ? ` · magia del pacto: ${pc.espacios} de nivel ${pc.nivel}` : ''}. El Caballero arcano, el Embaucador arcano y otras subclases lanzadoras se ponen a mano.`}>
+      <label className="check" style={{ gridColumn: 'span 8' }}>
+        <input
+          type="checkbox" checked={aMano}
+          onChange={(e) => cambiar({ espaciosMax: e.target.checked ? (auto.length ? [...auto] : [2]) : undefined })}
+        />
+        Ajustar a mano
+      </label>
+      {aMano && (
+        <div className="cars-pj espacios-pj" style={{ gridColumn: 'span 8' }}>
+          {Array.from({ length: 9 }, (_, i) => (
+            <label key={i} className="car-pj">
+              <span className="k">Nivel {i + 1}</span>
+              <Numero valor={lista[i] || undefined} min={0} max={9} vacio="0" onCambio={(n) => {
+                const nuevo = Array.from({ length: 9 }, (_, j) => (j === i ? n ?? 0 : lista[j] ?? 0));
+                while (nuevo.length && !nuevo[nuevo.length - 1]) nuevo.pop();
+                cambiar({ espaciosMax: nuevo.length ? nuevo : [0] });
+              }} />
+            </label>
+          ))}
+        </div>
+      )}
     </Seccion>
   );
 }

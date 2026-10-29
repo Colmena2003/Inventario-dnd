@@ -1,6 +1,7 @@
 // Party compartida: crearla con los datos de este navegador, entrar con un código o salir.
 
 import { useState } from 'react';
+import { PARTY_POR_DEFECTO } from '../config';
 import { useCofre } from '../store/cofre';
 import { useEscape } from './Dialogos';
 import { UI } from './iconos';
@@ -12,7 +13,9 @@ export function DialogoParty({ onCerrar, avisar }: { onCerrar: () => void; avisa
   const [ocupado, setOcupado] = useState(false);
   useEscape(onCerrar);
 
-  const enlace = sync.codigo ? `${window.location.origin}${window.location.pathname}?party=${sync.codigo}` : '';
+  // La party de la mesa es la de la web sin más; otra lleva su código en el enlace
+  const base = `${window.location.origin}${window.location.pathname}`;
+  const enlace = !sync.codigo ? '' : sync.codigo === PARTY_POR_DEFECTO ? base : `${base}?party=${sync.codigo}`;
   const hacer = async (f: () => Promise<void>) => { setOcupado(true); await f(); setOcupado(false); };
 
   return (

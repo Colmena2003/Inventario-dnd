@@ -1,41 +1,165 @@
-// Piezas que comparten la vista grupal y la individual: interacción de ranuras, ranuras de equipo y silueta.
+// Piezas que comparten la vista grupal y la individual: interacción de ranuras (clic, doble clic, menú,
+// arrastre, tooltip y atenuado por búsqueda y filtros), rejilla de objetos, ranuras de equipo y silueta.
 
-import { equipadoEn } from '../domain/reglas';
-import type { Objeto, Personaje, TipoRanura } from '../domain/tipos';
+import { useRef, type HTMLAttributes } from 'react';
+import { cumpleFiltros } from '../domain/filtros';
+import { equipadoEn, nombreDe, rejilla } from '../domain/reglas';
+import { usable } from '../domain/uso';
+import type { Objeto, Personaje, Propietario, TipoRanura } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
-import { useArrastre } from './arrastre';
+import { baseDe, celdaDe, useArrastre } from './arrastre';
+import { useAvisar } from './avisos';
+import { useDetalle } from './DetalleObjeto';
+import { useSintonia } from './Dialogos';
 import { useEditor } from './editorCtx';
-import type { ClaveIcono } from './iconos';
+import { useFiltros } from './filtrosCtx';
+import { UI, type ClaveIcono } from './iconos';
+import { useMenuContextual, type OpcionMenu } from './Menu';
 import { Ranura } from './piezas';
 import { useTooltip } from './Tooltip';
 
-/** Arrastre, tooltip, doble clic, clic derecho (editar) y atenuado por búsqueda para las ranuras con objeto. */
-export function useInteraccion(busqueda: string, onDoble?: (o: Objeto) => void) {
+/** Espera para distinguir un clic (abre la ficha) del primero de un doble clic. */
+const ESPERA_DOBLE = 230;
+
+/** Opciones del clic derecho en un objeto: ver, editar, usar, sintonizar, dárselo a otro o eliminarlo. */
+function useMenuObjeto() {
+  const { estado, actor, mover, usar, eliminarObjeto } = useCofre();
+  const abrir = useMenuContextual();
+  const editor = useEditor();
+  const detalle = useDetalle();
+  const sintonia = useSintonia();
+  const avisar = useAvisar();
+  return (e: { clientX: number; clientY: number }, o: Objeto) => {
+    const dar = (p: Propietario) => {
+      const v = mover(o.id, { propietario: p }, undefined, o.propietario);
+      avisar(v.ok ? `${o.nombre} → ${nombreDe(estado, p)}` : v.motivo, !v.ok);
+    };
+    const otros: Propietario[] = [
+      ...estado.personajes.filter((p) => !(o.propietario.tipo === 'personaje' && o.propietario.id === p.id)).map((p) => ({ tipo: 'personaje' as const, id: p.id })),
+      ...(o.propietario.tipo === 'alijo' ? [] : [{ tipo: 'alijo' as const }]),
+    ];
+    const opciones: OpcionMenu[] = [
+      { texto: 'Ver ficha', icono: UI.lupa, onClick: () => detalle.verObjeto(o) },
+      { texto: 'Editar objeto', icono: UI.lapiz, onClick: () => editor.editar(o) },
+    ];
+    if (usable(o)) {
+      opciones.push({
+        texto: o.categoria === 'Comida' ? 'Comer' : o.cargasMax ? `Usar · ${o.cargas ?? 0}/${o.cargasMax} cargas` : 'Usar',
+        icono: UI.rayo,
+        desactivada: !!o.cargasMax && (o.cargas ?? 0) < 1,
+        onClick: () => {
+          // Lo del alijo lo usa quien maneja la app
+          const yo = estado.personajes.find((p) => p.nombre.split(' ')[0] === actor);
+          const r = usar(o.id, yo?.id);
+          avisar(r.ok ? r.texto : r.motivo, !r.ok);
+        },
+      });
+    }
+    if (o.requiereSintonizacion && o.propietario.tipo === 'personaje') {
+      opciones.push({ texto: o.sintonizado ? 'Quitar sintonización' : 'Sintonizar', icono: UI.check, onClick: () => sintonia(o) });
+    }
+    if (otros.length) {
+      opciones.push({ titulo: 'Dar a' }, ...otros.map((p) => ({ texto: nombreDe(estado, p), icono: p.tipo === 'alijo' ? UI.cofre : UI.persona, onClick: () => dar(p) })));
+    }
+    opciones.push('separador', {
+      texto: 'Eliminar objeto', icono: UI.papelera, peligro: true,
+      onClick: () => abrir(e, [
+        { titulo: `¿Eliminar ${o.nombre} para siempre?` },
+        { texto: 'Sí, eliminar', icono: UI.papelera, peligro: true, onClick: () => { eliminarObjeto(o.id); avisar(`${o.nombre} eliminado`); } },
+        { texto: 'Cancelar', onClick: () => {} },
+      ]),
+    });
+    abrir(e, opciones);
+  };
+}
+
+/**
+ * Arrastre, tooltip, clic (abre la ficha, o `alTocar` si se da), doble clic, clic derecho (menú) y atenuado
+ * por búsqueda y filtros.
+ */
+export function useInteraccion(busqueda: string, onDoble?: (o: Objeto) => void, alTocar?: (o: Objeto) => void) {
   const { arrastre, empezar } = useArrastre();
   const { mostrar, ocultar } = useTooltip();
-  const editor = useEditor();
-  const q = busqueda.trim().toLocaleLowerCase('es');
+  const { filtros } = useFiltros();
+  const detalle = useDetalle();
+  const menu = useMenuObjeto();
+  const espera = useRef(0);
   return {
     arrastre,
     props: (o: Objeto) => ({
-      onPointerDown: (e: React.PointerEvent) => { ocultar(); empezar(e, o); },
+      onPointerDown: (e: React.PointerEvent) => {
+        ocultar();
+        const tocar = () => (alTocar ? alTocar(o) : detalle.verObjeto(o));
+        empezar(e, o, () => {
+          window.clearTimeout(espera.current);
+          if (onDoble) espera.current = window.setTimeout(tocar, ESPERA_DOBLE);
+          else tocar();
+        });
+      },
       onPointerEnter: (e: React.PointerEvent) => { if (!arrastre) mostrar(o, e.currentTarget); },
       onPointerLeave: ocultar,
-      onDoubleClick: onDoble ? () => onDoble(o) : undefined,
-      onContextMenu: (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); ocultar(); editor.editar(o); },
+      onDoubleClick: onDoble ? () => { window.clearTimeout(espera.current); onDoble(o); } : undefined,
+      onContextMenu: (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); ocultar(); menu(e, o); },
     }),
     clase: (o: Objeto) => {
       if (arrastre?.objeto.id === o.id) return 'origin';
-      if (q && !o.nombre.toLocaleLowerCase('es').includes(q)) return 'no';
-      return '';
+      return cumpleFiltros(o, filtros, busqueda) ? '' : 'no';
     },
   };
 }
 
-/** Rellena con ranuras vacías hasta completar filas. */
+/** Rellena con ranuras vacías hasta completar filas, sin respetar posiciones (vistas filtradas). */
 export function celdas(objetos: Objeto[], minimo: number, porFila: number) {
   const total = Math.max(minimo, Math.ceil((objetos.length + 1) / porFila) * porFila);
   return Array.from({ length: total }, (_, i) => objetos[i]);
+}
+
+export const claveDe = (p: Propietario) => (p.tipo === 'alijo' ? 'alijo' : `pj:${p.id}`);
+
+/**
+ * Rejilla de inventario. Con `porCelda` cada objeto ocupa su celda y se puede soltar en una concreta (para
+ * colocarlo o intercambiarlo); sin él (vista filtrada), se compacta. Ilumina dónde caería lo que se arrastra.
+ */
+export function RejillaObjetos({ objetos, dueno, minimo, porFila, busqueda, onDoble, porCelda, valido, ...resto }: {
+  objetos: Objeto[];
+  dueno: Propietario;
+  minimo: number;
+  porFila: number;
+  busqueda: string;
+  onDoble?: (o: Objeto) => void;
+  porCelda: boolean;
+  /** Si lo que se arrastra puede llegar a este dueño (carga). */
+  valido: boolean;
+} & HTMLAttributes<HTMLDivElement>) {
+  const { arrastre, props, clase } = useInteraccion(busqueda, onDoble);
+  const base = claveDe(dueno);
+  const lista = porCelda ? rejilla(objetos, minimo, porFila) : celdas(objetos, minimo, porFila);
+
+  let destacada = -1;
+  const objetivo = arrastre?.objetivo;
+  if (arrastre && objetivo && baseDe(objetivo.clave) === base) {
+    const celda = celdaDe(objetivo.clave);
+    const mismoDueno = JSON.stringify(arrastre.objeto.propietario) === JSON.stringify(dueno);
+    if (porCelda && celda !== undefined) destacada = celda;
+    else if (!(mismoDueno && !arrastre.objeto.equipadoEn)) {
+      const a = arrastre.objeto;
+      const pila = lista.findIndex((o) => o && o.id !== a.id && o.nombre === a.nombre && o.rareza === a.rareza && o.icono === a.icono && !o.sintonizado && !o.equipadoEn);
+      destacada = pila >= 0 ? pila : lista.findIndex((o) => !o);
+    }
+  }
+  const marca = valido ? 'drop-ok' : 'drop-no';
+
+  return (
+    <div data-drop={base} role="list" {...resto}>
+      {lista.map((o, i) => {
+        const drop = porCelda ? `${base}#${i}` : undefined;
+        const m = i === destacada ? marca : '';
+        return o
+          ? <Ranura key={o.id} role="listitem" data-drop={drop} objeto={o} extra={`${clase(o)} ${m}`} {...props(o)} />
+          : <Ranura key={`v${i}`} role="listitem" data-drop={drop} extra={m} />;
+      })}
+    </div>
+  );
 }
 
 export const IZQ: [TipoRanura, ClaveIcono][] = [['cabeza', 'helm'], ['capa', 'cloak'], ['armadura', 'armor'], ['guantes', 'gloves'], ['botas', 'boots']];

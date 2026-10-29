@@ -4,19 +4,25 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { estadoInicial, estadoVacio } from '../data/semilla';
+import {
+  crearCriatura, editarCriatura, eliminarCriatura, registrarEncuentro, type ResultadoCriatura,
+} from '../domain/bestiario';
+import { cambiarImagenFicha, olvidarFicha, recuperarFicha, registrarEnBiblioteca, sincronizarBiblioteca, type ResultadoFicha } from '../domain/biblioteca';
+import { descansarEspacios, gastarEspacio, gastarPacto, recuperaEspacios } from '../domain/conjuros';
 import { crearObjeto, editarObjeto, eliminarObjeto, migrar, validarObjeto } from '../domain/objetos';
 import { cambiarPv, eliminarPersonaje, guardarPersonaje, validarPersonaje } from '../domain/personajes';
 import {
-  alternarSintonia, cambiarSaciedad, comer as comerRegla, descansar as descansarRegla, moverObjeto, validarMovimiento,
-  type Destino, type ResultadoComer, type ResultadoSintonia, type Validacion,
+  alternarSintonia, cambiarSaciedad, comer as comerRegla, descansar as descansarRegla, moverObjeto, ordenarInventario, validarMovimiento,
+  type Destino, type OrdenInventario, type ResultadoComer, type ResultadoSintonia, type Validacion,
 } from '../domain/reglas';
 import { aplicarMonedas, type Cambio, type ResultadoMonedas } from '../domain/monedas';
 import {
   aplicarEfecto, aplicarRecarga, aplicarUso, descansarEfectos, pasarTiempo, prepararRecarga, prepararUso, quitarEfecto, usarRasgo,
   type ResultadoPlan,
 } from '../domain/uso';
-import type { Estado, Objeto, Personaje, PlantillaEfecto } from '../domain/tipos';
+import type { Criatura, Estado, Objeto, Personaje, PlantillaEfecto, Propietario } from '../domain/tipos';
 import { reducirImagen } from '../ui/interaccion';
+import { PARTY_POR_DEFECTO } from '../config';
 import { normalizarCodigo, Sala, subirImagen, supabaseDisponible, type Conexion, type Op } from './sincro';
 
 type SinEstado<T> = T extends { estado: Estado } ? Omit<T, 'estado'> : T;
@@ -43,20 +49,28 @@ function guardar(clave: string, valor: unknown) {
   }
 }
 
-const migrarSemilla = (e: Estado) => migrar(e, estadoInicial());
+/** Pone al día lo guardado con un modelo anterior y da ficha de biblioteca a los objetos que no la tengan. */
+const migrarSemilla = (e: Estado) => sincronizarBiblioteca(migrar(e, estadoInicial()));
 
 /** Si un cambio ya no vale (lanza un error), el estado se queda como estaba. */
 const probar = (op: Op) => (e: Estado) => { try { return op(e); } catch { return e; } };
 
-/** Código de party de la URL (?party=ABC123) o el último usado en este navegador. */
+/** Marca de «este navegador salió de la party a propósito»: no se vuelve a entrar sola. */
+const SIN_PARTY = '-';
+
+/** Código de party de la URL (?party=ABC123), el último usado en este navegador o el de la mesa. */
 function codigoInicial(): string | null {
   const url = new URLSearchParams(window.location.search).get('party');
-  return url ? normalizarCodigo(url) : leer<string>(CLAVE_PARTY);
+  if (url) return normalizarCodigo(url);
+  const guardado = leer<string>(CLAVE_PARTY);
+  if (guardado === SIN_PARTY) return null;
+  return guardado || PARTY_POR_DEFECTO || null;
 }
 
+/** El enlace lleva el código salvo para la party de la mesa, que es la de la web sin más. */
 function ponerCodigoEnUrl(codigo: string | null) {
   const u = new URL(window.location.href);
-  if (codigo) u.searchParams.set('party', codigo);
+  if (codigo && codigo !== PARTY_POR_DEFECTO) u.searchParams.set('party', codigo);
   else u.searchParams.delete('party');
   window.history.replaceState(null, '', u);
 }
@@ -67,6 +81,8 @@ export interface Sincronizacion {
   conexion: Conexion;
   codigo: string | null;
   error: string | null;
+  /** Cuántos cambios de este jugador se han descartado porque otro guardó antes algo incompatible. */
+  descartes: number;
   /** Sube la party de este navegador y devuelve su código. */
   crear: () => Promise<void>;
   unirse: (codigo: string) => Promise<void>;
@@ -80,7 +96,8 @@ interface Cofre {
   setActor: (nombre: string) => void;
   sync: Sincronizacion;
   validar: (objetoId: string, destino: Destino, cantidad?: number) => Validacion;
-  mover: (objetoId: string, destino: Destino, cantidad?: number) => Validacion;
+  /** `desde`: dónde vio el objeto el jugador al cogerlo; si ya no está ahí, no se mueve. */
+  mover: (objetoId: string, destino: Destino, cantidad?: number, desde?: Propietario) => Validacion;
   sintonizar: (objetoId: string, sustituir?: string) => SinEstado<ResultadoSintonia>;
   monedas: (cambios: Cambio[], descripcion: string) => SinEstado<ResultadoMonedas>;
   cambiarImagen: (personajeId: string, url: string) => void;
@@ -104,6 +121,17 @@ interface Cofre {
   eliminarPersonaje: (id: string) => void;
   /** Daño (negativo) o curación (positivo); devuelve los PV antes y después. */
   cambiarPv: (personajeId: string, delta: number) => { antes: number; despues: number } | null;
+  /** Gasta (+1) o recupera (−1) un espacio de conjuro; nivel 0 = magia del pacto. Devuelve el motivo si no se puede. */
+  gastarEspacio: (personajeId: string, nivel: number, delta: 1 | -1) => string | null;
+  /** Junta pilas y coloca el inventario de un dueño en orden. */
+  ordenar: (propietario: Propietario, orden: OrdenInventario) => void;
+  recuperarFicha: (fichaId: string, propietario: Propietario, cantidad: number) => SinEstado<ResultadoFicha>;
+  olvidarFicha: (fichaId: string) => SinEstado<ResultadoFicha>;
+  cambiarImagenFicha: (fichaId: string, url: string | undefined) => void;
+  /** Crea (sin id) o guarda una criatura. */
+  guardarCriatura: (datos: Omit<Criatura, 'id' | 'creada' | 'actualizada'>, id?: string) => SinEstado<ResultadoCriatura>;
+  eliminarCriatura: (id: string) => void;
+  registrarEncuentro: (id: string, abatida: boolean) => void;
   restablecer: () => void;
 }
 
@@ -126,7 +154,12 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     if (!codigo) { local.current = estado; guardar(CLAVE, estado); }
   }, [estado, codigo]);
 
-  const emitir = useCallback((e: Estado, c: Conexion) => { setEstado(e); setConexion(c); }, []);
+  const [descartes, setDescartes] = useState(0);
+  const emitir = useCallback((e: Estado, c: Conexion, descartado?: boolean) => {
+    setEstado(e);
+    setConexion(c);
+    if (descartado) setDescartes((n) => n + 1);
+  }, []);
 
   const entrar = useCallback((s: Sala) => {
     sala.current?.cerrar();
@@ -166,7 +199,7 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     sala.current = null;
     setCodigo(null);
     setConexion('local');
-    guardar(CLAVE_PARTY, null);
+    guardar(CLAVE_PARTY, SIN_PARTY);
     ponerCodigoEnUrl(null);
     setEstado(local.current);
   }, []);
@@ -179,8 +212,10 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   }, [unirse]);
 
   const cambiar = useCallback((op: Op) => {
-    if (sala.current) sala.current.aplicar(op);
-    else setEstado(probar(op));
+    // Después de cada cambio, la biblioteca apunta los objetos nuevos y quién tiene cada uno
+    const conBiblioteca: Op = (e) => sincronizarBiblioteca(op(e));
+    if (sala.current) sala.current.aplicar(conBiblioteca);
+    else setEstado(probar(conBiblioteca));
   }, []);
 
   const setActor = useCallback((nombre: string) => {
@@ -196,9 +231,18 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   );
 
   const mover = useCallback(
-    (objetoId: string, destino: Destino, cantidad?: number) => {
+    (objetoId: string, destino: Destino, cantidad?: number, desde?: Propietario) => {
+      // Si otro jugador ya lo ha movido (antes de soltarlo o al guardarse), el movimiento se descarta: no se le
+      // quita a quien lo cogió
+      const origen = JSON.stringify(desde ?? estado.objetos.find((o) => o.id === objetoId)?.propietario);
+      if (JSON.stringify(estado.objetos.find((o) => o.id === objetoId)?.propietario) !== origen) return { ok: false as const, motivo: 'Otro jugador lo ha movido antes que tú' };
       const v = validarMovimiento(estado, objetoId, destino, cantidad);
-      if (v.ok) cambiar((e) => moverObjeto(e, objetoId, destino, quien, cantidad));
+      if (v.ok) {
+        cambiar((e) => {
+          if (JSON.stringify(e.objetos.find((o) => o.id === objetoId)?.propietario) !== origen) throw new Error('Otro jugador lo ha movido antes');
+          return moverObjeto(e, objetoId, destino, quien, cantidad);
+        });
+      }
       return v;
     },
     [estado, quien, cambiar],
@@ -241,7 +285,10 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   const guardarObjeto = useCallback((o: Objeto, nuevo: boolean) => {
     const motivo = validarObjeto(estado, o);
     if (motivo) return motivo;
-    cambiar((e) => (nuevo ? crearObjeto(e, o, quien) : editarObjeto(e, o, quien)));
+    cambiar((e) => {
+      const r = nuevo ? crearObjeto(e, o, quien) : editarObjeto(e, o, quien);
+      return registrarEnBiblioteca(r, nuevo ? r.objetos[r.objetos.length - 1].id : o.id);
+    });
     return null;
   }, [estado, quien, cambiar]);
 
@@ -279,8 +326,9 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     // Quien no puede hacer el descanso largo por hambre tampoco recupera
     const recarga = prepararRecarga(estado, r.hechos, tipo);
     const efectos = descansarEfectos(estado, r.hechos, tipo);
-    cambiar((e) => descansarEfectos(aplicarRecarga(descansarRegla(e, r.hechos, tipo).estado, recarga), r.hechos, tipo).estado);
-    return { hechos: r.hechos, bloqueados: r.bloqueados, recargas: recarga.textos, terminados: efectos.terminados };
+    const espacios = estado.personajes.filter((p) => r.hechos.includes(p.id) && recuperaEspacios(p, tipo)).map((p) => `${p.nombre.split(' ')[0]}: espacios de conjuro`);
+    cambiar((e) => descansarEspacios(descansarEfectos(aplicarRecarga(descansarRegla(e, r.hechos, tipo).estado, recarga), r.hechos, tipo).estado, r.hechos, tipo));
+    return { hechos: r.hechos, bloqueados: r.bloqueados, recargas: [...recarga.textos, ...espacios], terminados: efectos.terminados };
   }, [estado, cambiar]);
 
   const efecto = useCallback((ids: string[], ef: PlantillaEfecto) => cambiar((e) => aplicarEfecto(e, ids, ef)), [cambiar]);
@@ -309,21 +357,59 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     return { antes: r.antes, despues: r.despues };
   }, [estado, cambiar]);
 
+  const espacio = useCallback((personajeId: string, nivel: number, delta: 1 | -1) => {
+    const op = (e: Estado) => (nivel === 0 ? gastarPacto(e, personajeId, delta) : gastarEspacio(e, personajeId, nivel, delta));
+    try { op(estado); } catch (err) { return (err as Error).message; }
+    cambiar(op);
+    return null;
+  }, [estado, cambiar]);
+
+  const ordenar = useCallback((p: Propietario, orden: OrdenInventario) => cambiar((e) => ordenarInventario(e, p, orden)), [cambiar]);
+
+  /** Comprueba un resultado sobre el estado actual y, si vale, repite el cambio sobre el que haya al guardar. */
+  const conResultado = useCallback(<R extends { ok: true; estado: Estado } | { ok: false; motivo: string }>(f: (e: Estado) => R): SinEstado<R> => {
+    const r = f(estado);
+    if (!r.ok) return r as SinEstado<R>;
+    cambiar((e) => { const x = f(e); if (!x.ok) throw new Error(x.motivo); return x.estado; });
+    const { estado: _e, ...resto } = r;
+    return resto as SinEstado<R>;
+  }, [estado, cambiar]);
+
+  const recuperar = useCallback((fichaId: string, p: Propietario, n: number) => conResultado((e) => recuperarFicha(e, fichaId, p, n, quien)), [conResultado, quien]);
+  const olvidar = useCallback((fichaId: string) => conResultado((e) => olvidarFicha(e, fichaId)), [conResultado]);
+  const imagenFicha = useCallback((fichaId: string, url: string | undefined) => cambiar((e) => cambiarImagenFicha(e, fichaId, url)), [cambiar]);
+
+  const guardarCriatura = useCallback((datos: Omit<Criatura, 'id' | 'creada' | 'actualizada'>, id?: string) => {
+    // El id de una criatura nueva se decide una vez, para que repetir el cambio no cree otra
+    const r = id ? editarCriatura(estado, id, datos) : crearCriatura(estado, datos, quien);
+    if (!r.ok) return r;
+    const nueva = r.estado.bestiario!.find((c) => c.id === r.id)!;
+    cambiar((e) => (id
+      ? (() => { const x = editarCriatura(e, id, datos); if (!x.ok) throw new Error(x.motivo); return x.estado; })()
+      : { ...e, bestiario: [...(e.bestiario ?? []), nueva] }));
+    return { ok: true as const, id: r.id };
+  }, [estado, quien, cambiar]);
+
+  const borrarCriatura = useCallback((id: string) => cambiar((e) => eliminarCriatura(e, id)), [cambiar]);
+  const encuentro = useCallback((id: string, abatida: boolean) => cambiar((e) => registrarEncuentro(e, id, abatida)), [cambiar]);
+
   const restablecer = useCallback(() => cambiar(() => estadoVacio()), [cambiar]);
 
   const sync = useMemo<Sincronizacion>(
-    () => ({ disponible: supabaseDisponible, conexion, codigo, error: errorSync, crear, unirse, salir }),
-    [conexion, codigo, errorSync, crear, unirse, salir],
+    () => ({ disponible: supabaseDisponible, conexion, codigo, error: errorSync, descartes, crear, unirse, salir }),
+    [conexion, codigo, errorSync, descartes, crear, unirse, salir],
   );
 
   const valor = useMemo(
     () => ({
       estado, actor, setActor, sync, validar, mover, sintonizar, monedas, cambiarImagen, prepararImagen, guardarObjeto,
       eliminarObjeto: eliminar, usar, usarRasgo: rasgo, comer, cambiarSaciedad: saciedad, descansar, aplicarEfecto: efecto,
-      quitarEfecto: quitar, pasarTiempo: tiempo, guardarPersonaje: guardarPj, eliminarPersonaje: eliminarPj, cambiarPv: pv, restablecer,
+      quitarEfecto: quitar, pasarTiempo: tiempo, guardarPersonaje: guardarPj, eliminarPersonaje: eliminarPj, cambiarPv: pv, gastarEspacio: espacio, ordenar,
+      recuperarFicha: recuperar, olvidarFicha: olvidar, cambiarImagenFicha: imagenFicha, guardarCriatura, eliminarCriatura: borrarCriatura,
+      registrarEncuentro: encuentro, restablecer,
     }),
     [estado, actor, setActor, sync, validar, mover, sintonizar, monedas, cambiarImagen, prepararImagen, guardarObjeto, eliminar,
-      usar, rasgo, comer, saciedad, descansar, efecto, quitar, tiempo, guardarPj, eliminarPj, pv, restablecer],
+      usar, rasgo, comer, saciedad, descansar, efecto, quitar, tiempo, guardarPj, eliminarPj, pv, espacio, ordenar, recuperar, olvidar, imagenFicha, guardarCriatura, borrarCriatura, encuentro, restablecer],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }

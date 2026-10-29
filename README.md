@@ -37,7 +37,16 @@ Hecho:
 - Usar objetos: doble clic (o «Usar» en su editor) gasta una carga o una unidad, tira los dados de «Efectos» y, si dice «Recuperas XdY PV», cura sin pasar del máximo. Lo del alijo lo usa el jugador que maneja la app. Un objeto puede además dar un efecto temporal a quien lo usa («Al usarlo» en el editor). Los descansos de la despensa recuperan cargas según su «Recarga» («Al amanecer», «1d6+1 al amanecer», «Descanso corto», «2 cargas…») y los usos de los rasgos.
 - Efectos temporales en la ficha: conjuros y pociones habituales (Bendecir, Escudo de la fe, Acelerar, Fuerza de gigante…) o uno a mano, con modificadores, duración en rondas, minutos u horas, hasta un descanso o hasta quitarlo, y concentración. Cambian la hoja como un objeto. «Pasa 1 ronda / 1 min / 10 min / 1 h» baja las duraciones; un descanso corto cuenta 1 h y uno largo 8 h. El mismo efecto se renueva, no se acumula.
 - Editor de personajes (lápiz de la ficha, clic derecho en un retrato o «+» bajo los retratos): identidad, clases y multiclase, características, PV, velocidad, tamaño, CA extra, defensa sin armadura, característica de conjuros, salvaciones, competencias y pericias, resistencias, condiciones y rasgos con usos. Enseña la hoja resultante mientras editas. Quitar a un personaje deja su equipo en el alijo y sus monedas en el tesoro.
-- Party compartida con Supabase (botón «Local» / código de la barra superior). Ver Datos.
+- Party compartida con Supabase (botón con el código de la barra superior). Ver Datos.
+- PV rápidos en la ficha: daño, curación y ±1, sin bajar de 0 ni pasar del máximo.
+- Biblioteca de objetos: una ficha por cada objeto conocido, que se guarda sola al crearlo o editarlo. Filtros por quién lo tiene (en la party o nadie) y categoría; cada carta abre la ficha grande y permite recuperar el objeto para alguien o quitarlo de la biblioteca.
+- Bestiario: criaturas con actitud, CA, PV, velocidad, desafío y PX, características, defensas y sentidos, rasgos y acciones (también «sin descubrir»), botín enlazado a la biblioteca, lugar, notas, imagen y contador de encuentros y abatidas. Solo el nombre es obligatorio.
+- Ficha grande de objeto con un clic: imagen (subir, cambiar o quitar), datos, efectos, descripción, y botones de usar, sintonizar y editar. Clic derecho: menú con ver, editar, usar, sintonizar, dar a otro personaje o al alijo y eliminar (con confirmación).
+- Rejillas con posición: se suelta un objeto en la celda que se quiera (si está ocupada por otro del mismo dueño, se cambian) y «Ordenar» junta pilas y las ordena por rareza, tipo, valor, peso o nombre.
+- La imagen del personaje sirve de fondo de su columna y de su equipo; iconos de clase en la ficha y las columnas; menú de opciones de cada columna.
+- Despensa: arrastrar comida sobre un personaje se la da de comer.
+- Espacios de conjuro en la ficha, calculados con las tablas de 5e (multiclase incluida) y la magia del pacto del brujo; se gastan con un clic y vuelven con los descansos (el corto, solo los del pacto). Se pueden ajustar a mano en el editor para subclases lanzadoras.
+- Filtros de búsqueda (embudo de la barra): rareza, categoría, mágicos, con sintonización, equipados, usables y con cargas. Lo que no cumple se atenúa en todas las pantallas.
 
 Pendiente: crafteo.
 
@@ -49,11 +58,11 @@ Sin party compartida, todo vive en el navegador (`localStorage`), empezando por 
 
 1. En el SQL Editor del proyecto de Supabase, ejecuta [supabase/esquema.sql](supabase/esquema.sql): crea la tabla `parties`, sus permisos, el tiempo real y el bucket `imagenes`.
 2. Copia `.env.example` como `.env` y pon la Project URL y la anon key (Project Settings → API). Son públicas; **nunca** pongas la contraseña de la base de datos.
-3. Reinicia `npm run dev`. En la barra superior, el botón «Local» abre «Party compartida»: «Crear party compartida» sube lo de tu navegador y da un código; el resto entra con ese código o con el enlace `?party=CODIGO`.
+3. Reinicia `npm run dev`. La web entra sola en la party de la mesa (`PARTY_POR_DEFECTO` en [src/config.ts](src/config.ts), o la variable `VITE_PARTY`): basta con pasar el enlace de la web. El botón con el código de la barra superior abre «Party compartida», donde se puede salir, crear otra o entrar en otra con su código (`?party=CODIGO`).
 
-Cada cambio es una función pura del estado (`src/store/cofre.tsx`). Se ve al momento y se guarda con «actualiza si la versión sigue siendo N»; si otro jugador guardó antes, se descarga su versión y se reaplica encima, y lo que ya no vale (un objeto que cogió otro) se descarta. Detalles en `src/store/sincro.ts`. Las imágenes se suben al bucket. Sin cuentas: quien tenga el código puede leer y cambiar la party.
+Cada cambio es una función pura del estado (`src/store/cofre.tsx`). Se ve al momento y se guarda con «actualiza si la versión sigue siendo N»; si otro jugador guardó antes, se descarga su versión y se reaplica encima. Lo que ya no vale se descarta y se avisa a quien lo hizo: mover un objeto que otro acaba de mover, gastar la última carga o comer la última ración. Probado con dos jugadores actuando en el mismo milisegundo: los cambios compatibles se suman todos y de los incompatibles gana uno solo, sin duplicar nada. Detalles en `src/store/sincro.ts`. Las imágenes se suben al bucket. Sin cuentas: quien tenga el código puede leer y cambiar la party.
 
-Las reglas están en `src/domain/` como funciones puras (`reglas.ts`, `hoja.ts`, `uso.ts`, `personajes.ts`).
+Las reglas están en `src/domain/` como funciones puras (`reglas.ts`, `hoja.ts`, `uso.ts`, `personajes.ts`, `biblioteca.ts`, `bestiario.ts`, `conjuros.ts`, `filtros.ts`).
 
 ## Supuestos
 

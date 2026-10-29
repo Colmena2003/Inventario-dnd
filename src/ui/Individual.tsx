@@ -3,19 +3,23 @@
 import { useRef, useState, type CSSProperties } from 'react';
 import { hoja, type Hoja } from '../domain/hoja';
 import {
-  CLASE_RAREZA, conSigno, equipadoEn, fmtKg, MAX_SINTONIZADOS, nivelTotal, objetosDe,
+  CLASE_RAREZA, conSigno, equipadoEn, fmtKg, MAX_SINTONIZADOS, nivelTotal, objetosDe, ORDENES,
   pxNivelActual, pxSiguienteNivel, sintonizadosDe,
 } from '../domain/reglas';
-import type { Categoria, Caracteristica, IconoRasgo, Objeto, Personaje, Rareza } from '../domain/tipos';
+import type { Categoria, Caracteristica, IconoRasgo, Personaje } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useDobleClic, useSintonia } from './Dialogos';
 import { claseCambio, desglose, tituloAtaque } from './desglose';
+import { ClasesConIcono } from './clases';
 import { BloqueEfectos } from './Efectos';
+import { EspaciosConjuro } from './Espacios';
+import { BotonMenu } from './Menu';
 import { useEditor } from './editorCtx';
 import { useEditorPersonaje } from './EditorPersonaje';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
-import { celdas, DCHA, IZQ, RanuraEquipo, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
-import { Esquinas, fmtNum, Icono, Moneda, MONEDAS, Ranura } from './piezas';
+import { baseDe } from './arrastre';
+import { DCHA, IZQ, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { Esquinas, fmtNum, Icono, Moneda, MONEDAS } from './piezas';
 
 type Avisar = (texto: string, error?: boolean) => void;
 
@@ -61,7 +65,6 @@ function Ficha({ p, h, avisar }: { p: Personaje; h: Hoja; avisar: Avisar }) {
   const pxIni = pxNivelActual(nivel);
   const px = p.px ?? pxIni;
   const progreso = pxSig ? Math.max(0, Math.min(1, (px - pxIni) / (pxSig - pxIni))) : 1;
-  const clases = p.clases.map((c) => `${c.clase} ${c.nivel}`).join(' / ');
 
   return (
     <section className="panel ficha" aria-label={`Ficha de ${p.nombre}`}>
@@ -72,7 +75,7 @@ function Ficha({ p, h, avisar }: { p: Personaje; h: Hoja; avisar: Avisar }) {
       <header>
         <h1>{p.nombre}</h1>
         <span className="ficha-sub">{p.raza}{p.trasfondo ? ` · Trasfondo: ${p.trasfondo}` : ''}</span>
-        <span className="ficha-nivel">Nivel {nivel} · {clases}</span>
+        <span className="ficha-nivel">Nivel {nivel} · <ClasesConIcono clases={p.clases} tam={17} /></span>
         <div className="ficha-px" title={pxSig ? `Siguiente nivel con ${fmtNum(pxSig)} PX` : 'Nivel máximo'}>
           <span>PX</span>
           <div><div style={{ width: `${progreso * 100}%` }} /></div>
@@ -120,6 +123,7 @@ function Ficha({ p, h, avisar }: { p: Personaje; h: Hoja; avisar: Avisar }) {
           })}
         </div>
       </div>
+      <EspaciosConjuro p={p} avisar={avisar} />
       <BloqueEfectos p={p} avisar={avisar} />
       <div className="ficha-bloque">
         <h3 className="titulo-sec">Resistencias</h3>
@@ -223,10 +227,10 @@ function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string })
   );
 
   return (
-    <section className="equipo" aria-label="Equipo" style={{ '--tinte': p.color } as CSSProperties}>
+    <section className={`equipo ${p.imagenUrl ? 'con-fondo' : ''}`} aria-label="Equipo" style={{ '--tinte': p.color } as CSSProperties}>
       <div className="equipo-aura" aria-hidden="true" />
       {p.imagenUrl ? (
-        <img className="equipo-img" src={p.imagenUrl} alt={`Imagen de ${p.nombre}`} />
+        <img className="fondo-pj" src={p.imagenUrl} alt={`Imagen de ${p.nombre}`} />
       ) : (
         <Silueta className="equipo-fig" tinte={p.color} id={`ind-${p.id}`} arma={silueta} aura={false} />
       )}
@@ -297,58 +301,34 @@ const CATEGORIAS: { t: string; cat: Categoria | null; ic: string }[] = [
   { t: 'Varios', cat: 'Varios', ic: ICONOS.bag },
 ];
 
-type Orden = 'rareza' | 'peso' | 'valor' | 'reciente';
-
-const ORDEN_RAREZA: Rareza[] = ['artefacto', 'legendario', 'muy raro', 'raro', 'poco común', 'común'];
-
-function ordenar(objetos: Objeto[], orden: Orden, recientes: Map<string, number>) {
-  const indice = new Map(objetos.map((o, i) => [o.id, i]));
-  const por: Record<Orden, (a: Objeto, b: Objeto) => number> = {
-    rareza: (a, b) => ORDEN_RAREZA.indexOf(a.rareza) - ORDEN_RAREZA.indexOf(b.rareza) || a.nombre.localeCompare(b.nombre, 'es'),
-    peso: (a, b) => b.pesoKg * b.cantidad - a.pesoKg * a.cantidad,
-    valor: (a, b) => b.valorPo * b.cantidad - a.valorPo * a.cantidad,
-    // Lo último que llegó primero; sin movimientos, el orden de alta
-    reciente: (a, b) => (recientes.get(b.id) ?? 0) - (recientes.get(a.id) ?? 0) || indice.get(b.id)! - indice.get(a.id)!,
-  };
-  return objetos.slice().sort(por[orden]);
-}
-
 function Inventario({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string }) {
   const { estado, validar } = useCofre();
   const editor = useEditor();
+  const { ordenar } = useCofre();
   const doble = useDobleClic();
-  const { arrastre, props, clase } = useInteraccion(busqueda, doble);
+  const { arrastre } = useInteraccion(busqueda, doble);
   const [cat, setCat] = useState(0);
-  const [orden, setOrden] = useState<Orden>('rareza');
+  const dueno = { tipo: 'personaje' as const, id: p.id };
 
   const inventario = objetosDe(estado, { tipo: 'personaje', id: p.id }).filter((o) => !o.equipadoEn);
   const filtro = CATEGORIAS[cat].cat;
-  const recientes = new Map<string, number>();
-  for (const m of estado.movimientos) if (!recientes.has(m.objetoId)) recientes.set(m.objetoId, m.fecha);
-  const visibles = ordenar(filtro ? inventario.filter((o) => o.categoria === filtro) : inventario, orden, recientes);
+  const visibles = filtro ? inventario.filter((o) => o.categoria === filtro) : inventario;
 
   const peso = h.carga, max = h.cargaMax, tramo = h.tramo;
 
-  const clave = `pj:${p.id}`;
   const esOrigen = arrastre?.objeto.propietario.tipo === 'personaje' && arrastre.objeto.propietario.id === p.id;
-  const apunta = !!arrastre && arrastre.objetivo?.clave === clave && !(esOrigen && !arrastre.objeto.equipadoEn);
-  const v = apunta ? validar(arrastre!.objeto.id, { propietario: { tipo: 'personaje', id: p.id } }) : null;
-  const marca = v?.ok ? 'drop-ok' : 'drop-no';
+  // Apunta al inventario (no a una ranura de equipo) desde fuera: si no cabe, se dice por qué
+  const apunta = !!arrastre?.objetivo && baseDe(arrastre.objetivo.clave) === `pj:${p.id}` && !esOrigen;
+  const v = arrastre ? validar(arrastre.objeto.id, { propietario: dueno }) : null;
 
   return (
     <section className="panel inventario" aria-label={`Inventario de ${p.nombre}`}>
       <Esquinas />
       <header>
         <h2>Inventario <span>· {inventario.length} objetos</span></h2>
-        <label className="orden">
-          Ordenar por
-          <select value={orden} onChange={(e) => setOrden(e.target.value as Orden)}>
-            <option value="rareza">Rareza</option>
-            <option value="peso">Peso</option>
-            <option value="valor">Valor</option>
-            <option value="reciente">Reciente</option>
-          </select>
-        </label>
+        <BotonMenu className="chip chip-i" etiqueta="Ordenar inventario" lado="dcha" opciones={[{ titulo: 'Ordenar por' }, ...ORDENES.map((o) => ({ texto: o.texto, icono: UI.ordenar, onClick: () => ordenar(dueno, o.id) }))]}>
+          <Icono d={UI.ordenar} />Ordenar
+        </BotonMenu>
         <button type="button" className="chip on chip-i" onClick={() => editor.nuevo({ propietario: { tipo: 'personaje', id: p.id }, tipo: CATEGORIAS[cat].cat === 'Comida' ? 'comida' : undefined })}>
           <Icono d={UI.mas} />Añadir objeto
         </button>
@@ -360,15 +340,10 @@ function Inventario({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: strin
           </button>
         ))}
       </div>
-      <div className="rejilla ind" data-drop={clave} role="list" aria-label={`Objetos de ${p.nombre}`}>
-        {celdas(visibles, 168, 12).map((o, i) =>
-          o ? (
-            <Ranura key={o.id} role="listitem" objeto={o} extra={clase(o)} {...props(o)} />
-          ) : (
-            <Ranura key={`v${i}`} role="listitem" extra={apunta && i === visibles.length ? marca : ''} />
-          ),
-        )}
-      </div>
+      <RejillaObjetos
+        className="rejilla ind" aria-label={`Objetos de ${p.nombre}`} objetos={visibles} dueno={dueno} minimo={168} porFila={12}
+        busqueda={busqueda} onDoble={doble} porCelda={cat === 0} valido={!!v?.ok}
+      />
       {apunta && v && !v.ok && <div className="aviso error inv-aviso" role="alert">{v.motivo}</div>}
 
       <footer>

@@ -7,6 +7,7 @@ import {
 } from '../domain/reglas';
 import type { Objeto, Personaje } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
+import { useArrastre } from './arrastre';
 import { useEditor } from './editorCtx';
 import { UI } from './iconos';
 import { useInteraccion } from './interaccion';
@@ -23,10 +24,11 @@ const FILTROS = [{ id: 'todo', t: 'Todo' }, { id: 'racion', t: 'Raciones' }, { i
 export function Despensa({ avisar, busqueda }: { avisar: (texto: string, error?: boolean) => void; busqueda: string }) {
   const { estado, comer, cambiarSaciedad, descansar } = useCofre();
   const editor = useEditor();
-  const { props, clase } = useInteraccion(busqueda);
   const comida = estado.objetos.filter((o) => o.categoria === 'Comida');
   const comestibles = comida.filter((o) => (o.saciedad ?? 0) > 0);
   const [elegida, setElegida] = useState<string | null>(null);
+  // Un clic elige la comida; arrastrarla sobre un personaje se la da de comer
+  const { props, clase } = useInteraccion(busqueda, undefined, (o) => { if ((o.saciedad ?? 0) > 0) setElegida(o.id); });
   const [filtro, setFiltro] = useState('todo');
   const sel = comestibles.find((o) => o.id === elegida) ?? comestibles[0];
   const todos = estado.personajes.map((p) => p.id);
@@ -65,7 +67,7 @@ export function Despensa({ avisar, busqueda }: { avisar: (texto: string, error?:
         <Esquinas />
         <header>
           <h2>Hambre de la party</h2>
-          <p>Pulsa Comer para usar <b>{sel ? sel.nombre : 'la comida elegida'}</b>{sel ? ` (+${sel.saciedad})` : ''}. Elige otra en la despensa.</p>
+          <p>Arrastra comida sobre un personaje o pulsa Comer para usar <b>{sel ? sel.nombre : 'la comida elegida'}</b>{sel ? ` (+${sel.saciedad})` : ''}.</p>
         </header>
         <ul className="hambre-lista">
           {estado.personajes.map((p) => <FilaHambre key={p.id} p={p} onComer={() => hacerComer(p)} puedeComer={!!sel} onAjustar={(d) => cambiarSaciedad([p.id], d)} />)}
@@ -136,7 +138,7 @@ export function Despensa({ avisar, busqueda }: { avisar: (texto: string, error?:
             </section>
           ))}
         </div>
-        <footer className="despensa-pie">Clic para elegir qué se come · clic derecho para editar · arrastra a un retrato para dárselo</footer>
+        <footer className="despensa-pie">Clic para elegir qué se come · arrastra sobre un personaje para que se la coma · a un retrato para dársela · clic derecho para más opciones</footer>
       </section>
     </main>
   );
@@ -144,8 +146,11 @@ export function Despensa({ avisar, busqueda }: { avisar: (texto: string, error?:
 
 function FilaHambre({ p, onComer, puedeComer, onAjustar }: { p: Personaje; onComer: () => void; puedeComer: boolean; onAjustar: (d: number) => void }) {
   const s = estadoSaciedad(p.saciedad);
+  const { arrastre } = useArrastre();
+  const apuntada = arrastre?.objetivo?.clave === `comer:${p.id}`;
+  const marca = apuntada ? (arrastre!.objeto.categoria === 'Comida' && (arrastre!.objeto.saciedad ?? 0) > 0 && p.saciedad < SACIEDAD_MAX ? 'drop-ok' : 'drop-no') : '';
   return (
-    <li className={`fila-hambre ${s.nivel <= 1 ? 'grave' : ''}`} style={{ '--c': s.color, '--pj': p.color } as CSSProperties} data-drop={`pj:${p.id}`}>
+    <li className={`fila-hambre ${s.nivel <= 1 ? 'grave' : ''} ${marca}`} style={{ '--c': s.color, '--pj': p.color } as CSSProperties} data-drop={`comer:${p.id}`}>
       <div className="fh-retrato">{p.imagenUrl ? <img src={p.imagenUrl} alt="" /> : iniciales(p.nombre)}</div>
       <div className="fh-centro">
         <div className="fh-cab">

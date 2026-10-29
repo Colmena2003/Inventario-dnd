@@ -44,7 +44,8 @@ const esperar = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
 /** Aplica una operación; si ya no vale sobre ese estado, lo deja como estaba. */
 const probar = (e: Estado, op: Op) => { try { return op(e); } catch { return e; } };
 
-type Emitir = (estado: Estado, conexion: Conexion) => void;
+/** `descartado`: un cambio de este jugador ya no valía sobre lo que guardó otro y no se ha aplicado. */
+type Emitir = (estado: Estado, conexion: Conexion, descartado?: boolean) => void;
 
 export class Sala {
   private pendientes: Op[] = [];
@@ -105,9 +106,9 @@ export class Sala {
     if (this.canal) void sb().removeChannel(this.canal);
   }
 
-  private emitirActual(conexion?: Conexion) {
+  private emitirActual(conexion?: Conexion, descartado = false) {
     if (conexion) this.conexion = conexion;
-    if (!this.cerrada) this.emitir(this.actual(), this.pendientes.length && this.conexion === 'sincronizado' ? 'guardando' : this.conexion);
+    if (!this.cerrada) this.emitir(this.actual(), this.pendientes.length && this.conexion === 'sincronizado' ? 'guardando' : this.conexion, descartado);
   }
 
   private escuchar() {
@@ -137,7 +138,7 @@ export class Sala {
           nuevo = op(this.base);
         } catch {
           this.pendientes.shift(); // ya no vale: otro jugador cambió lo que tocaba
-          this.emitirActual();
+          this.emitirActual(undefined, true);
           continue;
         }
         const { data, error } = await sb().from(TABLA)

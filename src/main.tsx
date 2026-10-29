@@ -10,6 +10,7 @@ import './styles/editor.css';
 import './styles/despensa.css';
 import './styles/estadisticas.css';
 import './styles/uso.css';
+import './styles/biblioteca.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
