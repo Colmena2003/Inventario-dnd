@@ -55,6 +55,7 @@ export class Sala {
   private cerrada = false;
   private conexion: Conexion = 'sincronizado';
   private alVolver = () => { if (document.visibilityState === 'visible') void this.recargar(); };
+  private limpieza?: ReturnType<typeof setTimeout>;
 
   private constructor(
     readonly codigo: string,
@@ -66,6 +67,7 @@ export class Sala {
     this.ultimaVista = version;
     this.escuchar();
     document.addEventListener('visibilitychange', this.alVolver);
+    this.programarLimpieza(5000);
     this.emitirActual();
   }
 
@@ -103,6 +105,7 @@ export class Sala {
   cerrar() {
     this.cerrada = true;
     document.removeEventListener('visibilitychange', this.alVolver);
+    clearTimeout(this.limpieza);
     if (this.canal) void sb().removeChannel(this.canal);
   }
 
@@ -157,6 +160,7 @@ export class Sala {
         this.version = data[0].version as number;
         this.pendientes.shift();
         this.emitirActual('sincronizado');
+        this.programarLimpieza();
       }
     } finally {
       this.enviando = false;
@@ -179,6 +183,32 @@ export class Sala {
     return true;
   }
 
+
+  /** Tras un rato sin guardar nada, borra las imágenes de la party que ya no usa nadie. */
+  private programarLimpieza(ms = 60_000) {
+    clearTimeout(this.limpieza);
+    this.limpieza = setTimeout(() => void this.limpiarImagenes().catch(() => {}), ms);
+  }
+
+  /**
+   * Cambiar un retrato o una imagen sube una nueva y deja la anterior sin usar, igual que subir una y cancelar
+   * el editor. Se compara con el estado recién descargado (y lo pendiente de aquí) para no borrar una que otro
+   * jugador acaba de volver a poner, y se respetan las de menos de una hora: puede tenerlas un editor abierto.
+   */
+  private async limpiarImagenes() {
+    if (this.cerrada) return;
+    const almacen = sb().storage.from(BUCKET);
+    const { data: archivos, error } = await almacen.list(this.codigo, { limit: 1000 });
+    if (error || !archivos?.length) return;
+    const { data: fila } = await sb().from(TABLA).select('estado').eq('id', this.codigo).maybeSingle();
+    if (!fila || this.cerrada) return;
+    const usadas = JSON.stringify(fila.estado) + JSON.stringify(this.actual());
+    const hace1h = Date.now() - 3600_000;
+    const sobran = archivos
+      .filter((a) => a.id && !usadas.includes(a.name) && a.created_at && new Date(a.created_at).getTime() < hace1h)
+      .map((a) => `${this.codigo}/${a.name}`);
+    if (sobran.length) await almacen.remove(sobran);
+  }
   private async recargar() {
     if (this.enviando || this.cerrada) return;
     this.enviando = true;

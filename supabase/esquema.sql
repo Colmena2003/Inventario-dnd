@@ -36,3 +36,6 @@ drop policy if exists "subir imagenes" on storage.objects;
 drop policy if exists "ver imagenes" on storage.objects;
 create policy "subir imagenes" on storage.objects for insert to anon with check (bucket_id = 'imagenes');
 create policy "ver imagenes" on storage.objects for select to anon using (bucket_id = 'imagenes');
+drop policy if exists "borrar imagenes" on storage.objects;
+-- Para limpiar las que ya no usa nadie (Sala.limpiarImagenes)
+create policy "borrar imagenes" on storage.objects for delete to anon using (bucket_id = 'imagenes');
