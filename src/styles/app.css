@@ -32,9 +32,9 @@
 .tab .dot svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .tab[aria-current='page'] {
   color: var(--t-f6ead0); background: linear-gradient(180deg, var(--pestana) 0%, var(--pestana-2) 100%); border-color: var(--t-c8a85e);
-  box-shadow: 0 0 0 1px #0a0807, 0 0 18px rgba(64, 170, 190, .28), inset 0 1px 0 rgba(255, 255, 255, .12);
+  box-shadow: 0 0 0 1px #0a0807, 0 0 18px rgb(from var(--p-40aabe) r g b / .28), inset 0 1px 0 rgba(255, 255, 255, .12);
 }
-.tab[aria-current='page'] .dot { background: #0c2328; border-color: var(--t-c8a85e); color: var(--t-f1d692); }
+.tab[aria-current='page'] .dot { background: var(--p-0c2328); border-color: var(--t-c8a85e); color: var(--t-f1d692); }
 .top-dcha { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
 .tesoro { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border: 1px solid var(--t-3c311f); border-radius: 4px; background: var(--t-0e0b09); }
 .tesoro > span:first-child { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--texto-3); }

@@ -9,6 +9,8 @@ const CLAVE = 'cofre:tema';
 /** Tono y saturación del oro original (#b89a55), del que se giran los demás. */
 const TONO_ORO = 41.8;
 const SAT_ORO = 41;
+/** Tono del verde azulado de las pestañas (#1f5560). */
+const TONO_PESTANA = 190;
 
 type Tema = { id: string; tono: number; sat: number };
 
@@ -48,8 +50,11 @@ function leer(): Tema {
 }
 
 function aplicar(t: Tema) {
-  document.documentElement.style.setProperty('--tono', String(t.tono));
-  document.documentElement.style.setProperty('--sat', String(t.sat));
+  const raiz = document.documentElement.style;
+  raiz.setProperty('--tono', String(t.tono));
+  raiz.setProperty('--sat', String(t.sat));
+  // El verde azulado de las pestañas acompaña al oro; con otro tema pasan al tono de ese color
+  raiz.setProperty('--tono-p', String(t.id === 'oro' ? 0 : Math.round(TONO_ORO + t.tono - TONO_PESTANA)));
 }
 
 /** Se llama antes de pintar la app para que no se vea un instante el oro. */

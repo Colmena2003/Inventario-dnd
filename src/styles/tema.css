@@ -118,6 +118,15 @@
   --t-fff3c4: hsl(from #fff3c4 calc(h + var(--tono)) calc(s * var(--sat)) l);
 }
 
+/* Las pestañas son verde azulado con el oro; con otro tema toman su tono (--tono-p, Configuracion.tsx) */
+:root {
+  --tono-p: 0;
+  --p-0c2328: hsl(from #0c2328 calc(h + var(--tono-p)) calc(s * var(--sat)) l);
+  --p-113139: hsl(from #113139 calc(h + var(--tono-p)) calc(s * var(--sat)) l);
+  --p-1f5560: hsl(from #1f5560 calc(h + var(--tono-p)) calc(s * var(--sat)) l);
+  --p-40aabe: hsl(from #40aabe calc(h + var(--tono-p)) calc(s * var(--sat)) l);
+}
+
 /* Los adornos SVG llevan el color en atributos, que el CSS puede pisar */
 [fill="#0a0806"] { fill: var(--t-0a0806); }
 [stroke="#0a0806"] { stroke: var(--t-0a0806); }

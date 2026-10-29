@@ -10,7 +10,7 @@
 .est-vistas { flex: none; display: flex; align-items: center; gap: 10px; }
 .est-vista { height: 46px; padding: 0 20px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--t-574628); border-radius: 23px; background: linear-gradient(180deg, var(--t-1a1611), var(--t-0f0c0a)); color: var(--t-c9b88f); font: 600 15px var(--f-titulo); letter-spacing: .04em; cursor: pointer; }
 .est-vista:hover { border-color: var(--t-8a6f3c); }
-.est-vista.on { color: var(--t-f6ead0); background: linear-gradient(180deg, var(--pestana), var(--pestana-2)); border-color: var(--t-c8a85e); box-shadow: 0 0 18px rgba(64, 170, 190, .28); }
+.est-vista.on { color: var(--t-f6ead0); background: linear-gradient(180deg, var(--pestana), var(--pestana-2)); border-color: var(--t-c8a85e); box-shadow: 0 0 18px rgb(from var(--p-40aabe) r g b / .28); }
 .est-vista svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .est-quien { margin-left: auto; display: flex; gap: 8px; }
 .est-quien .chip { height: 38px; padding: 0 16px; display: flex; align-items: center; gap: 8px; font-size: 15px; border-radius: 19px; }

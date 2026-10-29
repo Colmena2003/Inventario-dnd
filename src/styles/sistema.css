@@ -10,8 +10,8 @@
   --texto: var(--t-e8dfcc);
   --texto-2: var(--t-b9ab90);
   --texto-3: var(--t-9d917b);
-  --pestana: #1f5560;
-  --pestana-2: #113139;
+  --pestana: var(--p-1f5560);
+  --pestana-2: var(--p-113139);
 
   --ok: #73e281;
   --no: #ef5a55;
