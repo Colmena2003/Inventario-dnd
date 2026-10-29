@@ -18,7 +18,7 @@ import { useEditor } from './editorCtx';
 import { useEditorPersonaje } from './EditorPersonaje';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
 import { baseDe } from './arrastre';
-import { DCHA, IZQ, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { DCHA, IZQ, LADO_RETRATO, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { Esquinas, fmtNum, Icono, Moneda, MONEDAS } from './piezas';
 
 type Avisar = (texto: string, error?: boolean) => void;
@@ -92,7 +92,7 @@ function Ficha({ p, h, avisar }: { p: Personaje; h: Hoja; avisar: Avisar }) {
             <div key={k} aria-label={`${t} ${v}, modificador ${conSigno(m)}`} title={desglose(h.car[k])}>
               <span>{t}</span>
               <b className={claseCambio(h.car[k])}>{v}</b>
-              <span style={{ color: v >= 12 ? '#9cc95e' : v < 10 ? '#e0883a' : '#cfc3aa' }}>{conSigno(m)}</span>
+              <span style={{ color: v >= 12 ? '#9cc95e' : v < 10 ? '#e0883a' : 'var(--t-cfc3aa)' }}>{conSigno(m)}</span>
             </div>
           );
         })}
@@ -256,7 +256,7 @@ function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string })
       </button>
       <input
         ref={fichero} type="file" accept="image/*" hidden
-        onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiarImagen(p.id, await prepararImagen(f, 900)); }}
+        onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiarImagen(p.id, await prepararImagen(f, LADO_RETRATO)); }}
       />
 
       <div className="equipo-izq">{IZQ.map(([r, ic]) => ranura(r, 0, ic))}</div>
@@ -351,13 +351,13 @@ function Inventario({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: strin
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d={UI.peso} /></svg>
           <div>
             <div className="tramos">
-              <div style={{ background: 'rgba(201,166,90,.14)', borderColor: '#4d3e25' }} />
+              <div style={{ background: 'rgb(from var(--t-c9a65a) r g b / .14)', borderColor: 'var(--t-4d3e25)' }} />
               <div style={{ background: 'rgba(224,136,58,.12)', borderColor: '#5a3a1f' }} />
               <div style={{ background: 'rgba(224,83,77,.12)', borderColor: '#5a2321' }} />
               <div className="relleno" style={{ width: `${Math.min(100, (peso / max) * 100)}%`, background: `linear-gradient(90deg, ${tramo.color}aa, ${tramo.color})`, boxShadow: `0 0 8px ${tramo.color}80` }} />
             </div>
             <div className="tramos-t">
-              <span style={{ color: '#c9a65a' }}>Normal hasta {fmtKg(max / 3)}</span>
+              <span style={{ color: 'var(--t-c9a65a)' }}>Normal hasta {fmtKg(max / 3)}</span>
               <span style={{ color: '#e0883a' }}>Cargado hasta {fmtKg((max * 2) / 3)}</span>
               <span style={{ color: '#e0534d' }}>Sobrecargado hasta {max}</span>
             </div>

@@ -6,6 +6,7 @@ import { cargaMaxDe, CLASE_RAREZA, estadoSaciedad, pesoPersonajeKg, SACIEDAD_MAX
 import type { Categoria, Rareza } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
+import { BotonConfiguracion } from './Configuracion';
 import { useEditorPersonaje } from './EditorPersonaje';
 import { useFiltros } from './filtrosCtx';
 import { UI } from './iconos';
@@ -75,6 +76,7 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda, onParty }: {
           <input type="search" placeholder="Buscar objetos…" value={busqueda} onChange={(e) => onBusqueda(e.target.value)} />
         </label>
         <BotonFiltros />
+        <BotonConfiguracion />
       </div>
       <svg className="topbar-orla" viewBox="0 0 600 14" width="600" height="14" aria-hidden="true">
         <path d="M0 7h270M330 7h270" stroke="#6b5631" strokeWidth="1" />

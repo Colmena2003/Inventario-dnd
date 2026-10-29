@@ -101,14 +101,14 @@ function PorPersonaje({ onAjuste }: { onAjuste: (p: Personaje, modo: 'ingresar' 
             <tr key={p.id}>
               <td style={{ textAlign: 'left', paddingLeft: 0 }}>
                 <span className="mon-pj">
-                  <span className="mon-ini" style={{ borderColor: p.color, background: `linear-gradient(180deg, ${p.color}88, #0b0907)` }}>
+                  <span className="mon-ini" style={{ borderColor: p.color, background: `linear-gradient(180deg, ${p.color}88, var(--t-0b0907))` }}>
                     {p.imagenUrl ? <img src={p.imagenUrl} alt="" /> : iniciales(p.nombre)}
                   </span>
                   <span>{p.nombre}</span>
                 </span>
               </td>
               {CLAVES.map((k) => <td key={k} style={k === 'po' ? { color: '#e8c46c' } : undefined}>{fmtNum(p.monedas[k])}</td>)}
-              <td style={{ fontWeight: 700, color: '#f2e6c8' }}>{fmtPo(totalEnPo(p.monedas))}</td>
+              <td style={{ fontWeight: 700, color: 'var(--t-f2e6c8)' }}>{fmtPo(totalEnPo(p.monedas))}</td>
               <td>
                 <span className="mon-btns">
                   <Mini etiqueta={`Retirar de ${p.nombre}`} d={UI.menos} disabled={vacia(p.monedas)} onClick={() => onAjuste(p, 'retirar')} />
@@ -217,8 +217,8 @@ function Botin({ avisar }: { avisar: Avisar }) {
                 <span key={k} className={`c-${k}`}>{fmtNum(cada[k])} <small>{k.toUpperCase()}</small></span>
               ))}
             </div>
-            <span className="s">Resto al tesoro común: <b style={{ color: '#ece4d2' }}>{texto(resto)}</b></span>
-            <span className="s" style={{ fontSize: 13, color: '#8f846f' }}>+{fmtKg(kgCada)} kg por persona en monedas</span>
+            <span className="s">Resto al tesoro común: <b style={{ color: 'var(--t-ece4d2)' }}>{texto(resto)}</b></span>
+            <span className="s" style={{ fontSize: 13, color: 'var(--t-8f846f)' }}>+{fmtKg(kgCada)} kg por persona en monedas</span>
           </>
         )}
         {prueba && !prueba.ok && <span className="mon-error" role="alert">{prueba.motivo}</span>}
@@ -268,7 +268,7 @@ function Carga() {
         <span className="mon-cn">Total party</span>
         <div className="mon-reparto">
           {filas.map(({ p, peso: w }) => <div key={p.id} title={`${p.nombre}: ${fmtKg(w)} kg`} style={{ width: `${(w / max) * 100}%`, background: p.color }} />)}
-          <div style={{ flex: 1, background: '#1a1611', border: '1px solid #3a2f1d' }} />
+          <div style={{ flex: 1, background: 'var(--t-1a1611)', border: '1px solid var(--t-3a2f1d)' }} />
         </div>
         <span className="mon-cv" style={{ justifyContent: 'flex-end' }}><span><b>{fmtKg(peso)}</b> / {max} kg · {Math.round((peso / max) * 100)} %</span></span>
       </div>

@@ -1,0 +1,205 @@
+/* Tema de color de cada jugador (src/ui/Configuracion.tsx). Cada color cálido del diseño es una variable
+   que gira su tono --tono grados y multiplica su saturación por --sat; con 0 y 1 queda el oro original.
+   Los colores con significado (rarezas, estados, monedas) no pasan por aquí. Generado a partir de los colores
+   que había: al añadir uno nuevo de la familia del oro, usa var(--t-xxxxxx) y añádelo a la lista. */
+
+:root {
+  --tono: 0;
+  --sat: 1;
+  --t-090705: hsl(from #090705 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-0a0806: hsl(from #0a0806 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-0b0907: hsl(from #0b0907 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-0c0a08: hsl(from #0c0a08 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-0d0b09: hsl(from #0d0b09 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-0e0b09: hsl(from #0e0b09 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-0f0c09: hsl(from #0f0c09 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-0f0c0a: hsl(from #0f0c0a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-100c09: hsl(from #100c09 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-100d0a: hsl(from #100d0a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-110d0a: hsl(from #110d0a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-110e0b: hsl(from #110e0b calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-120e0a: hsl(from #120e0a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-120f0b: hsl(from #120f0b calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-120f0c: hsl(from #120f0c calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-14110d: hsl(from #14110d calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-16120d: hsl(from #16120d calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-16120e: hsl(from #16120e calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-17120c: hsl(from #17120c calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-17120d: hsl(from #17120d calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-17130f: hsl(from #17130f calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-18140f: hsl(from #18140f calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-1a1206: hsl(from #1a1206 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-1a150e: hsl(from #1a150e calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-1a1611: hsl(from #1a1611 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-1b1510: hsl(from #1b1510 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-1b1611: hsl(from #1b1611 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-1c160e: hsl(from #1c160e calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-1d1710: hsl(from #1d1710 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-1d1812: hsl(from #1d1812 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-221c14: hsl(from #221c14 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-24120a: hsl(from #24120a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-241812: hsl(from #241812 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-24210c: hsl(from #24210c calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-2a1d06: hsl(from #2a1d06 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-2a2116: hsl(from #2a2116 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-2a2218: hsl(from #2a2218 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-2b1d05: hsl(from #2b1d05 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-2b241b: hsl(from #2b241b calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-2c2418: hsl(from #2c2418 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-2c2419: hsl(from #2c2419 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-2f271b: hsl(from #2f271b calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-33291a: hsl(from #33291a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-332a1c: hsl(from #332a1c calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-3a2a0e: hsl(from #3a2a0e calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-3a2a1d: hsl(from #3a2a1d calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-3a2f1d: hsl(from #3a2f1d calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-3c311f: hsl(from #3c311f calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-3e2a1a: hsl(from #3e2a1a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-3e321f: hsl(from #3e321f calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-4a3c24: hsl(from #4a3c24 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-4a4034: hsl(from #4a4034 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-4d3e25: hsl(from #4d3e25 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-574628: hsl(from #574628 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-5a4a2c: hsl(from #5a4a2c calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-5d5242: hsl(from #5d5242 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-5e4c2b: hsl(from #5e4c2b calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-5e4c2c: hsl(from #5e4c2c calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-6b5631: hsl(from #6b5631 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-7a6338: hsl(from #7a6338 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-7d725f: hsl(from #7d725f calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-8a6116: hsl(from #8a6116 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-8a6f3c: hsl(from #8a6f3c calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-8a7040: hsl(from #8a7040 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-8a7a5a: hsl(from #8a7a5a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-8a7f6c: hsl(from #8a7f6c calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-8c6a33: hsl(from #8c6a33 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-8f846f: hsl(from #8f846f calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-9d917b: hsl(from #9d917b calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-a88a4c: hsl(from #a88a4c calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-a8956a: hsl(from #a8956a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-a99d86: hsl(from #a99d86 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-b89a55: hsl(from #b89a55 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-b9ab90: hsl(from #b9ab90 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-c49a45: hsl(from #c49a45 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-c8a85e: hsl(from #c8a85e calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-c9a65a: hsl(from #c9a65a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-c9b88f: hsl(from #c9b88f calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-cfc3aa: hsl(from #cfc3aa calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-d79a6d: hsl(from #d79a6d calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-d8c38f: hsl(from #d8c38f calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-d8ccb3: hsl(from #d8ccb3 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-d8d0c0: hsl(from #d8d0c0 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-d9b05a: hsl(from #d9b05a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-d9b86a: hsl(from #d9b86a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-d9d27f: hsl(from #d9d27f calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-ddd3c0: hsl(from #ddd3c0 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-e2c27a: hsl(from #e2c27a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-e3d9c4: hsl(from #e3d9c4 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-e8dfcc: hsl(from #e8dfcc calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-e9c56a: hsl(from #e9c56a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-e9d6a8: hsl(from #e9d6a8 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-ecd593: hsl(from #ecd593 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-ece4d2: hsl(from #ece4d2 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-ece6da: hsl(from #ece6da calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-eedcb0: hsl(from #eedcb0 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-f0d38a: hsl(from #f0d38a calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-f1d692: hsl(from #f1d692 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-f1dfb0: hsl(from #f1dfb0 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-f1e3bf: hsl(from #f1e3bf calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-f2e6c8: hsl(from #f2e6c8 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-f3e6c6: hsl(from #f3e6c6 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-f4ecdc: hsl(from #f4ecdc calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-f6e2a8: hsl(from #f6e2a8 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-f6e8c4: hsl(from #f6e8c4 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-f6ead0: hsl(from #f6ead0 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-f6eedd: hsl(from #f6eedd calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-ffe8b4: hsl(from #ffe8b4 calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-ffebbe: hsl(from #ffebbe calc(h + var(--tono)) calc(s * var(--sat)) l);
+  --t-fff3c4: hsl(from #fff3c4 calc(h + var(--tono)) calc(s * var(--sat)) l);
+}
+
+/* Los adornos SVG llevan el color en atributos, que el CSS puede pisar */
+[fill="#0a0806"] { fill: var(--t-0a0806); }
+[stroke="#0a0806"] { stroke: var(--t-0a0806); }
+[stop-color="#0a0806"] { stop-color: var(--t-0a0806); }
+[fill="#0b0907"] { fill: var(--t-0b0907); }
+[stroke="#0b0907"] { stroke: var(--t-0b0907); }
+[stop-color="#0b0907"] { stop-color: var(--t-0b0907); }
+[fill="#0c0a08"] { fill: var(--t-0c0a08); }
+[stroke="#0c0a08"] { stroke: var(--t-0c0a08); }
+[stop-color="#0c0a08"] { stop-color: var(--t-0c0a08); }
+[fill="#0d0b09"] { fill: var(--t-0d0b09); }
+[stroke="#0d0b09"] { stroke: var(--t-0d0b09); }
+[stop-color="#0d0b09"] { stop-color: var(--t-0d0b09); }
+[fill="#0f0c0a"] { fill: var(--t-0f0c0a); }
+[stroke="#0f0c0a"] { stroke: var(--t-0f0c0a); }
+[stop-color="#0f0c0a"] { stop-color: var(--t-0f0c0a); }
+[fill="#120f0b"] { fill: var(--t-120f0b); }
+[stroke="#120f0b"] { stroke: var(--t-120f0b); }
+[stop-color="#120f0b"] { stop-color: var(--t-120f0b); }
+[fill="#1a1611"] { fill: var(--t-1a1611); }
+[stroke="#1a1611"] { stroke: var(--t-1a1611); }
+[stop-color="#1a1611"] { stop-color: var(--t-1a1611); }
+[fill="#24120a"] { fill: var(--t-24120a); }
+[stroke="#24120a"] { stroke: var(--t-24120a); }
+[stop-color="#24120a"] { stop-color: var(--t-24120a); }
+[fill="#24210c"] { fill: var(--t-24210c); }
+[stroke="#24210c"] { stroke: var(--t-24210c); }
+[stop-color="#24210c"] { stop-color: var(--t-24210c); }
+[fill="#2b1d05"] { fill: var(--t-2b1d05); }
+[stroke="#2b1d05"] { stroke: var(--t-2b1d05); }
+[stop-color="#2b1d05"] { stop-color: var(--t-2b1d05); }
+[fill="#2c2419"] { fill: var(--t-2c2419); }
+[stroke="#2c2419"] { stroke: var(--t-2c2419); }
+[stop-color="#2c2419"] { stop-color: var(--t-2c2419); }
+[fill="#3a2f1d"] { fill: var(--t-3a2f1d); }
+[stroke="#3a2f1d"] { stroke: var(--t-3a2f1d); }
+[stop-color="#3a2f1d"] { stop-color: var(--t-3a2f1d); }
+[fill="#4d3e25"] { fill: var(--t-4d3e25); }
+[stroke="#4d3e25"] { stroke: var(--t-4d3e25); }
+[stop-color="#4d3e25"] { stop-color: var(--t-4d3e25); }
+[fill="#5e4c2b"] { fill: var(--t-5e4c2b); }
+[stroke="#5e4c2b"] { stroke: var(--t-5e4c2b); }
+[stop-color="#5e4c2b"] { stop-color: var(--t-5e4c2b); }
+[fill="#5e4c2c"] { fill: var(--t-5e4c2c); }
+[stroke="#5e4c2c"] { stroke: var(--t-5e4c2c); }
+[stop-color="#5e4c2c"] { stop-color: var(--t-5e4c2c); }
+[fill="#6b5631"] { fill: var(--t-6b5631); }
+[stroke="#6b5631"] { stroke: var(--t-6b5631); }
+[stop-color="#6b5631"] { stop-color: var(--t-6b5631); }
+[fill="#8a7f6c"] { fill: var(--t-8a7f6c); }
+[stroke="#8a7f6c"] { stroke: var(--t-8a7f6c); }
+[stop-color="#8a7f6c"] { stop-color: var(--t-8a7f6c); }
+[fill="#8f846f"] { fill: var(--t-8f846f); }
+[stroke="#8f846f"] { stroke: var(--t-8f846f); }
+[stop-color="#8f846f"] { stop-color: var(--t-8f846f); }
+[fill="#a88a4c"] { fill: var(--t-a88a4c); }
+[stroke="#a88a4c"] { stroke: var(--t-a88a4c); }
+[stop-color="#a88a4c"] { stop-color: var(--t-a88a4c); }
+[fill="#b89a55"] { fill: var(--t-b89a55); }
+[stroke="#b89a55"] { stroke: var(--t-b89a55); }
+[stop-color="#b89a55"] { stop-color: var(--t-b89a55); }
+[fill="#c9a65a"] { fill: var(--t-c9a65a); }
+[stroke="#c9a65a"] { stroke: var(--t-c9a65a); }
+[stop-color="#c9a65a"] { stop-color: var(--t-c9a65a); }
+[fill="#cfc3aa"] { fill: var(--t-cfc3aa); }
+[stroke="#cfc3aa"] { stroke: var(--t-cfc3aa); }
+[stop-color="#cfc3aa"] { stop-color: var(--t-cfc3aa); }
+[fill="#d8ccb3"] { fill: var(--t-d8ccb3); }
+[stroke="#d8ccb3"] { stroke: var(--t-d8ccb3); }
+[stop-color="#d8ccb3"] { stop-color: var(--t-d8ccb3); }
+[fill="#d8d0c0"] { fill: var(--t-d8d0c0); }
+[stroke="#d8d0c0"] { stroke: var(--t-d8d0c0); }
+[stop-color="#d8d0c0"] { stop-color: var(--t-d8d0c0); }
+[fill="#e2c27a"] { fill: var(--t-e2c27a); }
+[stroke="#e2c27a"] { stroke: var(--t-e2c27a); }
+[stop-color="#e2c27a"] { stop-color: var(--t-e2c27a); }
+[fill="#e9d6a8"] { fill: var(--t-e9d6a8); }
+[stroke="#e9d6a8"] { stroke: var(--t-e9d6a8); }
+[stop-color="#e9d6a8"] { stop-color: var(--t-e9d6a8); }
+[fill="#ece4d2"] { fill: var(--t-ece4d2); }
+[stroke="#ece4d2"] { stroke: var(--t-ece4d2); }
+[stop-color="#ece4d2"] { stop-color: var(--t-ece4d2); }
+[fill="#f2e6c8"] { fill: var(--t-f2e6c8); }
+[stroke="#f2e6c8"] { stroke: var(--t-f2e6c8); }
+[stop-color="#f2e6c8"] { stop-color: var(--t-f2e6c8); }

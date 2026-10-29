@@ -230,6 +230,9 @@ export function Silueta({ tinte, id, arma, className, aura = true }: { tinte: st
   );
 }
 
+/** Lado mayor de un retrato: el mismo se suba desde donde se suba, porque se ve en grande en la ficha. */
+export const LADO_RETRATO = 900;
+
 /** Reduce la imagen subida para que quepa en el almacenamiento local. */
 export function reducirImagen(f: File, lado: number): Promise<string> {
   return new Promise((ok, mal) => {
@@ -239,7 +242,9 @@ export function reducirImagen(f: File, lado: number): Promise<string> {
       const c = document.createElement('canvas');
       c.width = Math.round(img.width * k);
       c.height = Math.round(img.height * k);
-      c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+      const ctx = c.getContext('2d')!;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, c.width, c.height);
       URL.revokeObjectURL(img.src);
       ok(c.toDataURL('image/webp', 0.85));
     };

@@ -15,7 +15,7 @@ import { ClasesConIcono } from './clases';
 import { useEditorPersonaje } from './EditorPersonaje';
 import { BotonMenu, type OpcionMenu } from './Menu';
 import { Esquinas, fmt1, fmtNum, Icono, Orla } from './piezas';
-import { DCHA, IZQ, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { DCHA, IZQ, LADO_RETRATO, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { desglose, tituloAtaque } from './desglose';
 import { useEditor } from './editorCtx';
 
@@ -69,7 +69,7 @@ function Columna({ p, indice, ancho, busqueda, onVerFicha }: { p: Personaje; ind
 
   const subirImagen = async (f: File | undefined) => {
     if (!f) return;
-    cambiarImagen(p.id, await prepararImagen(f, 600));
+    cambiarImagen(p.id, await prepararImagen(f, LADO_RETRATO));
   };
 
   const opciones: OpcionMenu[] = [
@@ -241,7 +241,7 @@ function Alijo({ busqueda, ancho, slot }: { busqueda: string; ancho: number; slo
           {pesos.map(({ p, peso }) => (
             <div key={p.id} title={`${p.nombre}: ${fmtKg(peso)} kg`} style={{ width: `${(peso / maxGrupo) * 100}%`, background: p.color }} />
           ))}
-          <div style={{ flex: 1, background: '#1a1611', border: '1px solid #3a2f1d' }} />
+          <div style={{ flex: 1, background: 'var(--t-1a1611)', border: '1px solid var(--t-3a2f1d)' }} />
         </div>
       </footer>
     </aside>
@@ -273,8 +273,8 @@ export function PieGrupal({ aviso }: { aviso: Aviso | null }) {
         <div className="ayuda-arrastre">
           <span><span style={{ width: 12, height: 12, border: '2px solid var(--ok)' }} />Destino válido</span>
           <span><span style={{ width: 12, height: 12, border: '2px solid var(--no)' }} />Destino no válido</span>
-          {arrastre.objeto.cantidad > 1 && <span style={{ color: '#8a7f6c' }}>Mayús + soltar para dividir</span>}
-          <span style={{ color: '#8a7f6c' }}>Esc para cancelar</span>
+          {arrastre.objeto.cantidad > 1 && <span style={{ color: 'var(--t-8a7f6c)' }}>Mayús + soltar para dividir</span>}
+          <span style={{ color: 'var(--t-8a7f6c)' }}>Esc para cancelar</span>
         </div>
       ) : (
         <AvisoActual aviso={aviso} />
@@ -302,7 +302,7 @@ export function AvisoActual({ aviso }: { aviso: Aviso | null }) {
         {mov.cantidad > 1 && `${mov.cantidad} × `}<b className={CLASE_RAREZA[mov.rareza]} style={{ color: 'var(--rc)' }}>{mov.objetoNombre}</b> a{' '}
         <b style={{ color: 'var(--oro-claro)' }}>{destino}</b>
       </span>
-      <span style={{ color: '#8a7f6c' }}>· ahora</span>
+      <span style={{ color: 'var(--t-8a7f6c)' }}>· ahora</span>
     </div>
   );
 }

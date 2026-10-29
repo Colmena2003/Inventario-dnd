@@ -99,7 +99,7 @@ export function DividirPila({ objeto, destino, onCancelar, onMover }: {
               </span>
             </div>
             <div className="barra-carga">
-              <div style={{ height: 8, width: `${Math.min(100, (base / cap) * 100)}%`, background: '#c9a65a' }} />
+              <div style={{ height: 8, width: `${Math.min(100, (base / cap) * 100)}%`, background: 'var(--t-c9a65a)' }} />
               <div style={{ position: 'absolute', top: 0, height: 8, left: `${Math.min(100, (base / cap) * 100)}%`, width: `${Math.max(0, Math.min(100 - (base / cap) * 100, (anade / cap) * 100))}%`, background: v.ok ? '#9cc95e' : 'var(--no)', boxShadow: '0 0 8px rgba(156,201,94,.6)' }} />
               <span className="tic" style={{ left: '33.3%' }} />
               <span className="tic" style={{ left: '66.6%' }} />
