@@ -4,14 +4,16 @@ import { equipadoEn } from '../domain/reglas';
 import type { Objeto, Personaje, TipoRanura } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
+import { useEditor } from './editorCtx';
 import type { ClaveIcono } from './iconos';
 import { Ranura } from './piezas';
 import { useTooltip } from './Tooltip';
 
-/** Arrastre, tooltip, doble clic y atenuado por búsqueda para las ranuras con objeto. */
+/** Arrastre, tooltip, doble clic, clic derecho (editar) y atenuado por búsqueda para las ranuras con objeto. */
 export function useInteraccion(busqueda: string, onDoble?: (o: Objeto) => void) {
   const { arrastre, empezar } = useArrastre();
   const { mostrar, ocultar } = useTooltip();
+  const editor = useEditor();
   const q = busqueda.trim().toLocaleLowerCase('es');
   return {
     arrastre,
@@ -20,6 +22,7 @@ export function useInteraccion(busqueda: string, onDoble?: (o: Objeto) => void) 
       onPointerEnter: (e: React.PointerEvent) => { if (!arrastre) mostrar(o, e.currentTarget); },
       onPointerLeave: ocultar,
       onDoubleClick: onDoble ? () => onDoble(o) : undefined,
+      onContextMenu: (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); ocultar(); editor.editar(o); },
     }),
     clase: (o: Objeto) => {
       if (arrastre?.objeto.id === o.id) return 'origin';

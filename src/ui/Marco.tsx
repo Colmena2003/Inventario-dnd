@@ -1,6 +1,6 @@
 // Piezas compartidas por todas las pantallas: barra superior y barra lateral de retratos.
 
-import { cargaMaxKg, estadoSaciedad, pesoPersonajeKg } from '../domain/reglas';
+import { cargaMaxDe, estadoSaciedad, pesoPersonajeKg, SACIEDAD_MAX } from '../domain/reglas';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
 import { UI } from './iconos';
@@ -79,7 +79,7 @@ export function Retratos({ activo, onActivo }: { activo: string | null; onActivo
     if (arrastre?.objetivo?.clave !== `pj:${id}` || !arrastre.celda?.closest('.retratos')) return '';
     return validar(arrastre.objeto.id, { propietario: { tipo: 'personaje', id } }).ok ? 'drop-ok' : 'drop-no';
   };
-  const max = estado.personajes.reduce((s, p) => s + cargaMaxKg(p.fue), 0);
+  const max = estado.personajes.reduce((s, p) => s + cargaMaxDe(estado, p), 0);
   return (
     <nav className="retratos" aria-label="Personajes">
       {estado.personajes.map((p, i) => {
@@ -109,9 +109,9 @@ export function Retratos({ activo, onActivo }: { activo: string | null; onActivo
             <div className="barra-pv" aria-hidden="true">
               <div style={{ height: 4, width: `${Math.round((p.pvActual / p.pvMax) * 100)}%`, background: 'linear-gradient(90deg,#8e2420,#c8403a)' }} />
             </div>
-            <div className="mini-sac" title={`Saciedad: ${sac.texto}`}>
+            <div className="mini-sac" title={`Saciedad ${p.saciedad}/${SACIEDAD_MAX}: ${sac.texto}`}>
               <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" style={{ flex: 'none', fill: 'none', stroke: sac.color, strokeWidth: 2, strokeLinecap: 'round' }}><path d={UI.cuenco} /></svg>
-              <div><div style={{ height: 4, width: `${p.saciedad}%`, background: sac.color }} /></div>
+              <div><div style={{ height: 4, width: `${(p.saciedad / SACIEDAD_MAX) * 100}%`, background: sac.color }} /></div>
             </div>
           </div>
         );

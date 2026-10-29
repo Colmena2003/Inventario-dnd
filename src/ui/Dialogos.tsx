@@ -1,7 +1,7 @@
 // Diálogos: dividir pila (pantalla 3 del diseño), límite de sintonización (Estados) y elegir quién usa la app.
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { cargaMaxKg, CLASE_RAREZA, MAX_SINTONIZADOS, pesoPersonajeKg, type Destino } from '../domain/reglas';
+import { cargaMaxDe, CLASE_RAREZA, MAX_SINTONIZADOS, pesoPersonajeKg, type Destino } from '../domain/reglas';
 import type { Objeto } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { UI } from './iconos';
@@ -40,7 +40,7 @@ export function DividirPila({ objeto, destino, onCancelar, onMover }: {
   const v = validar(objeto.id, destino, n);
   const anade = objeto.pesoKg * n;
   const base = pj ? pesoPersonajeKg(estado, pj) : 0;
-  const cap = pj ? cargaMaxKg(pj.fue) : 0;
+  const cap = pj ? cargaMaxDe(estado, pj) : 0;
   const origenPj = objeto.propietario.tipo === 'personaje' ? estado.personajes.find((p) => p.id === (objeto.propietario as { id: string }).id) : undefined;
   const nombreOrigen = origenPj ? origenPj.nombre.split(' ')[0] : 'alijo';
 

@@ -3,7 +3,10 @@ import type { Destino } from './domain/reglas';
 import type { Objeto } from './domain/tipos';
 import { useCofre } from './store/cofre';
 import { ArrastreProvider } from './ui/arrastre';
+import { Despensa } from './ui/Despensa';
 import { DividirPila, QuienEres, SintoniaProvider } from './ui/Dialogos';
+import { EditorProvider } from './ui/EditorObjeto';
+import { Estadisticas } from './ui/Estadisticas';
 import { AvisoActual, Grupal, PieGrupal, type Aviso } from './ui/Grupal';
 import { Individual } from './ui/Individual';
 import { PantallaMonedas } from './ui/Monedas';
@@ -84,6 +87,7 @@ export default function App() {
             <Topbar activa={pestana} onPestana={setPestana} busqueda={busqueda} onBusqueda={setBusqueda} />
             <Retratos activo={activo} onActivo={(id) => { setActivo(id); setPestana('individual'); }} />
 
+            <EditorProvider onAviso={avisar}>
             <SintoniaProvider onAviso={avisar}>
             {pestana === 'grupal' ? (
               <>
@@ -100,14 +104,25 @@ export default function App() {
                 <PantallaMonedas avisar={avisar} />
                 <div className="avisos-flot abajo"><AvisoActual aviso={aviso} /></div>
               </>
+            ) : pestana === 'despensa' ? (
+              <>
+                <Despensa avisar={avisar} busqueda={busqueda} />
+                <div className="avisos-flot abajo"><AvisoActual aviso={aviso} /></div>
+              </>
+            ) : pestana === 'estadisticas' ? (
+              <>
+                <Estadisticas />
+                <div className="avisos-flot abajo"><AvisoActual aviso={aviso} /></div>
+              </>
             ) : (
               <section className="pronto">
                 <h2>{titulo}</h2>
-                <p>Esta pantalla todavía no está construida. De momento solo funciona el inventario grupal.</p>
+                <p>Esta pantalla todavía no está construida.</p>
                 <button type="button" className="btn sec" onClick={() => setPestana('grupal')}>Volver al inventario grupal</button>
               </section>
             )}
             </SintoniaProvider>
+            </EditorProvider>
 
             {dividir && (
               <DividirPila

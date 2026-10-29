@@ -1,7 +1,8 @@
 // Reglas de negocio (HANDOFF §6). Funciones puras: reciben el estado y devuelven uno nuevo.
 
+import { activosDe, caracteristica, modsDe } from './efectos';
 import type {
-  Caracteristica, Equipado, Estado, Monedas, Movimiento, Objeto, Personaje, Propietario, Rareza, TipoRanura,
+  Equipado, Estado, Monedas, Movimiento, Objeto, Personaje, Propietario, Rareza, TipoRanura,
 } from './tipos';
 
 // ── Características ────────────────────────────────────────────────
@@ -20,6 +21,13 @@ export const bonoCompetencia = (nivel: number) => 2 + Math.floor((Math.max(1, ni
 
 /** [casera] FUE × 15 lb ≈ FUE × 6,8 kg, redondeado al kilo. */
 export const cargaMaxKg = (fue: number) => Math.round(fue * 6.8);
+
+/** Carga máxima con la FUE que dan los objetos (un Cinturón de fuerza de gigante) y sus bonos de carga. */
+export function cargaMaxDe(e: Estado, p: Personaje) {
+  const mods = modsDe(activosDe(e, p.id));
+  const extra = mods.filter((m) => m.objetivo === 'carga' && !m.fijar).reduce((s, m) => s + (m.valor ?? 0), 0);
+  return Math.max(0, cargaMaxKg(caracteristica(p, mods, 'fue').total) + extra);
+}
 
 /** [5e] 50 monedas por libra (≈ 0,45 kg). [casera] Las monedas cuentan para la carga. */
 export const pesoMonedasKg = (m: Monedas) => ((m.ppt + m.po + m.pe + m.pp + m.pc) / 50) * 0.45;
@@ -47,43 +55,95 @@ export function tramoCarga(peso: number, max: number): TramoCarga {
 }
 
 // ── Saciedad [casera] ──────────────────────────────────────────────
+// Hambre de mazmorra, de 0 a 7. Baja 1 cada 30–90 min (lo decide el DM), 1 con un descanso corto y 4 con
+// uno largo, que necesita empezar con al menos 4. Los efectos se acumulan al bajar.
 
-export type EstadoSaciedad = { texto: string; color: string; efecto: string };
+export const SACIEDAD_MAX = 7;
+export const SACIEDAD_DESCANSO_LARGO = 4;
+
+export type EstadoSaciedad = {
+  nivel: number;
+  texto: string;
+  color: string;
+  /** El efecto más grave, para una sola línea. */
+  efecto: string;
+  efectos: string[];
+  desvPruebas: boolean;
+  velMitad: boolean;
+  desvAtaquesSalv: boolean;
+  pvMitad: boolean;
+};
+
+const NIVELES: { texto: string; color: string }[] = [
+  { texto: 'Desfallecido', color: '#b8322d' },
+  { texto: 'Famélico', color: '#e0534d' },
+  { texto: 'Muy hambriento', color: '#e06a3a' },
+  { texto: 'Hambriento', color: '#e0883a' },
+  { texto: 'Satisfecho', color: '#c9a65a' },
+  { texto: 'Saciado', color: '#a9c45a' },
+  { texto: 'Saciado', color: '#9cc95e' },
+  { texto: 'Lleno', color: '#9cc95e' },
+];
+
+export const EFECTOS_HAMBRE: [number, string][] = [
+  [3, 'Desventaja en pruebas de característica'],
+  [2, 'Velocidad a la mitad'],
+  [1, 'Desventaja en tiradas de ataque y salvaciones'],
+  [0, 'PV máximos a la mitad'],
+];
 
 export function estadoSaciedad(v: number): EstadoSaciedad {
-  if (v >= 75) return { texto: 'Saciado', color: '#9cc95e', efecto: 'Ventaja en salvaciones contra agotamiento' };
-  if (v >= 40) return { texto: 'Normal', color: '#c9a65a', efecto: 'Sin efectos' };
-  if (v >= 15) return { texto: 'Hambriento', color: '#e0883a', efecto: 'No recupera dados de golpe en descanso corto' };
-  return { texto: 'Famélico', color: '#e0534d', efecto: '+1 nivel de agotamiento al día' };
+  const nivel = Math.max(0, Math.min(SACIEDAD_MAX, Math.round(v)));
+  const efectos = EFECTOS_HAMBRE.filter(([n]) => nivel <= n).map(([, t]) => t);
+  return {
+    nivel, ...NIVELES[nivel],
+    efecto: efectos[efectos.length - 1] ?? 'Sin efectos',
+    efectos,
+    desvPruebas: nivel <= 3, velMitad: nivel <= 2, desvAtaquesSalv: nivel <= 1, pvMitad: nivel <= 0,
+  };
 }
+
+export type ResultadoComer = { ok: true; estado: Estado; antes: number; despues: number } | { ok: false; motivo: string };
+
+/** Comer gasta 1 unidad y suma su saciedad hasta el máximo. */
+export function comer(e: Estado, personajeId: string, objetoId: string): ResultadoComer {
+  const p = e.personajes.find((x) => x.id === personajeId);
+  const o = e.objetos.find((x) => x.id === objetoId);
+  if (!p) return { ok: false, motivo: 'El personaje ya no existe' };
+  if (!o || o.cantidad < 1) return { ok: false, motivo: 'Esa comida ya no está' };
+  if (o.categoria !== 'Comida') return { ok: false, motivo: `${o.nombre} no se come` };
+  if (!o.saciedad) return { ok: false, motivo: `${o.nombre} no se come sola: es un ingrediente` };
+  if (p.saciedad >= SACIEDAD_MAX) return { ok: false, motivo: `${p.nombre.split(' ')[0]} ya está lleno` };
+  const despues = Math.min(SACIEDAD_MAX, p.saciedad + o.saciedad);
+  const objetos = o.cantidad > 1
+    ? e.objetos.map((x) => (x.id === o.id ? { ...x, cantidad: x.cantidad - 1 } : x))
+    : e.objetos.filter((x) => x.id !== o.id);
+  return {
+    ok: true, antes: p.saciedad, despues,
+    estado: { ...e, objetos, personajes: e.personajes.map((x) => (x.id === p.id ? { ...x, saciedad: despues } : x)) },
+  };
+}
+
+export function cambiarSaciedad(e: Estado, ids: string[], delta: number): Estado {
+  const fijar = (v: number) => Math.max(0, Math.min(SACIEDAD_MAX, v + delta));
+  return { ...e, personajes: e.personajes.map((p) => (ids.includes(p.id) ? { ...p, saciedad: fijar(p.saciedad) } : p)) };
+}
+
+/** Descanso corto: −1. Largo: −4, solo para quien empieza con 4 o más; el resto queda en `bloqueados`. */
+export function descansar(e: Estado, ids: string[], tipo: 'corto' | 'largo'): { estado: Estado; hechos: string[]; bloqueados: string[] } {
+  const bloqueados = tipo === 'largo'
+    ? ids.filter((id) => (e.personajes.find((p) => p.id === id)?.saciedad ?? 0) < SACIEDAD_DESCANSO_LARGO)
+    : [];
+  const hechos = ids.filter((id) => !bloqueados.includes(id));
+  return { estado: cambiarSaciedad(e, hechos, tipo === 'largo' ? -SACIEDAD_DESCANSO_LARGO : -1), hechos, bloqueados };
+}
+
+/** De la escala antigua de 0 a 100 a la de 0 a 7. */
+export const saciedadDesde100 = (v: number) => Math.max(0, Math.min(SACIEDAD_MAX, Math.round((v / 100) * SACIEDAD_MAX)));
 
 // ── Monedas [5e] ───────────────────────────────────────────────────
 
 export const totalEnPo = (m: Monedas) => m.ppt * 10 + m.po + m.pe / 2 + m.pp / 10 + m.pc / 100;
-
-// ── Combate ────────────────────────────────────────────────────────
-
-export type Ataque = { bono: number; dano: string; tipo?: string };
-
-/**
- * Bono de ataque y daño de un arma equipada. Supone competencia con el arma.
- * Cuerpo a cuerpo usa FUE; a distancia, DES; las arrojadizas usan FUE y las sutiles la mejor de FUE y DES.
- */
-export function ataque(p: Personaje, arma: Objeto | undefined, ranura: 'cuerpoACuerpo' | 'distancia'): Ataque | null {
-  if (!arma || !arma.dado) return null;
-  const props = (arma.propiedades ?? []).map((x) => x.toLowerCase());
-  let car: Caracteristica = ranura === 'distancia' ? 'des' : 'fue';
-  if (ranura === 'distancia' && props.some((x) => x.startsWith('arrojadiza'))) car = 'fue';
-  if (props.some((x) => x.startsWith('sutil'))) car = p.fue >= p.des ? 'fue' : 'des';
-  const mod = modificador(p[car]);
-  const magia = arma.bonoMagico ?? 0;
-  const extra = mod + magia;
-  return {
-    bono: mod + bonoCompetencia(nivelTotal(p)) + magia,
-    dano: arma.dado + (extra === 0 ? '' : (extra > 0 ? '+' : '−') + Math.abs(extra)),
-    tipo: arma.tipoDano,
-  };
-}
 
 // ── Equipo ─────────────────────────────────────────────────────────
 
@@ -96,6 +156,10 @@ export const NOMBRE_RANURA: Record<TipoRanura, string> = {
   cabeza: 'Cabeza', capa: 'Capa', armadura: 'Armadura', guantes: 'Guantes', botas: 'Botas',
   amuleto: 'Amuleto', anillo: 'Anillo', cuerpoACuerpo: 'Cuerpo a cuerpo', distancia: 'A distancia',
 };
+
+/** [5e] Las armas a dos manos solo van en la mano principal y dejan libre la secundaria. */
+export const aDosManos = (o: Objeto | undefined) => !!o?.propiedades?.includes('dosManos');
+const esPar = (r: TipoRanura) => r === 'cuerpoACuerpo' || r === 'distancia';
 
 export const equipadoEn = (e: Estado, personajeId: string, ranura: TipoRanura, indice: number) =>
   e.objetos.find(
@@ -170,13 +234,21 @@ export function validarMovimiento(e: Estado, objetoId: string, destino: Destino,
     if (o.ranuraEquipo !== destino.equipar.ranura) {
       return { ok: false, motivo: `No se puede equipar en ${NOMBRE_RANURA[destino.equipar.ranura].toLowerCase()}` };
     }
+    const { ranura, indice } = destino.equipar;
+    if (esPar(ranura) && indice === 1) {
+      if (aDosManos(o)) return { ok: false, motivo: `${o.nombre} es a dos manos: va en la mano principal` };
+      const principal = equipadoEn(e, destino.propietario.id, ranura, 0);
+      if (principal && principal.id !== o.id && aDosManos(principal)) {
+        return { ok: false, motivo: `${principal.nombre} ocupa las dos manos` };
+      }
+    }
   }
 
   if (destino.propietario.tipo === 'personaje') {
     const pid = destino.propietario.id;
     const p = e.personajes.find((x) => x.id === pid);
     if (!p) return { ok: false, motivo: 'El personaje ya no existe' };
-    const max = cargaMaxKg(p.fue);
+    const max = cargaMaxDe(e, p);
     const actual = pesoPersonajeKg(e, p);
     const anade = mismoPropietario(o.propietario, destino.propietario) ? 0 : pesoObjeto(o, n);
     const pesoNuevo = actual + anade;
@@ -213,6 +285,12 @@ export function moverObjeto(e: Estado, objetoId: string, destino: Destino, actor
     const ocupante = equipadoEn(e, destino.propietario.id, destino.equipar.ranura, destino.equipar.indice);
     if (ocupante && ocupante.id !== o.id) {
       objetos = objetos.map((x) => (x.id === ocupante.id ? { ...x, equipadoEn: null } : x));
+    }
+    // Un arma a dos manos libera la mano secundaria
+    const { ranura, indice } = destino.equipar;
+    const secundaria = esPar(ranura) && indice === 0 && aDosManos(o) ? equipadoEn(e, destino.propietario.id, ranura, 1) : undefined;
+    if (secundaria && secundaria.id !== o.id) {
+      objetos = objetos.map((x) => (x.id === secundaria.id ? { ...x, equipadoEn: null } : x));
     }
   }
 

@@ -1,6 +1,6 @@
 // Monedas (HANDOFF §6): valores [5e], reparto de botín, cambio y movimientos de monedas.
 
-import { cargaMaxKg, fmtKg, nuevoId, pesoPersonajeKg } from './reglas';
+import { cargaMaxDe, fmtKg, nuevoId, pesoPersonajeKg } from './reglas';
 import type { Estado, Monedas } from './tipos';
 
 export type ClaveMoneda = keyof Monedas;
@@ -101,7 +101,7 @@ export function aplicarMonedas(e: Estado, cambios: Cambio[], actor: string, desc
     if (CLAVES.some((k) => p.monedas[k] < 0)) return { ok: false, motivo: `${p.nombre} no tiene tantas monedas` };
     const antes = e.personajes.find((x) => x.id === p.id)!;
     const peso = pesoPersonajeKg(siguiente, p);
-    const max = cargaMaxKg(p.fue);
+    const max = cargaMaxDe(siguiente, p);
     if (peso > max && peso > pesoPersonajeKg(e, antes)) {
       return { ok: false, motivo: `Sobrepeso: ${p.nombre} llegaría a ${fmtKg(peso)} kg y su máximo es ${max} kg` };
     }

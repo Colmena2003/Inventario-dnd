@@ -114,3 +114,8 @@
 .ls-opcion.on { border-color: var(--oro); background: rgba(226, 194, 122, .06); }
 .ls-opcion input { accent-color: #d9b05a; width: 18px; height: 18px; }
 .ls-lista .acciones { margin-top: auto; padding-top: 16px; }
+
+.derivados { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.derivados > div { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border: 1px solid #2f271b; background: #0d0b09; }
+.derivados span { font: 11px var(--f-datos); letter-spacing: .04em; color: var(--texto-3); white-space: nowrap; }
+.derivados b { font: 700 18px var(--f-titulo); color: #f2e6c8; }

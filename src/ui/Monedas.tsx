@@ -5,7 +5,7 @@ import {
   aplicarMonedas, cambio, CERO, CLAVES, cuantas, escalar, NOMBRE_MONEDA, repartir, sumar, texto, vacia, VALOR_PC,
   type Cambio, type ClaveMoneda,
 } from '../domain/monedas';
-import { cargaMaxKg, fmtKg, pesoAlijoKg, pesoPersonajeKg, totalEnPo, tramoCarga } from '../domain/reglas';
+import { cargaMaxDe, fmtKg, pesoAlijoKg, pesoPersonajeKg, totalEnPo, tramoCarga } from '../domain/reglas';
 import type { Monedas as TMonedas, Personaje } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useEscape } from './Dialogos';
@@ -240,7 +240,7 @@ function Botin({ avisar }: { avisar: Avisar }) {
 
 function Carga() {
   const { estado } = useCofre();
-  const filas = estado.personajes.map((p) => ({ p, peso: pesoPersonajeKg(estado, p), max: cargaMaxKg(p.fue) }));
+  const filas = estado.personajes.map((p) => ({ p, peso: pesoPersonajeKg(estado, p), max: cargaMaxDe(estado, p) }));
   const peso = filas.reduce((s, f) => s + f.peso, 0);
   const max = filas.reduce((s, f) => s + f.max, 0);
   return (

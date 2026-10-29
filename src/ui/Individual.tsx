@@ -1,13 +1,16 @@
 // Pantalla 4 del diseño: vista individual con ficha, equipo e inventario filtrable.
 
 import { useRef, useState, type CSSProperties } from 'react';
+import { hoja, type Hoja } from '../domain/hoja';
 import {
-  ataque, CLASE_RAREZA, conSigno, equipadoEn, fmtKg, MAX_SINTONIZADOS, modificador, nivelTotal, objetosDe,
-  pesoPersonajeKg, cargaMaxKg, pxNivelActual, pxSiguienteNivel, sintonizadosDe, tramoCarga,
+  CLASE_RAREZA, conSigno, equipadoEn, fmtKg, MAX_SINTONIZADOS, nivelTotal, objetosDe,
+  pxNivelActual, pxSiguienteNivel, sintonizadosDe,
 } from '../domain/reglas';
 import type { Categoria, Caracteristica, IconoRasgo, Objeto, Personaje, Rareza } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useSintonia } from './Dialogos';
+import { claseCambio, desglose, tituloAtaque } from './desglose';
+import { useEditor } from './editorCtx';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
 import { celdas, DCHA, IZQ, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { Esquinas, fmtNum, Icono, Moneda, MONEDAS, Ranura } from './piezas';
@@ -16,11 +19,12 @@ export function Individual({ personajeId, busqueda }: { personajeId: string | nu
   const { estado } = useCofre();
   const p = estado.personajes.find((x) => x.id === personajeId) ?? estado.personajes[0];
   if (!p) return null;
+  const h = hoja(estado, p);
   return (
     <>
-      <Ficha p={p} />
-      <Equipo p={p} busqueda={busqueda} />
-      <Inventario p={p} busqueda={busqueda} />
+      <Ficha p={p} h={h} />
+      <Equipo p={p} h={h} busqueda={busqueda} />
+      <Inventario p={p} h={h} busqueda={busqueda} />
     </>
   );
 }
@@ -45,7 +49,7 @@ const ALERTA = 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v6M12 16v.01';
 /** [5e] Condiciones que perjudican; el resto se muestran como efectos favorables. */
 const CONDICION_MALA = /agotamiento|envenenad|asustad|cegad|aturdid|paralizad|derribad|apresad|incapacitad|petrificad|ensordecid|hechizad|inconsciente|restringid|maldit/i;
 
-function Ficha({ p }: { p: Personaje }) {
+function Ficha({ p, h }: { p: Personaje; h: Hoja }) {
   const nivel = nivelTotal(p);
   const pxSig = pxSiguienteNivel(nivel);
   const pxIni = pxNivelActual(nivel);
@@ -74,21 +78,32 @@ function Ficha({ p }: { p: Personaje }) {
 
       <div className="stats">
         {CARACTERISTICAS.map(([k, t]) => {
-          const v = p[k];
+          const v = h.car[k].total, m = h.mod[k];
           return (
-            <div key={k} aria-label={`${t} ${v}, modificador ${conSigno(modificador(v))}`}>
+            <div key={k} aria-label={`${t} ${v}, modificador ${conSigno(m)}`} title={desglose(h.car[k])}>
               <span>{t}</span>
-              <b>{v}</b>
-              <span style={{ color: v >= 12 ? '#9cc95e' : v < 10 ? '#e0883a' : '#cfc3aa' }}>{conSigno(modificador(v))}</span>
+              <b className={claseCambio(h.car[k])}>{v}</b>
+              <span style={{ color: v >= 12 ? '#9cc95e' : v < 10 ? '#e0883a' : '#cfc3aa' }}>{conSigno(m)}</span>
             </div>
           );
         })}
       </div>
 
+      <div className="derivados">
+        <div title={desglose(h.iniciativa)}><span>Iniciativa</span><b className={h.iniciativa.desv?.length ? 'desv' : ''}>{conSigno(h.iniciativa.total)}</b></div>
+        <div title={desglose(h.velocidad.caminar)}><span>Velocidad</span><b className={claseVel(h)}>{fmtKg(h.velocidad.caminar.total).replace(',0', '')} m</b></div>
+        <div title={desglose(h.pasivas.percepcion)}><span>Percepción pas.</span><b>{h.pasivas.percepcion.total}</b></div>
+        <div title={h.conjuros ? desglose(h.conjuros.cd) : 'No lanza conjuros'}><span>CD conjuros</span><b>{h.conjuros?.cd.total ?? '—'}</b></div>
+        <div title={desglose(h.competencia)}><span>Competencia</span><b>{conSigno(h.competencia.total)}</b></div>
+      </div>
+
       <div className="ficha-bloque">
         <h3 className="titulo-sec">Condiciones</h3>
         <div className="etiquetas">
-          {p.condiciones.length === 0 && <span className="vacio">Ninguna</span>}
+          {p.condiciones.length === 0 && !h.saciedad.efectos.length && <span className="vacio">Ninguna</span>}
+          {h.saciedad.efectos.length > 0 && (
+            <span className="cond mala" title={h.saciedad.efectos.join(' · ')}><Icono d={ALERTA} size={14} />{h.saciedad.texto} ({p.saciedad}/7)</span>
+          )}
           {p.condiciones.map((c) => {
             const mala = CONDICION_MALA.test(c);
             return (
@@ -102,8 +117,10 @@ function Ficha({ p }: { p: Personaje }) {
       <div className="ficha-bloque">
         <h3 className="titulo-sec">Resistencias</h3>
         <div className="etiquetas">
-          {p.resistencias.length === 0 && <span className="vacio">Ninguna</span>}
-          {p.resistencias.map((r) => <span key={r} className="cond">{r}</span>)}
+          {h.resistencias.length === 0 && !h.inmunidades.length && <span className="vacio">Ninguna</span>}
+          {h.resistencias.map((r) => <span key={r.texto} className="cond" title={r.origen}>{capital(r.texto)}</span>)}
+          {h.inmunidades.map((r) => <span key={r.texto} className="cond buena" title={r.origen}>Inmune: {r.texto}</span>)}
+          {h.vulnerabilidades.map((r) => <span key={r.texto} className="cond mala" title={r.origen}>Vulnerable: {r.texto}</span>)}
         </div>
       </div>
       <div className="ficha-bloque">
@@ -129,15 +146,18 @@ function Ficha({ p }: { p: Personaje }) {
 
 // ── Equipo ─────────────────────────────────────────────────────────
 
-function Equipo({ p, busqueda }: { p: Personaje; busqueda: string }) {
+const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const claseVel = (h: Hoja) => (h.velocidad.caminar.total < h.velocidad.caminar.base ? 'baja' : h.velocidad.caminar.total > h.velocidad.caminar.base ? 'sube' : '');
+
+function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string }) {
   const { estado, cambiarImagen } = useCofre();
   const sintonia = useSintonia();
   const { props } = useInteraccion(busqueda, sintonia);
   const fichero = useRef<HTMLInputElement>(null);
   const eq = (r: 'cuerpoACuerpo' | 'distancia') => equipadoEn(estado, p.id, r, 0);
   const armaCaC = eq('cuerpoACuerpo'), armaDist = eq('distancia');
-  const atqM = ataque(p, armaCaC, 'cuerpoACuerpo');
-  const atqR = ataque(p, armaDist, 'distancia');
+  const atqM = h.ataques.find((a) => a.ranura === 'cuerpoACuerpo' && a.indice === 0);
+  const atqR = h.ataques.find((a) => a.ranura === 'distancia' && a.indice === 0);
   const sint = sintonizadosDe(estado, p.id);
   const silueta = SILUETA_ARMA[(armaCaC ?? armaDist)?.icono as ClaveIcono];
 
@@ -185,21 +205,21 @@ function Equipo({ p, busqueda }: { p: Personaje; busqueda: string }) {
         <div>
           <span className="lbl">Cuerpo a cuerpo</span>
           <div className="par">{ranura('cuerpoACuerpo', 0, 'sword', 'Mano principal')}{ranura('cuerpoACuerpo', 1, 'shield', 'Mano secundaria')}</div>
-          <div className="atq"><b>{atqM ? conSigno(atqM.bono) : '—'}</b><span>{atqM ? `${atqM.dano} ${atqM.tipo ?? ''}` : 'Sin arma'}</span></div>
+          <div className="atq" title={atqM ? tituloAtaque(atqM) : undefined}><b className={atqM?.bono.desv?.length ? 'desv' : ''}>{atqM ? conSigno(atqM.bono.total) : '—'}</b><span>{atqM ? `${atqM.dano} ${atqM.tipo ?? ''}` : 'Sin arma'}</span></div>
         </div>
-        <div className="ca grande" aria-label={`Clase de armadura ${p.ca}`}>
+        <div className="ca grande" aria-label={`Clase de armadura ${h.ca.total}`} title={desglose(h.ca)}>
           <svg viewBox="0 0 76 84" width="96" height="106" aria-hidden="true">
             <path d="M38 3l32 10v26c0 20-14 34-32 42C20 73 6 59 6 39V13z" fill="#0f0c0a" stroke="#b89a55" strokeWidth="1.4" />
             <path d="M38 9l26 8v22c0 16-11 28-26 35C23 67 12 55 12 39V17z" fill="none" stroke="#4d3e25" />
             <path d="M30 6l8-5 8 5" fill="none" stroke="#e2c27a" strokeWidth="1.2" />
           </svg>
           <span>CA</span>
-          <span>{p.ca}</span>
+          <span>{h.ca.total}</span>
         </div>
         <div>
           <span className="lbl">A distancia</span>
           <div className="par">{ranura('distancia', 0, 'bow')}{ranura('distancia', 1, 'dagger', 'Mano secundaria')}</div>
-          <div className="atq"><span>{atqR ? `${atqR.dano} ${atqR.tipo ?? ''}` : 'Sin arma'}</span><b>{atqR ? conSigno(atqR.bono) : '—'}</b></div>
+          <div className="atq" title={atqR ? tituloAtaque(atqR) : undefined}><span>{atqR ? `${atqR.dano} ${atqR.tipo ?? ''}` : 'Sin arma'}</span><b className={atqR?.bono.desv?.length ? 'desv' : ''}>{atqR ? conSigno(atqR.bono.total) : '—'}</b></div>
         </div>
       </div>
     </section>
@@ -236,8 +256,9 @@ function ordenar(objetos: Objeto[], orden: Orden, recientes: Map<string, number>
   return objetos.slice().sort(por[orden]);
 }
 
-function Inventario({ p, busqueda }: { p: Personaje; busqueda: string }) {
+function Inventario({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string }) {
   const { estado, validar } = useCofre();
+  const editor = useEditor();
   const sintonia = useSintonia();
   const { arrastre, props, clase } = useInteraccion(busqueda, sintonia);
   const [cat, setCat] = useState(0);
@@ -249,9 +270,7 @@ function Inventario({ p, busqueda }: { p: Personaje; busqueda: string }) {
   for (const m of estado.movimientos) if (!recientes.has(m.objetoId)) recientes.set(m.objetoId, m.fecha);
   const visibles = ordenar(filtro ? inventario.filter((o) => o.categoria === filtro) : inventario, orden, recientes);
 
-  const peso = pesoPersonajeKg(estado, p);
-  const max = cargaMaxKg(p.fue);
-  const tramo = tramoCarga(peso, max);
+  const peso = h.carga, max = h.cargaMax, tramo = h.tramo;
 
   const clave = `pj:${p.id}`;
   const esOrigen = arrastre?.objeto.propietario.tipo === 'personaje' && arrastre.objeto.propietario.id === p.id;
@@ -273,7 +292,7 @@ function Inventario({ p, busqueda }: { p: Personaje; busqueda: string }) {
             <option value="reciente">Reciente</option>
           </select>
         </label>
-        <button type="button" className="chip on chip-i" aria-disabled="true" title="Próximamente">
+        <button type="button" className="chip on chip-i" onClick={() => editor.nuevo({ propietario: { tipo: 'personaje', id: p.id }, tipo: CATEGORIAS[cat].cat === 'Comida' ? 'comida' : undefined })}>
           <Icono d={UI.mas} />Añadir objeto
         </button>
       </header>

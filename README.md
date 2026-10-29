@@ -27,7 +27,14 @@ Hecho:
 
 - Monedas (se abre pulsando el tesoro de la barra superior): tesoro común con ingresar y retirar (Mayús = de 10 en 10), cambio exacto de monedas, historial, monedas por personaje con ingresos y retiradas (desde o hacia el tesoro, o monedas nuevas/gastadas), repartir botín moneda a moneda o convertido a la moneda más alta, y carga de cada personaje y de la party. Un reparto que deje a alguien con sobrepeso se bloquea.
 
-Pendiente: estadísticas, crafteo, despensa, añadir personajes y objetos, y Supabase.
+- Objetos con efecto real (`src/domain/hoja.ts`): características, CA, ataque y daño, salvaciones, habilidades, pasivas, iniciativa, velocidades, PV máximos, CD y ataque de conjuros, sentidos, carga, resistencias, inmunidades, ventajas y desventajas. Cada objeto lleva una lista de modificadores (sumar o «pasa a ser al menos», como el Amuleto de la salud) que se aplican mientras está equipado y, si lo pide, sintonizado. Pasando el ratón por un valor se ve de dónde sale.
+- Armas con las propiedades de 5e programadas: sutil (mejor de FUE y DES), arrojadiza, munición (DES), versátil (dado mayor con la otra mano libre), a dos manos (libera la mano secundaria y no deja equipar nada en ella), ligera (ataque con la mano secundaria sin modificador al daño), pesada (desventaja si eres Pequeño), alcance, recarga, plateada y adamantina. Bonos mágicos, daño adicional y rango de crítico. Sin sintonizar, un arma que lo pide no suma su magia.
+- Armaduras con CA base, tope de DES por tipo (la pesada no suma DES), FUE mínima (−3 m) y desventaja en Sigilo; escudos; defensa sin armadura de bárbaro y monje.
+- Añadir objeto en dos pasos: primero el tipo (arma, armadura, escudo, prenda o accesorio, poción, pergamino, comida, material, munición, misión, varios) y después un formulario a medida, con plantillas de las armas y armaduras del manual y una vista previa de cómo cambia al personaje. Clic derecho en cualquier objeto para editarlo o eliminarlo.
+- Despensa con el hambre de mazmorra (ver Supuestos), comer, paso del tiempo y descansos. La comida enseña su imagen.
+- Estadísticas: tarjeta por personaje con los valores efectivos y desglose del elegido (salvaciones, habilidades, pasivas, defensas, movimiento y los objetos que influyen).
+
+Pendiente: crafteo, añadir y editar personajes (sus competencias salen de la clase y de los datos de ejemplo), usar pociones y cargas desde la interfaz, y Supabase.
 
 ## Datos
 
@@ -37,7 +44,8 @@ Toda la lectura y escritura pasa por `src/store/cofre.tsx`, que es lo que habrá
 
 ## Supuestos
 
-- Todos los personajes son competentes con sus armas equipadas.
+- Todos los personajes son competentes con sus armas y armaduras equipadas.
+- Hambre de mazmorra [casera]: saciedad de 0 a 7. Baja 1 cada 30–90 min (botón «Pasa el tiempo», lo decide el DM), 1 con un descanso corto y 4 con uno largo, que solo se puede empezar con 4 o más. Efectos acumulados: con 3, desventaja en pruebas de característica (−5 a las pasivas); con 2, velocidad a la mitad; con 1, desventaja en ataques y salvaciones; con 0, PV máximos a la mitad. Cada comida dice cuántos puntos llena.
+- Las salvaciones competentes y la característica de conjuros salen de la clase; las razas Pequeñas (mediana, gnomo) van a 7,5 m y las de visión en la oscuridad la tienen a 18 m.
 - Las armas arrojadizas en la ranura «A distancia» usan FUE; las sutiles, la mejor de FUE y DES.
-- La CA es un dato del personaje; no se recalcula con el equipo.
 - Las dos ranuras «Cuerpo a cuerpo» son mano principal y secundaria (escudo).

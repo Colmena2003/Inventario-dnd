@@ -1,8 +1,12 @@
 // Ficha flotante de un objeto al pasar el ratón por su ranura.
 
 import { createContext, useCallback, useContext, useState, type ReactNode, type RefObject } from 'react';
+import { DES_MAX_POR_TIPO, NOMBRE_TIPO_ARMADURA } from '../domain/catalogo';
+import { describirMod, nombrePropiedad } from '../domain/describir';
+import { objetoActivo } from '../domain/efectos';
+import { ataqueDeObjeto } from '../domain/hoja';
 import {
-  ataque, CLASE_RAREZA, MAX_SINTONIZADOS, nombreDe, NOMBRE_RANURA, sintonizadosDe,
+  CLASE_RAREZA, conSigno, MAX_SINTONIZADOS, nombreDe, NOMBRE_RANURA, SACIEDAD_MAX, sintonizadosDe,
 } from '../domain/reglas';
 import type { Objeto } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
@@ -45,8 +49,11 @@ function FichaObjeto({ objeto: o0, left, top }: Pos) {
   const { estado } = useCofre();
   const o = estado.objetos.find((x) => x.id === o0.id) ?? o0;
   const dueno = o.propietario.tipo === 'personaje' ? estado.personajes.find((p) => p.id === (o.propietario as { id: string }).id) : undefined;
-  const ranuraArma = o.ranuraEquipo === 'distancia' ? 'distancia' : 'cuerpoACuerpo';
-  const atq = o.dado && dueno ? ataque(dueno, o, ranuraArma) : null;
+  const atq = dueno ? ataqueDeObjeto(estado, dueno, o) : null;
+  const activo = objetoActivo(o);
+  const arm = o.armadura;
+  const props = [...(o.propiedades ?? []).map((p) => nombrePropiedad(o, p)), ...(o.otrasPropiedades ?? [])];
+  if (o.tipoArma) props.unshift(o.tipoArma === 'marcial' ? 'Marcial' : 'Sencilla');
   const sint = dueno ? sintonizadosDe(estado, dueno.id).length : 0;
 
   const sub = [o.subtipo ? capital(o.subtipo) : o.categoria, capital(o.rareza)];
@@ -73,19 +80,41 @@ function FichaObjeto({ objeto: o0, left, top }: Pos) {
       {o.dado && (
         <div className="tt-dano">
           <b>{atq ? atq.dano.replace(/([+−])/, ' $1 ') : o.dado}</b>
-          <span>{o.tipoDano}{atq ? ` · ${atq.bono >= 0 ? '+' : '−'}${Math.abs(atq.bono)} al ataque` : ''}</span>
+          <span>{o.tipoDano}{atq ? ` · ${conSigno(atq.bono.total)} al ataque` : ''}{!atq && o.bonoMagico ? ` · +${o.bonoMagico} mágica` : ''}</span>
         </div>
       )}
-      {o.extraDano && <span className="tt-extra">{o.extraDano}</span>}
-      {o.bonoCa ? <span className="tt-extra">+{o.bonoCa} a la CA</span> : null}
-      {!!o.propiedades?.length && (
-        <div className="tt-chips">{o.propiedades.map((p) => <span key={p}>{p}</span>)}</div>
+      {atq?.bono.desv?.length ? <span className="tt-extra mal">Desventaja al atacar: {atq.bono.desv.join(', ')}</span> : null}
+      {(atq?.extras ?? o.danosExtra ?? []).map((x, i) => (
+        <span key={i} className="tt-extra">+{x.dado}{x.tipo ? ` ${x.tipo}` : ''}{x.condicion ? ` ${x.condicion}` : ''}</span>
+      ))}
+      {atq && atq.critico < 20 && <span className="tt-extra">Crítico con {atq.critico}–20</span>}
+      {arm && (
+        <div className="tt-dano">
+          <b>{arm.tipo === 'ropa' ? '—' : arm.caBase}</b>
+          <span>
+            CA · {NOMBRE_TIPO_ARMADURA[arm.tipo]}
+            {arm.tipo !== 'ropa' && (() => { const t = arm.desMax !== undefined ? arm.desMax : DES_MAX_POR_TIPO[arm.tipo]; return t == null ? ' + DES' : t === 0 ? '' : ` + DES (máx. ${t})`; })()}
+            {o.bonoMagico ? ` · +${o.bonoMagico} mágica` : ''}
+          </span>
+        </div>
+      )}
+      {arm?.fueMin ? <span className="tt-extra">Requiere FUE {arm.fueMin}{dueno && dueno.fue < arm.fueMin ? ' · −3 m de velocidad' : ''}</span> : null}
+      {arm?.sigiloDesventaja && <span className="tt-extra mal">Desventaja en Sigilo</span>}
+      {o.bonoCa ? <span className="tt-extra">+{o.bonoCa + (o.bonoMagico ?? 0)} a la CA</span> : null}
+      {props.length > 0 && <div className="tt-chips">{props.map((p) => <span key={p}>{p}</span>)}</div>}
+      {!!o.modificadores?.length && (
+        <ul className={`tt-mods ${activo ? '' : 'inactivo'}`}>
+          {o.modificadores.map((m, i) => <li key={i}>{describirMod(m)}</li>)}
+          {!activo && <li className="tt-nota">{o.requiereSintonizacion && !o.sintonizado ? 'No hace efecto hasta sintonizarlo' : o.ranuraEquipo ? 'Hace efecto al equiparlo' : 'Hace efecto al llevarlo un personaje'}</li>}
+        </ul>
       )}
       {o.efectos && (
         <p>{restoEfecto.length ? <><b>{titEfecto}</b> {restoEfecto.join(' ')}</> : o.efectos}</p>
       )}
       {o.descripcion && <p>{o.descripcion}</p>}
-      {o.saciedad ? <div className="tt-fila"><span>Saciedad</span><span>+{o.saciedad} por unidad</span></div> : null}
+      {o.categoria === 'Comida' && (
+        <div className="tt-fila"><span>Saciedad</span><span>{o.saciedad ? `+${o.saciedad} de ${SACIEDAD_MAX} por unidad` : 'No se come sola'}</span></div>
+      )}
       {o.cargasMax ? (
         <div className="tt-fila">
           <span>Cargas</span>

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { estadoInicial } from '../data/semilla';
+import { ataqueDeObjeto } from './hoja';
 import {
-  alternarSintonia, ataque, cargaMaxKg, sintonizadosDe, equipadoEn, estadoSaciedad, modificador, moverObjeto, objetosDe, pesoMonedasKg,
+  alternarSintonia, cargaMaxDe, cargaMaxKg, sintonizadosDe, equipadoEn, estadoSaciedad, modificador, moverObjeto, objetosDe, pesoMonedasKg,
   pesoPersonajeKg, totalEnPo, tramoCarga, validarMovimiento,
 } from './reglas';
 
@@ -29,18 +30,19 @@ describe('reglas 5e', () => {
     expect(pesoMonedasKg({ ppt: 0, po: 50, pe: 0, pp: 0, pc: 0 })).toBeCloseTo(0.45);
     expect(totalEnPo({ ppt: 1, po: 1, pe: 2, pp: 10, pc: 100 })).toBe(14);
   });
-  it('saciedad', () => {
-    expect(estadoSaciedad(86).texto).toBe('Saciado');
-    expect(estadoSaciedad(40).texto).toBe('Normal');
-    expect(estadoSaciedad(27).texto).toBe('Hambriento');
-    expect(estadoSaciedad(8).texto).toBe('Famélico');
+  it('saciedad de 0 a 7 con efectos acumulados', () => {
+    expect(estadoSaciedad(7).texto).toBe('Lleno');
+    expect(estadoSaciedad(4).efectos).toEqual([]);
+    expect(estadoSaciedad(3).efectos).toEqual(['Desventaja en pruebas de característica']);
+    expect(estadoSaciedad(1).efectos).toHaveLength(3);
+    expect(estadoSaciedad(0).pvMitad).toBe(true);
   });
-  it('ataque con espada mágica +1 de un paladín 5 con FUE 18', () => {
-    const espada = objeto('Hoja del Alba Cenicienta');
-    expect(ataque(pj('aldric'), espada, 'cuerpoACuerpo')).toEqual({ bono: 8, dano: '1d8+5', tipo: 'cortante' });
+  it('ataque con espada mágica +1 de un paladín 5 con FUE 18 (con escudo, sin versátil)', () => {
+    const a = ataqueDeObjeto(e0, pj('aldric'), objeto('Hoja del Alba Cenicienta'))!;
+    expect([a.bono.total, a.dano, a.tipo]).toEqual([8, '1d8+5', 'cortante']);
   });
   it('arma sutil usa la mejor de FUE y DES', () => {
-    expect(ataque(pj('ysolde'), objeto('Estoque de Rivenhold'), 'cuerpoACuerpo')?.bono).toBe(4 + 3 + 1);
+    expect(ataqueDeObjeto(e0, pj('ysolde'), objeto('Estoque de Rivenhold'))?.bono.total).toBe(4 + 3 + 1);
   });
 });
 
@@ -105,6 +107,6 @@ describe('sintonización', () => {
 
 describe('datos de ejemplo', () => {
   it('nadie empieza por encima de su máximo', () => {
-    for (const p of e0.personajes) expect(pesoPersonajeKg(e0, p)).toBeLessThanOrEqual(cargaMaxKg(p.fue));
+    for (const p of e0.personajes) expect(pesoPersonajeKg(e0, p)).toBeLessThanOrEqual(cargaMaxDe(e0, p));
   });
 });

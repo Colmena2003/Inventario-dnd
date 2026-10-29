@@ -3,11 +3,13 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { estadoInicial } from '../data/semilla';
+import { crearObjeto, editarObjeto, eliminarObjeto, migrar, validarObjeto } from '../domain/objetos';
 import {
-  alternarSintonia, moverObjeto, validarMovimiento, type Destino, type ResultadoSintonia, type Validacion,
+  alternarSintonia, cambiarSaciedad, comer as comerRegla, descansar as descansarRegla, moverObjeto, validarMovimiento,
+  type Destino, type ResultadoComer, type ResultadoSintonia, type Validacion,
 } from '../domain/reglas';
 import { aplicarMonedas, type Cambio, type ResultadoMonedas } from '../domain/monedas';
-import type { Estado } from '../domain/tipos';
+import type { Estado, Objeto } from '../domain/tipos';
 
 type SinEstado<T> = T extends { estado: Estado } ? Omit<T, 'estado'> : T;
 
@@ -40,13 +42,22 @@ interface Cofre {
   sintonizar: (objetoId: string, sustituir?: string) => SinEstado<ResultadoSintonia>;
   monedas: (cambios: Cambio[], descripcion: string) => SinEstado<ResultadoMonedas>;
   cambiarImagen: (personajeId: string, url: string) => void;
+  /** Crea (sin id) o guarda (con id) un objeto; devuelve el motivo si no se puede. */
+  guardarObjeto: (o: Objeto, nuevo: boolean) => string | null;
+  eliminarObjeto: (id: string) => void;
+  comer: (personajeId: string, objetoId: string) => SinEstado<ResultadoComer>;
+  cambiarSaciedad: (ids: string[], delta: number) => void;
+  descansar: (ids: string[], tipo: 'corto' | 'largo') => { hechos: string[]; bloqueados: string[] };
   restablecer: () => void;
 }
 
 const Ctx = createContext<Cofre | null>(null);
 
 export function CofreProvider({ children }: { children: ReactNode }) {
-  const [estado, setEstado] = useState<Estado>(() => leer<Estado>(CLAVE) ?? estadoInicial());
+  const [estado, setEstado] = useState<Estado>(() => {
+    const guardado = leer<Estado>(CLAVE);
+    return guardado ? migrar(guardado, estadoInicial()) : estadoInicial();
+  });
   const [actor, setActorState] = useState<string>(() => leer<string>(CLAVE_ACTOR) ?? '');
 
   useEffect(() => guardar(CLAVE, estado), [estado]);
@@ -94,11 +105,38 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     setEstado((e) => ({ ...e, personajes: e.personajes.map((p) => (p.id === personajeId ? { ...p, imagenUrl: url } : p)) }));
   }, []);
 
+  const guardarObjeto = useCallback((o: Objeto, nuevo: boolean) => {
+    const motivo = validarObjeto(estado, o);
+    if (motivo) return motivo;
+    setEstado((e) => (nuevo ? crearObjeto(e, o, actor || 'Alguien') : editarObjeto(e, o, actor || 'Alguien')));
+    return null;
+  }, [estado, actor]);
+
+  const eliminar = useCallback((id: string) => setEstado((e) => eliminarObjeto(e, id)), []);
+
+  const comer = useCallback((personajeId: string, objetoId: string): SinEstado<ResultadoComer> => {
+    const r = comerRegla(estado, personajeId, objetoId);
+    if (!r.ok) return r;
+    setEstado(r.estado);
+    return { ok: true, antes: r.antes, despues: r.despues };
+  }, [estado]);
+
+  const saciedad = useCallback((ids: string[], delta: number) => setEstado((e) => cambiarSaciedad(e, ids, delta)), []);
+
+  const descansar = useCallback((ids: string[], tipo: 'corto' | 'largo') => {
+    const r = descansarRegla(estado, ids, tipo);
+    setEstado(r.estado);
+    return { hechos: r.hechos, bloqueados: r.bloqueados };
+  }, [estado]);
+
   const restablecer = useCallback(() => setEstado(estadoInicial()), []);
 
   const valor = useMemo(
-    () => ({ estado, actor, setActor, validar, mover, sintonizar, monedas, cambiarImagen, restablecer }),
-    [estado, actor, setActor, validar, mover, sintonizar, monedas, cambiarImagen, restablecer],
+    () => ({
+      estado, actor, setActor, validar, mover, sintonizar, monedas, cambiarImagen, guardarObjeto, eliminarObjeto: eliminar,
+      comer, cambiarSaciedad: saciedad, descansar, restablecer,
+    }),
+    [estado, actor, setActor, validar, mover, sintonizar, monedas, cambiarImagen, guardarObjeto, eliminar, comer, saciedad, descansar, restablecer],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }
