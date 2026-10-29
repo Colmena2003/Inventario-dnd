@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { estadoInicial } from '../data/semilla';
 import { hoja } from './hoja';
-import { eliminarPersonaje, guardarPersonaje, personajeVacio, validarPersonaje } from './personajes';
+import { cambiarPv, eliminarPersonaje, guardarPersonaje, personajeVacio, validarPersonaje } from './personajes';
 import {
   aplicarEfecto, aplicarRecarga, aplicarUso, descansarEfectos, EFECTOS_COMUNES, HORA, pasarTiempo, prepararRecarga, prepararUso,
   quitarEfecto, RONDA, textoDuracion, tirar, usarRasgo,
@@ -122,5 +122,14 @@ describe('personajes', () => {
     const e2 = eliminarPersonaje(e1, 'brom');
     expect(e2.objetos.filter((o) => o.propietario.tipo === 'alijo').length).toBe(e1.objetos.filter((o) => o.propietario.tipo === 'alijo').length + deBrom);
     expect(e2.party.tesoro.po).toBeGreaterThanOrEqual(e1.party.tesoro.po);
+  });
+});
+
+describe('PV', () => {
+  it('el daño no baja de 0 y la curación no pasa del máximo', () => {
+    const max = hoja(e0, pj('aldric')).pvMax.total;
+    expect(cambiarPv(e0, 'aldric', -500).despues).toBe(0);
+    expect(cambiarPv(e0, 'aldric', 500).despues).toBe(max);
+    expect(cambiarPv(e0, 'aldric', -4)).toMatchObject({ antes: pj('aldric').pvActual, despues: pj('aldric').pvActual - 4 });
   });
 });

@@ -272,6 +272,15 @@ const EXTRA: Record<string, Partial<Personaje>> = {
 /** Versión del modelo; al subirla, el almacén migra lo guardado (src/domain/objetos.ts). */
 export const VERSION = 4;
 
+/** Una party sin nadie: así empieza un navegador nuevo. Los datos de ejemplo quedan para los tests. */
+export function estadoVacio(): Estado {
+  return {
+    version: VERSION,
+    party: { id: 'party-1', nombre: 'La Compañía', tesoro: { ppt: 0, po: 0, pe: 0, pp: 0, pc: 0 } },
+    personajes: [], objetos: [], movimientos: [],
+  };
+}
+
 export function estadoInicial(): Estado {
   n = 0;
   return {

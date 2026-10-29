@@ -3,9 +3,9 @@
 // usan useCofre(): todos los cambios pasan por `cambiar`, que recibe una función pura del estado.
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { estadoInicial } from '../data/semilla';
+import { estadoInicial, estadoVacio } from '../data/semilla';
 import { crearObjeto, editarObjeto, eliminarObjeto, migrar, validarObjeto } from '../domain/objetos';
-import { eliminarPersonaje, guardarPersonaje, validarPersonaje } from '../domain/personajes';
+import { cambiarPv, eliminarPersonaje, guardarPersonaje, validarPersonaje } from '../domain/personajes';
 import {
   alternarSintonia, cambiarSaciedad, comer as comerRegla, descansar as descansarRegla, moverObjeto, validarMovimiento,
   type Destino, type ResultadoComer, type ResultadoSintonia, type Validacion,
@@ -102,6 +102,8 @@ interface Cofre {
   pasarTiempo: (segundos: number) => string[];
   guardarPersonaje: (p: Personaje, nuevo: boolean) => string | null;
   eliminarPersonaje: (id: string) => void;
+  /** Daño (negativo) o curación (positivo); devuelve los PV antes y después. */
+  cambiarPv: (personajeId: string, delta: number) => { antes: number; despues: number } | null;
   restablecer: () => void;
 }
 
@@ -110,7 +112,7 @@ const Ctx = createContext<Cofre | null>(null);
 export function CofreProvider({ children }: { children: ReactNode }) {
   const [estado, setEstado] = useState<Estado>(() => {
     const guardado = leer<Estado>(CLAVE);
-    return guardado ? migrarSemilla(guardado) : estadoInicial();
+    return guardado ? migrarSemilla(guardado) : estadoVacio();
   });
   const [actor, setActorState] = useState<string>(() => leer<string>(CLAVE_ACTOR) ?? '');
   const [conexion, setConexion] = useState<Conexion>('local');
@@ -300,7 +302,14 @@ export function CofreProvider({ children }: { children: ReactNode }) {
 
   const eliminarPj = useCallback((id: string) => cambiar((e) => eliminarPersonaje(e, id)), [cambiar]);
 
-  const restablecer = useCallback(() => cambiar(() => estadoInicial()), [cambiar]);
+  const pv = useCallback((personajeId: string, delta: number) => {
+    if (!estado.personajes.some((p) => p.id === personajeId)) return null;
+    const r = cambiarPv(estado, personajeId, delta);
+    cambiar((e) => cambiarPv(e, personajeId, delta).estado);
+    return { antes: r.antes, despues: r.despues };
+  }, [estado, cambiar]);
+
+  const restablecer = useCallback(() => cambiar(() => estadoVacio()), [cambiar]);
 
   const sync = useMemo<Sincronizacion>(
     () => ({ disponible: supabaseDisponible, conexion, codigo, error: errorSync, crear, unirse, salir }),
@@ -311,10 +320,10 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     () => ({
       estado, actor, setActor, sync, validar, mover, sintonizar, monedas, cambiarImagen, prepararImagen, guardarObjeto,
       eliminarObjeto: eliminar, usar, usarRasgo: rasgo, comer, cambiarSaciedad: saciedad, descansar, aplicarEfecto: efecto,
-      quitarEfecto: quitar, pasarTiempo: tiempo, guardarPersonaje: guardarPj, eliminarPersonaje: eliminarPj, restablecer,
+      quitarEfecto: quitar, pasarTiempo: tiempo, guardarPersonaje: guardarPj, eliminarPersonaje: eliminarPj, cambiarPv: pv, restablecer,
     }),
     [estado, actor, setActor, sync, validar, mover, sintonizar, monedas, cambiarImagen, prepararImagen, guardarObjeto, eliminar,
-      usar, rasgo, comer, saciedad, descansar, efecto, quitar, tiempo, guardarPj, eliminarPj, restablecer],
+      usar, rasgo, comer, saciedad, descansar, efecto, quitar, tiempo, guardarPj, eliminarPj, pv, restablecer],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }

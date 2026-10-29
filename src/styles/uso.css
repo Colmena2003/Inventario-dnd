@@ -71,3 +71,21 @@
 .party-opciones > * { display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid #2c2419; background: rgba(0, 0, 0, .25); }
 .party-opciones p { text-align: left; font-size: 14px; }
 .party-opciones input { flex: none; font: 700 20px var(--f-titulo); letter-spacing: .2em; text-transform: uppercase; }
+
+/* PV rápidos en la ficha */
+.pv-ficha { display: flex; flex-direction: column; gap: 7px; padding: 10px 12px; border: 1px solid #3a2f1d; background: rgba(0, 0, 0, .25); font-family: var(--f-datos); }
+.pv-cab { display: flex; align-items: baseline; justify-content: space-between; }
+.pv-cab span { font: 600 13px var(--f-titulo); letter-spacing: .08em; color: var(--texto-2); }
+.pv-cab b { font: 700 24px var(--f-titulo); color: #f2e6c8; }
+.pv-cab b small { font-size: 15px; color: var(--texto-3); }
+.pv-cab b.bajo { color: #f0a07a; }
+.pv-cab b.cero { color: #e0534d; }
+.pv-barra { height: 8px; background: #241812; border: 1px solid #3a2a1d; }
+.pv-barra > div { height: 100%; background: linear-gradient(90deg, #8e2420, #c8403a); transition: width .3s ease; }
+.pv-acciones { display: flex; align-items: center; gap: 6px; }
+.pv-acciones .ibtn { flex: none; }
+.pv-acciones input { flex: 1; min-width: 0; height: 32px; padding: 0 10px; border: 1px solid var(--borde-suave); background: #0b0907; color: var(--texto); font: 15px var(--f-datos); text-align: center; outline: none; }
+.pv-acciones input:focus { border-color: var(--oro); }
+.pv-acciones .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 16px; }
+.btn.pv-dano { color: #ffd6d3; background: #2b0e0d; border: 1px solid #8e2420; }
+.btn.pv-cura { color: #d6f0b4; background: #142010; border: 1px solid #4d7a2e; }

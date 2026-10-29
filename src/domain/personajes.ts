@@ -1,5 +1,6 @@
 // Alta, edición y baja de personajes desde el editor de la interfaz.
 
+import { hoja } from './hoja';
 import { nuevoId } from './reglas';
 import type { Estado, Personaje } from './tipos';
 
@@ -46,6 +47,18 @@ export function guardarPersonaje(e: Estado, p: Personaje, nuevo: boolean): Estad
   const limpio = limpiar(p);
   if (nuevo) return { ...e, personajes: [...e.personajes, { ...limpio, id: nuevoId('pj') }] };
   return { ...e, personajes: e.personajes.map((x) => (x.id === p.id ? limpio : x)) };
+}
+
+/**
+ * Daño (delta negativo) o curación (positivo). Los PV no bajan de 0 ni la curación pasa del máximo con
+ * objetos y efectos; un máximo menor que los PV que ya tiene no se los quita.
+ */
+export function cambiarPv(e: Estado, id: string, delta: number): { estado: Estado; antes: number; despues: number } {
+  const p = e.personajes.find((x) => x.id === id);
+  if (!p) throw new Error('El personaje ya no existe');
+  const max = hoja(e, p).pvMax.total;
+  const despues = delta < 0 ? Math.max(0, p.pvActual + delta) : Math.max(p.pvActual, Math.min(max, p.pvActual + delta));
+  return { antes: p.pvActual, despues, estado: { ...e, personajes: e.personajes.map((x) => (x.id === id ? { ...x, pvActual: despues } : x)) } };
 }
 
 /** Da de baja a un personaje: lo que llevaba pasa al alijo y sus monedas al tesoro común. */

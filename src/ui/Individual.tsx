@@ -72,11 +72,6 @@ function Ficha({ p, h, avisar }: { p: Personaje; h: Hoja; avisar: Avisar }) {
       <header>
         <h1>{p.nombre}</h1>
         <span className="ficha-sub">{p.raza}{p.trasfondo ? ` · Trasfondo: ${p.trasfondo}` : ''}</span>
-        <svg viewBox="0 0 90 90" width="84" height="84" aria-hidden="true">
-          <path d="M45 6l10 18 20-4-6 20 15 10-17 8 4 20-19-8-7 16-7-16-19 8 4-20-17-8 15-10-6-20 20 4z" fill="#120f0b" stroke="#a88a4c" strokeWidth="1.2" />
-          <path d="M45 24l13 7v14c0 9-6 15-13 19-7-4-13-10-13-19V31z" fill={`color-mix(in srgb, ${p.color} 22%, #0c0a08)`} stroke="#e2c27a" strokeWidth="1.4" />
-          <path d="M45 32v22M38 40h14" stroke="#e2c27a" strokeWidth="1.6" strokeLinecap="round" />
-        </svg>
         <span className="ficha-nivel">Nivel {nivel} · {clases}</span>
         <div className="ficha-px" title={pxSig ? `Siguiente nivel con ${fmtNum(pxSig)} PX` : 'Nivel máximo'}>
           <span>PX</span>
@@ -84,6 +79,8 @@ function Ficha({ p, h, avisar }: { p: Personaje; h: Hoja; avisar: Avisar }) {
           <span>{fmtNum(px)}{pxSig ? ` / ${fmtNum(pxSig)}` : ''}</span>
         </div>
       </header>
+
+      <PuntosDeGolpe p={p} h={h} avisar={avisar} />
 
       <div className="stats">
         {CARACTERISTICAS.map(([k, t]) => {
@@ -165,6 +162,41 @@ function Ficha({ p, h, avisar }: { p: Personaje; h: Hoja; avisar: Avisar }) {
         </ul>
       </div>
     </section>
+  );
+}
+
+/** PV con barra y daño o curación rápidos: se escribe la cantidad y se pulsa Daño o Curar (Intro = daño). */
+function PuntosDeGolpe({ p, h, avisar }: { p: Personaje; h: Hoja; avisar: Avisar }) {
+  const { cambiarPv } = useCofre();
+  const [cantidad, setCantidad] = useState('');
+  const max = h.pvMax.total;
+  const n = Math.max(0, Math.floor(Number(cantidad) || 0));
+  const aplicar = (signo: 1 | -1, valor = n) => {
+    if (!valor) return;
+    const r = cambiarPv(p.id, signo * valor);
+    if (!r) return;
+    const quien = p.nombre.split(' ')[0];
+    avisar(signo < 0 ? `${quien} recibe ${valor} de daño: PV ${r.antes} → ${r.despues}${r.despues === 0 ? ' · ¡inconsciente!' : ''}` : `${quien} se cura ${r.despues - r.antes}: PV ${r.antes} → ${r.despues}`, signo < 0 && r.despues === 0);
+    setCantidad('');
+  };
+  const pct = Math.max(0, Math.min(100, (h.pvActual / max) * 100));
+  return (
+    <div className="pv-ficha" title={desglose(h.pvMax)}>
+      <div className="pv-cab">
+        <span>Puntos de golpe</span>
+        <b className={h.pvActual === 0 ? 'cero' : pct <= 25 ? 'bajo' : ''}>{h.pvActual}<small> / {max}</small></b>
+      </div>
+      <div className="pv-barra" role="meter" aria-valuemin={0} aria-valuemax={max} aria-valuenow={h.pvActual} aria-label={`PV de ${p.nombre}`}>
+        <div style={{ width: `${pct}%` }} />
+      </div>
+      <form className="pv-acciones" onSubmit={(e) => { e.preventDefault(); aplicar(-1); }}>
+        <button type="button" className="ibtn" aria-label="Quitar 1 PV" onClick={() => aplicar(-1, 1)}><Icono d={UI.menos} /></button>
+        <input type="number" min={0} inputMode="numeric" placeholder="Cantidad" aria-label="Cantidad de daño o curación" value={cantidad} onChange={(e) => setCantidad(e.target.value)} />
+        <button type="button" className="btn pv-dano" disabled={!n} onClick={() => aplicar(-1)}>Daño</button>
+        <button type="button" className="btn pv-cura" disabled={!n} onClick={() => aplicar(1)}>Curar</button>
+        <button type="button" className="ibtn" aria-label="Sumar 1 PV" onClick={() => aplicar(1, 1)}><Icono d={UI.mas} /></button>
+      </form>
+    </div>
   );
 }
 
