@@ -50,6 +50,29 @@ export interface Rasgo {
   icono?: IconoRasgo;
 }
 
+/**
+ * Cuánto dura un efecto temporal. Las de tiempo cuentan en segundos de juego (una ronda son 6 s) y bajan
+ * con «Pasa el tiempo»; las de descanso acaban con el siguiente descanso de ese tipo (o uno largo).
+ */
+export type Duracion =
+  | { tipo: 'tiempo'; segundos: number }
+  | { tipo: 'descanso'; descanso: 'corto' | 'largo' }
+  | { tipo: 'indefinida' };
+
+/** Un conjuro o una poción que cambia la hoja durante un rato: Bendecir, Fuerza de gigante… */
+export interface EfectoTemporal {
+  id: string;
+  nombre: string;
+  modificadores: Modificador[];
+  duracion: Duracion;
+  concentracion?: boolean;
+  /** De dónde sale: el objeto usado o quién lo lanzó. */
+  origen?: string;
+}
+
+/** Lo que un objeto aplica a quien lo usa (sin id: se crea al usarlo). */
+export type PlantillaEfecto = Omit<EfectoTemporal, 'id'>;
+
 export interface Personaje {
   id: string;
   nombre: string;
@@ -80,6 +103,10 @@ export interface Personaje {
   caSinArmadura?: Caracteristica | null;
   /** Bonos de CA que no vienen de objetos (estilo de combate Defensa, conjuros…). */
   caExtra?: number;
+  /** Efectos temporales activos. */
+  efectos?: EfectoTemporal[];
+  /** Lo ha cambiado un jugador en el editor: la migración de la semilla ya no lo pisa. */
+  editado?: boolean;
 }
 
 // ── Objetos ────────────────────────────────────────────────────────
@@ -174,6 +201,8 @@ export interface Objeto {
   cargasMax?: number;
   recarga?: string;
   efectos?: string;
+  /** Efecto temporal que aplica a quien lo usa (Poción de fuerza de gigante: FUE 21 durante 1 hora). */
+  alUsar?: PlantillaEfecto;
   descripcion?: string;
   notas?: string;
   /** [casera] Puntos de saciedad que da cada unidad de comida (0 = no se come sola). */

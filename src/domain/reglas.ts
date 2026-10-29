@@ -1,6 +1,6 @@
 // Reglas de negocio (HANDOFF §6). Funciones puras: reciben el estado y devuelven uno nuevo.
 
-import { activosDe, caracteristica, modsDe } from './efectos';
+import { caracteristica, modsPersonaje } from './efectos';
 import type {
   Equipado, Estado, Monedas, Movimiento, Objeto, Personaje, Propietario, Rareza, TipoRanura,
 } from './tipos';
@@ -24,7 +24,7 @@ export const cargaMaxKg = (fue: number) => Math.round(fue * 6.8);
 
 /** Carga máxima con la FUE que dan los objetos (un Cinturón de fuerza de gigante) y sus bonos de carga. */
 export function cargaMaxDe(e: Estado, p: Personaje) {
-  const mods = modsDe(activosDe(e, p.id));
+  const mods = modsPersonaje(e, p);
   const extra = mods.filter((m) => m.objetivo === 'carga' && !m.fijar).reduce((s, m) => s + (m.valor ?? 0), 0);
   return Math.max(0, cargaMaxKg(caracteristica(p, mods, 'fue').total) + extra);
 }

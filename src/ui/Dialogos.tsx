@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { cargaMaxDe, CLASE_RAREZA, MAX_SINTONIZADOS, pesoPersonajeKg, type Destino } from '../domain/reglas';
 import type { Objeto } from '../domain/tipos';
+import { usable } from '../domain/uso';
 import { useCofre } from '../store/cofre';
 import { UI } from './iconos';
 import { Esquinas, fmt1, Icono, iniciales, Ranura } from './piezas';
@@ -121,12 +122,19 @@ export function DividirPila({ objeto, destino, onCancelar, onMover }: {
 // ── Sintonización ──────────────────────────────────────────────────
 
 const CtxSintonia = createContext<(o: Objeto) => void>(() => {});
+const CtxDoble = createContext<(o: Objeto) => void>(() => {});
 
-/** Doble clic en un objeto: lo sintoniza o lo desintoniza; con 3 ya sintonizados, pregunta cuál sustituir. */
+/** Sintoniza o desintoniza un objeto; con 3 ya sintonizados, pregunta cuál sustituir. */
 export const useSintonia = () => useContext(CtxSintonia);
 
+/**
+ * Doble clic en un objeto: lo usa si se puede (gasta una carga o una unidad) y, si no, lo sintoniza.
+ * Un objeto que pide sintonía y aún no la tiene se sintoniza primero. Lo del alijo lo usa quien maneja la app.
+ */
+export const useDobleClic = () => useContext(CtxDoble);
+
 export function SintoniaProvider({ onAviso, children }: { onAviso: (texto: string, error?: boolean) => void; children: ReactNode }) {
-  const { sintonizar } = useCofre();
+  const { estado, actor, sintonizar, usar } = useCofre();
   const [lleno, setLleno] = useState<{ objeto: Objeto; actuales: Objeto[] } | null>(null);
 
   const pedir = useCallback((o: Objeto) => {
@@ -137,8 +145,16 @@ export function SintoniaProvider({ onAviso, children }: { onAviso: (texto: strin
     else onAviso(r.motivo, true);
   }, [sintonizar, onAviso]);
 
+  const doble = useCallback((o: Objeto) => {
+    if (!usable(o) || (o.requiereSintonizacion && !o.sintonizado)) { pedir(o); return; }
+    const yo = estado.personajes.find((p) => p.nombre.split(' ')[0] === actor);
+    const r = usar(o.id, yo?.id);
+    onAviso(r.ok ? r.texto : r.motivo, !r.ok);
+  }, [pedir, usar, estado.personajes, actor, onAviso]);
+
   return (
     <CtxSintonia.Provider value={pedir}>
+    <CtxDoble.Provider value={doble}>
       {children}
       {lleno && (
         <LimiteSintonia
@@ -152,6 +168,7 @@ export function SintoniaProvider({ onAviso, children }: { onAviso: (texto: strin
           }}
         />
       )}
+    </CtxDoble.Provider>
     </CtxSintonia.Provider>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { estadoInicial } from '../data/semilla';
+import { estadoInicial, VERSION } from '../data/semilla';
 import { hoja } from './hoja';
 import { crearObjeto, editarObjeto, migrar } from './objetos';
 import { comer, descansar, moverObjeto, validarMovimiento } from './reglas';
@@ -143,7 +143,7 @@ describe('objetos', () => {
   it('migra un estado antiguo conservando dónde está cada cosa', () => {
     const viejo = { ...e0, version: 2, personajes: e0.personajes.map((p) => ({ ...p, saciedad: 58 })) } as Estado;
     const m = migrar(viejo, e0);
-    expect(m.version).toBe(3);
+    expect(m.version).toBe(VERSION);
     expect(pj('nerys', m).saciedad).toBe(4);
   });
 });

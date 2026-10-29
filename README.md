@@ -34,13 +34,26 @@ Hecho:
 - Despensa con el hambre de mazmorra (ver Supuestos), comer, paso del tiempo y descansos. La comida enseña su imagen.
 - Estadísticas: tarjeta por personaje con los valores efectivos y desglose del elegido (salvaciones, habilidades, pasivas, defensas, movimiento y los objetos que influyen).
 
-Pendiente: crafteo, añadir y editar personajes (sus competencias salen de la clase y de los datos de ejemplo), usar pociones y cargas desde la interfaz, y Supabase.
+- Usar objetos: doble clic (o «Usar» en su editor) gasta una carga o una unidad, tira los dados de «Efectos» y, si dice «Recuperas XdY PV», cura sin pasar del máximo. Lo del alijo lo usa el jugador que maneja la app. Un objeto puede además dar un efecto temporal a quien lo usa («Al usarlo» en el editor). Los descansos de la despensa recuperan cargas según su «Recarga» («Al amanecer», «1d6+1 al amanecer», «Descanso corto», «2 cargas…») y los usos de los rasgos.
+- Efectos temporales en la ficha: conjuros y pociones habituales (Bendecir, Escudo de la fe, Acelerar, Fuerza de gigante…) o uno a mano, con modificadores, duración en rondas, minutos u horas, hasta un descanso o hasta quitarlo, y concentración. Cambian la hoja como un objeto. «Pasa 1 ronda / 1 min / 10 min / 1 h» baja las duraciones; un descanso corto cuenta 1 h y uno largo 8 h. El mismo efecto se renueva, no se acumula.
+- Editor de personajes (lápiz de la ficha, clic derecho en un retrato o «+» bajo los retratos): identidad, clases y multiclase, características, PV, velocidad, tamaño, CA extra, defensa sin armadura, característica de conjuros, salvaciones, competencias y pericias, resistencias, condiciones y rasgos con usos. Enseña la hoja resultante mientras editas. Quitar a un personaje deja su equipo en el alijo y sus monedas en el tesoro.
+- Party compartida con Supabase (botón «Local» / código de la barra superior). Ver Datos.
+
+Pendiente: crafteo.
 
 ## Datos
 
-De momento todo vive en el navegador (`localStorage`), empezando por los datos de ejemplo de `src/data/semilla.ts`, que amplían `datos-ejemplo.json` con los objetos del diseño. Para volver a empezar, borra los datos del sitio en el navegador.
+Sin party compartida, todo vive en el navegador (`localStorage`), empezando por los datos de ejemplo de `src/data/semilla.ts`, que amplían `datos-ejemplo.json` con los objetos del diseño. Para volver a empezar, borra los datos del sitio en el navegador.
 
-Toda la lectura y escritura pasa por `src/store/cofre.tsx`, que es lo que habrá que cambiar para usar Supabase. Las reglas están en `src/domain/reglas.ts` como funciones puras.
+### Sincronizar entre jugadores (Supabase)
+
+1. En el SQL Editor del proyecto de Supabase, ejecuta [supabase/esquema.sql](supabase/esquema.sql): crea la tabla `parties`, sus permisos, el tiempo real y el bucket `imagenes`.
+2. Copia `.env.example` como `.env` y pon la Project URL y la anon key (Project Settings → API). Son públicas; **nunca** pongas la contraseña de la base de datos.
+3. Reinicia `npm run dev`. En la barra superior, el botón «Local» abre «Party compartida»: «Crear party compartida» sube lo de tu navegador y da un código; el resto entra con ese código o con el enlace `?party=CODIGO`.
+
+Cada cambio es una función pura del estado (`src/store/cofre.tsx`). Se ve al momento y se guarda con «actualiza si la versión sigue siendo N»; si otro jugador guardó antes, se descarga su versión y se reaplica encima, y lo que ya no vale (un objeto que cogió otro) se descarta. Detalles en `src/store/sincro.ts`. Las imágenes se suben al bucket. Sin cuentas: quien tenga el código puede leer y cambiar la party.
+
+Las reglas están en `src/domain/` como funciones puras (`reglas.ts`, `hoja.ts`, `uso.ts`, `personajes.ts`).
 
 ## Supuestos
 

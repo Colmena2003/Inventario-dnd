@@ -23,6 +23,13 @@ export type ModActivo = Modificador & { origen: string; objetoId: string };
 export const modsDe = (activos: Objeto[]): ModActivo[] =>
   activos.flatMap((o) => (o.modificadores ?? []).map((m) => ({ ...m, origen: o.nombre, objetoId: o.id })));
 
+/** Modificadores de los efectos temporales; `objetoId` lleva el id del efecto con el prefijo «efecto:». */
+export const modsEfectos = (p: Personaje): ModActivo[] =>
+  (p.efectos ?? []).flatMap((ef) => ef.modificadores.map((m) => ({ ...m, origen: ef.nombre, objetoId: `efecto:${ef.id}` })));
+
+/** Todo lo que cambia la hoja de un personaje: sus objetos activos y sus efectos temporales. */
+export const modsPersonaje = (e: Estado, p: Personaje): ModActivo[] => [...modsDe(activosDe(e, p.id)), ...modsEfectos(p)];
+
 export type Fuente = { origen: string; valor: number; fijado?: boolean };
 
 /** Un número de la hoja con su desglose: base, cada aporte, y si va con ventaja o desventaja. */

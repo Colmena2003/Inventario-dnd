@@ -8,21 +8,25 @@ import {
 } from '../domain/reglas';
 import type { Categoria, Caracteristica, IconoRasgo, Objeto, Personaje, Rareza } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
-import { useSintonia } from './Dialogos';
+import { useDobleClic, useSintonia } from './Dialogos';
 import { claseCambio, desglose, tituloAtaque } from './desglose';
+import { BloqueEfectos } from './Efectos';
 import { useEditor } from './editorCtx';
+import { useEditorPersonaje } from './EditorPersonaje';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
-import { celdas, DCHA, IZQ, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { celdas, DCHA, IZQ, RanuraEquipo, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { Esquinas, fmtNum, Icono, Moneda, MONEDAS, Ranura } from './piezas';
 
-export function Individual({ personajeId, busqueda }: { personajeId: string | null; busqueda: string }) {
+type Avisar = (texto: string, error?: boolean) => void;
+
+export function Individual({ personajeId, busqueda, avisar }: { personajeId: string | null; busqueda: string; avisar: Avisar }) {
   const { estado } = useCofre();
   const p = estado.personajes.find((x) => x.id === personajeId) ?? estado.personajes[0];
   if (!p) return null;
   const h = hoja(estado, p);
   return (
     <>
-      <Ficha p={p} h={h} />
+      <Ficha p={p} h={h} avisar={avisar} />
       <Equipo p={p} h={h} busqueda={busqueda} />
       <Inventario p={p} h={h} busqueda={busqueda} />
     </>
@@ -49,7 +53,9 @@ const ALERTA = 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v6M12 16v.01';
 /** [5e] Condiciones que perjudican; el resto se muestran como efectos favorables. */
 const CONDICION_MALA = /agotamiento|envenenad|asustad|cegad|aturdid|paralizad|derribad|apresad|incapacitad|petrificad|ensordecid|hechizad|inconsciente|restringid|maldit/i;
 
-function Ficha({ p, h }: { p: Personaje; h: Hoja }) {
+function Ficha({ p, h, avisar }: { p: Personaje; h: Hoja; avisar: Avisar }) {
+  const { usarRasgo } = useCofre();
+  const editorPj = useEditorPersonaje();
   const nivel = nivelTotal(p);
   const pxSig = pxSiguienteNivel(nivel);
   const pxIni = pxNivelActual(nivel);
@@ -60,6 +66,9 @@ function Ficha({ p, h }: { p: Personaje; h: Hoja }) {
   return (
     <section className="panel ficha" aria-label={`Ficha de ${p.nombre}`}>
       <Esquinas />
+      <button type="button" className="ibtn ficha-editar" aria-label={`Editar la ficha de ${p.nombre}`} title="Editar ficha" onClick={() => editorPj.editar(p)}>
+        <Icono d={UI.lapiz} />
+      </button>
       <header>
         <h1>{p.nombre}</h1>
         <span className="ficha-sub">{p.raza}{p.trasfondo ? ` · Trasfondo: ${p.trasfondo}` : ''}</span>
@@ -114,6 +123,7 @@ function Ficha({ p, h }: { p: Personaje; h: Hoja }) {
           })}
         </div>
       </div>
+      <BloqueEfectos p={p} avisar={avisar} />
       <div className="ficha-bloque">
         <h3 className="titulo-sec">Resistencias</h3>
         <div className="etiquetas">
@@ -128,12 +138,26 @@ function Ficha({ p, h }: { p: Personaje; h: Hoja }) {
         <ul className="rasgos">
           {(p.rasgos ?? []).map((r) => {
             const ic = ICONO_RASGO[r.icono ?? 'estrella'];
-            const usos = r.usosMax != null ? `${r.usos ?? r.usosMax} / ${r.usosMax}` : '';
+            const quedan = r.usos ?? r.usosMax;
             return (
               <li key={r.nombre} title={r.recarga ? `Se recupera: ${r.recarga}` : undefined}>
                 <span className="rasgo-ic" style={{ color: ic.c }}><Icono d={ic.d} size={14} /></span>
                 <span className="rasgo-n">{r.nombre}</span>
-                <span className="rasgo-u">{[r.detalle, usos].filter(Boolean).join(' ')}</span>
+                <span className="rasgo-u">{r.detalle}</span>
+                {r.usosMax != null && (
+                  <button
+                    type="button" className={`rasgo-usos ${quedan === 0 ? 'agotado' : ''}`}
+                    aria-label={`${r.nombre}: ${quedan} de ${r.usosMax} usos. Clic para gastar uno, clic derecho para devolverlo`}
+                    title="Clic: gasta un uso · clic derecho: lo devuelve"
+                    onClick={() => {
+                      if (!quedan) { avisar(`${r.nombre}: sin usos${r.recarga ? ` (se recupera: ${r.recarga.toLowerCase()})` : ''}`, true); return; }
+                      usarRasgo(p.id, r.nombre, -1);
+                    }}
+                    onContextMenu={(e) => { e.preventDefault(); usarRasgo(p.id, r.nombre, 1); }}
+                  >
+                    {quedan} / {r.usosMax}
+                  </button>
+                )}
               </li>
             );
           })}
@@ -150,8 +174,9 @@ const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const claseVel = (h: Hoja) => (h.velocidad.caminar.total < h.velocidad.caminar.base ? 'baja' : h.velocidad.caminar.total > h.velocidad.caminar.base ? 'sube' : '');
 
 function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string }) {
-  const { estado, cambiarImagen } = useCofre();
+  const { estado, cambiarImagen, prepararImagen } = useCofre();
   const sintonia = useSintonia();
+  const doble = useDobleClic();
   const { props } = useInteraccion(busqueda, sintonia);
   const fichero = useRef<HTMLInputElement>(null);
   const eq = (r: 'cuerpoACuerpo' | 'distancia') => equipadoEn(estado, p.id, r, 0);
@@ -162,7 +187,7 @@ function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string })
   const silueta = SILUETA_ARMA[(armaCaC ?? armaDist)?.icono as ClaveIcono];
 
   const ranura = (r: Parameters<typeof RanuraEquipo>[0]['ranura'], i: number, ic: ClaveIcono, etiqueta?: string) => (
-    <RanuraEquipo key={r + i} p={p} ranura={r} indice={i} fantasma={ic} etiqueta={etiqueta} busqueda={busqueda} extra="big" onDoble={sintonia} />
+    <RanuraEquipo key={r + i} p={p} ranura={r} indice={i} fantasma={ic} etiqueta={etiqueta} busqueda={busqueda} extra="big" onDoble={doble} />
   );
 
   return (
@@ -195,7 +220,7 @@ function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string })
       </button>
       <input
         ref={fichero} type="file" accept="image/*" hidden
-        onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiarImagen(p.id, await reducirImagen(f, 900)); }}
+        onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiarImagen(p.id, await prepararImagen(f, 900)); }}
       />
 
       <div className="equipo-izq">{IZQ.map(([r, ic]) => ranura(r, 0, ic))}</div>
@@ -259,8 +284,8 @@ function ordenar(objetos: Objeto[], orden: Orden, recientes: Map<string, number>
 function Inventario({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string }) {
   const { estado, validar } = useCofre();
   const editor = useEditor();
-  const sintonia = useSintonia();
-  const { arrastre, props, clase } = useInteraccion(busqueda, sintonia);
+  const doble = useDobleClic();
+  const { arrastre, props, clase } = useInteraccion(busqueda, doble);
   const [cat, setCat] = useState(0);
   const [orden, setOrden] = useState<Orden>('rareza');
 

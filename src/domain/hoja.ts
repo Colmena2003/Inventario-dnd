@@ -3,7 +3,7 @@
 
 import { ABREV_CAR, datosClase, DES_MAX_POR_TIPO, HABILIDADES, NOMBRE_TIPO_ARMADURA, PROPIEDADES, RAZA_LENTA, RAZA_PEQUENA } from './catalogo';
 import {
-  activosDe, aplicar, caracteristica, marcar, modsDe, sumar, valor, type Fuente, type ModActivo, type Valor,
+  activosDe, aplicar, caracteristica, marcar, modsDe, modsEfectos, sumar, valor, type Fuente, type ModActivo, type Valor,
 } from './efectos';
 import {
   bonoCompetencia, cargaMaxDe, conSigno, equipadoEn, estadoSaciedad, modificador, nivelTotal, pesoPersonajeKg, tramoCarga,
@@ -91,7 +91,7 @@ const magiaActiva = (o: Objeto) => !o.requiereSintonizacion || !!o.sintonizado;
 export function hoja(e: Estado, p: Personaje): Hoja {
   const nivel = nivelTotal(p);
   const activos = activosDe(e, p.id);
-  const mods = modsDe(activos);
+  const mods = [...modsDe(activos), ...modsEfectos(p)];
   const clase = datosClase(p.clases[0]?.clase ?? '');
   const tamano: Tamano = p.tamano ?? (RAZA_PEQUENA.test(p.raza) ? 'pequeño' : 'mediano');
   const sac = estadoSaciedad(p.saciedad);

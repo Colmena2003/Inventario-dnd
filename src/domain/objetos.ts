@@ -52,6 +52,7 @@ export function limpiar(o: Objeto): Objeto {
   if (r.tipo !== 'armadura') delete r.armadura;
   if (r.tipo !== 'escudo') delete r.bonoCa;
   if (!r.modificadores?.length) delete r.modificadores;
+  if (r.alUsar && !r.alUsar.nombre.trim()) delete r.alUsar;
   if (r.otrasPropiedades) r.otrasPropiedades = r.otrasPropiedades.map((x) => x.trim()).filter(Boolean);
   return r;
 }
@@ -99,16 +100,20 @@ export function migrar(guardado: Estado, semilla: Estado): Estado {
     ...guardado,
     version: semilla.version,
     personajes: guardado.personajes.map((p) => {
-      const s = pjSemilla.get(p.id);
+      const s = p.editado ? undefined : pjSemilla.get(p.id);
       const saciedad = viejo ? saciedadDesde100(p.saciedad) : p.saciedad;
+      const usos = new Map((p.rasgos ?? []).map((r) => [r.nombre, r.usos]));
       return s
-        ? { ...s, pvActual: p.pvActual, imagenUrl: p.imagenUrl, monedas: p.monedas, saciedad, condiciones: p.condiciones, px: p.px }
+        ? {
+            ...s, pvActual: p.pvActual, imagenUrl: p.imagenUrl, monedas: p.monedas, saciedad, condiciones: p.condiciones, px: p.px,
+            efectos: p.efectos, rasgos: s.rasgos?.map((r) => (usos.get(r.nombre) != null ? { ...r, usos: usos.get(r.nombre) } : r)),
+          }
         : { ...p, saciedad };
     }),
     objetos: guardado.objetos.map((o) => {
       const s = objSemilla.get(o.id) ?? semilla.objetos.find((x) => x.nombre === o.nombre && x.rareza === o.rareza);
       const base = s
-        ? { ...s, id: o.id, cantidad: o.cantidad, propietario: o.propietario, equipadoEn: o.equipadoEn, sintonizado: o.sintonizado, imagenUrl: o.imagenUrl }
+        ? { ...s, id: o.id, cantidad: o.cantidad, propietario: o.propietario, equipadoEn: o.equipadoEn, sintonizado: o.sintonizado, imagenUrl: o.imagenUrl, cargas: o.cargas ?? s.cargas }
         : { ...o, saciedad: viejo && o.saciedad ? Math.max(1, Math.round(o.saciedad / 10)) : o.saciedad };
       return { ...base, tipo: inferirTipo(base) };
     }),

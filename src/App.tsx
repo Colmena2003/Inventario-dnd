@@ -5,6 +5,8 @@ import { useCofre } from './store/cofre';
 import { ArrastreProvider } from './ui/arrastre';
 import { Despensa } from './ui/Despensa';
 import { DividirPila, QuienEres, SintoniaProvider } from './ui/Dialogos';
+import { EditorPersonajeProvider } from './ui/EditorPersonaje';
+import { DialogoParty } from './ui/Party';
 import { EditorProvider } from './ui/EditorObjeto';
 import { Estadisticas } from './ui/Estadisticas';
 import { AvisoActual, Grupal, PieGrupal, type Aviso } from './ui/Grupal';
@@ -37,6 +39,7 @@ export default function App() {
   const [dividir, setDividir] = useState<{ objeto: Objeto; destino: Destino } | null>(null);
   const [aviso, setAviso] = useState<Aviso | null>(null);
   const [quien, setQuien] = useState(!actor);
+  const [party, setParty] = useState(false);
 
   // Cada movimiento nuevo se anuncia en el pie
   const ultimo = estado.movimientos[0]?.id;
@@ -84,7 +87,8 @@ export default function App() {
           <div className="vineta" aria-hidden="true" />
 
           <TooltipProvider lienzo={lienzo} escala={escala}>
-            <Topbar activa={pestana} onPestana={setPestana} busqueda={busqueda} onBusqueda={setBusqueda} />
+            <Topbar activa={pestana} onPestana={setPestana} busqueda={busqueda} onBusqueda={setBusqueda} onParty={() => setParty(true)} />
+            <EditorPersonajeProvider onAviso={avisar}>
             <Retratos activo={activo} onActivo={(id) => { setActivo(id); setPestana('individual'); }} />
 
             <EditorProvider onAviso={avisar}>
@@ -96,7 +100,7 @@ export default function App() {
               </>
             ) : pestana === 'individual' ? (
               <>
-                <Individual personajeId={activo} busqueda={busqueda} />
+                <Individual personajeId={activo} busqueda={busqueda} avisar={avisar} />
                 <div className="avisos-flot"><AvisoActual aviso={aviso} /></div>
               </>
             ) : pestana === 'monedas' ? (
@@ -123,6 +127,7 @@ export default function App() {
             )}
             </SintoniaProvider>
             </EditorProvider>
+            </EditorPersonajeProvider>
 
             {dividir && (
               <DividirPila
@@ -137,6 +142,7 @@ export default function App() {
               />
             )}
             {quien && <QuienEres onCerrar={() => setQuien(false)} />}
+            {party && <DialogoParty onCerrar={() => setParty(false)} avisar={avisar} />}
           </TooltipProvider>
         </div>
       </ArrastreProvider>

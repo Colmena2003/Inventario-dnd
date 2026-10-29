@@ -10,15 +10,15 @@ import { describirMod } from '../domain/describir';
 import { hoja, type Hoja, type Valor } from '../domain/hoja';
 import { inferirTipo } from '../domain/objetos';
 import { CLASE_RAREZA, conSigno, moverObjeto, NOMBRE_RANURA, SACIEDAD_MAX } from '../domain/reglas';
+import { HORA, MINUTO, RONDA, usable } from '../domain/uso';
 import type {
-  Categoria, DanoExtra, Estado, Modificador, Objeto, ObjetivoMod, Personaje, PropiedadArma, Propietario, Rareza,
-  TipoArmadura, TipoObjeto, TipoRanura,
+  Categoria, DanoExtra, Duracion, Estado, Modificador, Objeto, ObjetivoMod, Personaje, PlantillaEfecto, PropiedadArma, Propietario,
+  Rareza, TipoArmadura, TipoObjeto, TipoRanura,
 } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useEscape } from './Dialogos';
 import { CtxEditor, type ApiEditor } from './editorCtx';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
-import { reducirImagen } from './interaccion';
 import { Esquinas, fmtNum, Icono, Ranura } from './piezas';
 
 // ── Contexto: cualquier pantalla puede abrir el editor ─────────────
@@ -65,6 +65,7 @@ const borradorDe = (tipo: TipoObjeto, propietario: Propietario): Objeto => ({
 const RAREZAS: Rareza[] = ['común', 'poco común', 'raro', 'muy raro', 'legendario', 'artefacto'];
 const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const CON_MAGIA: TipoObjeto[] = ['arma', 'armadura', 'escudo', 'equipable', 'varios', 'mision', 'municion'];
+const CON_USO: TipoObjeto[] = ['pocion', 'pergamino', 'comida', 'varios', 'equipable', 'mision'];
 const RANURAS_EQUIPABLE: TipoRanura[] = ['cabeza', 'capa', 'guantes', 'botas', 'amuleto', 'anillo'];
 const CATEGORIA_EQUIPABLE: Partial<Record<TipoRanura, Categoria>> = { cabeza: 'Armaduras', guantes: 'Armaduras', botas: 'Armaduras' };
 const ICONO_RANURA: Partial<Record<TipoRanura, ClaveIcono>> = { cabeza: 'helm', capa: 'cloak', guantes: 'gloves', botas: 'boots', amuleto: 'amulet', anillo: 'ring' };
@@ -76,7 +77,7 @@ const SUBTIPOS: Partial<Record<TipoObjeto, string[]>> = {
 // ── Editor ─────────────────────────────────────────────────────────
 
 function Editor({ peticion, onCerrar, onAviso }: { peticion: Peticion; onCerrar: () => void; onAviso: (t: string, e?: boolean) => void }) {
-  const { guardarObjeto, eliminarObjeto } = useCofre();
+  const { estado, actor, guardarObjeto, eliminarObjeto, usar } = useCofre();
   const editando = !!peticion.objeto;
   const propietarioInicial = peticion.propietario ?? { tipo: 'alijo' as const };
   const [o, setO] = useState<Objeto | null>(() =>
@@ -148,6 +149,7 @@ function Editor({ peticion, onCerrar, onAviso }: { peticion: Peticion; onCerrar:
             {SUBTIPOS[tipo] && tipo !== 'comida' && <SeccionSubtipo o={o} cambiar={cambiar} opciones={SUBTIPOS[tipo]!} />}
             {(tipo === 'varios' || tipo === 'mision') && <SeccionRanuraOpcional o={o} cambiar={cambiar} />}
             {CON_MAGIA.includes(tipo) && <SeccionMagia o={o} cambiar={cambiar} />}
+            {CON_USO.includes(tipo) && <SeccionAlUsar o={o} cambiar={cambiar} />}
             <SeccionTextos o={o} cambiar={cambiar} tipo={tipo} />
             <button type="submit" hidden />
           </form>
@@ -164,6 +166,17 @@ function Editor({ peticion, onCerrar, onAviso }: { peticion: Peticion; onCerrar:
           ) : (
             <button type="button" className="btn peligro-sec" onClick={() => setBorrar(true)}>Eliminar objeto</button>
           ))}
+          {editando && usable(peticion.objeto!) && (
+            <BotonUsar
+              o={peticion.objeto!} estado={estado} actor={actor}
+              onUsar={(pid) => {
+                const r = usar(peticion.objeto!.id, pid);
+                if (!r.ok) { setError(r.motivo); return; }
+                onAviso(r.texto);
+                onCerrar();
+              }}
+            />
+          )}
           {error && <span className="ed-error" role="alert">{error}</span>}
           <span style={{ flex: 1 }} />
           <button type="button" className="btn sec" onClick={onCerrar}>Cancelar</button>
@@ -174,9 +187,28 @@ function Editor({ peticion, onCerrar, onAviso }: { peticion: Peticion; onCerrar:
   );
 }
 
+/** «Usar» en el pie del editor. Para lo del alijo, se elige quién lo usa. */
+function BotonUsar({ o, estado, actor, onUsar }: { o: Objeto; estado: Estado; actor: string; onUsar: (personajeId?: string) => void }) {
+  const delAlijo = o.propietario.tipo === 'alijo';
+  const [quien, setQuien] = useState(() => estado.personajes.find((p) => p.nombre.split(' ')[0] === actor)?.id ?? estado.personajes[0]?.id);
+  const sinCargas = !!o.cargasMax && (o.cargas ?? 0) < 1;
+  return (
+    <span className="ed-usar">
+      {delAlijo && (
+        <select aria-label="Quién lo usa" value={quien} onChange={(e) => setQuien(e.target.value)}>
+          {estado.personajes.map((p) => <option key={p.id} value={p.id}>{p.nombre.split(' ')[0]}</option>)}
+        </select>
+      )}
+      <button type="button" className="btn sec" disabled={sinCargas} title={sinCargas ? 'Sin cargas' : undefined} onClick={() => onUsar(delAlijo ? quien : undefined)}>
+        {o.categoria === 'Comida' ? 'Comer' : o.cargasMax ? `Usar · ${o.cargas ?? 0}/${o.cargasMax} cargas` : 'Usar'}
+      </button>
+    </span>
+  );
+}
+
 type Sec = { o: Objeto; cambiar: (c: Partial<Objeto>) => void };
 
-function Campo({ label, ancho, children, ayuda }: { label: string; ancho?: number | string; children: ReactNode; ayuda?: string }) {
+export function Campo({ label, ancho, children, ayuda }: { label: string; ancho?: number | string; children: ReactNode; ayuda?: string }) {
   return (
     <label className="campo" style={{ gridColumn: ancho ? `span ${ancho}` : undefined }}>
       <span className="k">{label}</span>
@@ -186,7 +218,7 @@ function Campo({ label, ancho, children, ayuda }: { label: string; ancho?: numbe
   );
 }
 
-function Numero({ valor, onCambio, min, max, paso = 1, vacio }: { valor: number | undefined; onCambio: (n: number | undefined) => void; min?: number; max?: number; paso?: number; vacio?: string }) {
+export function Numero({ valor, onCambio, min, max, paso = 1, vacio }: { valor: number | undefined; onCambio: (n: number | undefined) => void; min?: number; max?: number; paso?: number; vacio?: string }) {
   return (
     <input
       type="number" inputMode="decimal" step={paso} min={min} max={max} placeholder={vacio}
@@ -207,7 +239,7 @@ function Chips<T extends string>({ opciones, valor, onCambio, nombre }: { opcion
   );
 }
 
-function Seccion({ titulo, children, nota }: { titulo: string; children: ReactNode; nota?: string }) {
+export function Seccion({ titulo, children, nota }: { titulo: string; children: ReactNode; nota?: string }) {
   return (
     <fieldset className="ed-sec">
       <legend>{titulo}</legend>
@@ -226,7 +258,7 @@ const EJEMPLO_NOMBRE: Record<TipoObjeto, string> = {
 };
 
 function Identidad({ o, cambiar }: Sec) {
-  const { estado } = useCofre();
+  const { estado, prepararImagen } = useCofre();
   const fichero = useRef<HTMLInputElement>(null);
   const duenos: { p: Propietario; nombre: string; color?: string }[] = [
     ...estado.personajes.map((p) => ({ p: { tipo: 'personaje' as const, id: p.id }, nombre: p.nombre.split(' ')[0], color: p.color })),
@@ -255,7 +287,7 @@ function Identidad({ o, cambiar }: Sec) {
             {o.imagenUrl ? <img src={o.imagenUrl} alt="" /> : <><Icono d="M12 16V4M7 9l5-5 5 5M5 20h14" size={22} /><span>Subir imagen</span></>}
           </button>
           {o.imagenUrl && <button type="button" className="enlace" onClick={() => cambiar({ imagenUrl: undefined })}>Quitar imagen</button>}
-          <input ref={fichero} type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiar({ imagenUrl: await reducirImagen(f, 256) }); }} />
+          <input ref={fichero} type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiar({ imagenUrl: await prepararImagen(f, 256) }); }} />
           <div className="iconos" role="radiogroup" aria-label="Icono">
             {(Object.keys(ICONOS) as ClaveIcono[]).map((k) => (
               <button key={k} type="button" role="radio" aria-checked={o.icono === k} aria-label={k} className={`slot ${o.icono === k ? `has ${CLASE_RAREZA[o.rareza]} on` : ''}`} onClick={() => cambiar({ icono: k })}>
@@ -541,7 +573,63 @@ function SeccionMagia({ o, cambiar }: Sec) {
       <Campo label="Cargas"><Numero valor={o.cargas} min={0} vacio="—" onCambio={(n) => cambiar({ cargas: n })} /></Campo>
       <Campo label="Cargas máximas"><Numero valor={o.cargasMax} min={0} vacio="—" onCambio={(n) => cambiar({ cargasMax: n || undefined, cargas: o.cargas ?? n })} /></Campo>
       <Campo label="Recarga" ancho={2}><input value={o.recarga ?? ''} placeholder="Al amanecer, 1d6+1…" onChange={(e) => cambiar({ recarga: e.target.value || undefined })} /></Campo>
-      <EditorModificadores o={o} cambiar={cambiar} />
+      <EditorModificadores lista={o.modificadores ?? []} onLista={(modificadores) => cambiar({ modificadores })} />
+    </Seccion>
+  );
+}
+
+// ── Al usar: efecto temporal ──────────────────────────────────────
+
+const UNIDADES: [string, number][] = [['rondas', RONDA], ['minutos', MINUTO], ['horas', HORA]];
+
+/** Duración de un efecto: N rondas, minutos u horas, hasta un descanso o hasta quitarlo. */
+export function CamposDuracion({ valor, onCambio }: { valor: Duracion; onCambio: (d: Duracion) => void }) {
+  const unidad = valor.tipo === 'tiempo' ? ([...UNIDADES].reverse().find(([, s]) => valor.segundos % s === 0) ?? UNIDADES[0]) : UNIDADES[1];
+  const cantidad = valor.tipo === 'tiempo' ? Math.max(1, Math.round(valor.segundos / unidad[1])) : 1;
+  const modo = valor.tipo === 'tiempo' ? unidad[0] : valor.tipo === 'descanso' ? `descanso-${valor.descanso}` : 'indefinida';
+  const elegir = (m: string, n = cantidad) => {
+    const u = UNIDADES.find(([k]) => k === m);
+    if (u) onCambio({ tipo: 'tiempo', segundos: Math.max(1, n) * u[1] });
+    else if (m === 'indefinida') onCambio({ tipo: 'indefinida' });
+    else onCambio({ tipo: 'descanso', descanso: m === 'descanso-corto' ? 'corto' : 'largo' });
+  };
+  return (
+    <>
+      {valor.tipo === 'tiempo' && <Campo label="Dura"><Numero valor={cantidad} min={1} onCambio={(n) => elegir(modo, n ?? 1)} /></Campo>}
+      <Campo label={valor.tipo === 'tiempo' ? 'Unidad' : 'Dura'} ancho={valor.tipo === 'tiempo' ? 2 : 4}>
+        <select value={modo} onChange={(e) => elegir(e.target.value)}>
+          {UNIDADES.map(([k]) => <option key={k} value={k}>{k}</option>)}
+          <option value="descanso-corto">hasta un descanso corto</option>
+          <option value="descanso-largo">hasta un descanso largo</option>
+          <option value="indefinida">hasta quitarlo</option>
+        </select>
+      </Campo>
+    </>
+  );
+}
+
+function SeccionAlUsar({ o, cambiar }: Sec) {
+  const ef = o.alUsar;
+  const fijar = (c: Partial<PlantillaEfecto>) => cambiar({ alUsar: { ...ef!, ...c } });
+  return (
+    <Seccion
+      titulo="Al usarlo"
+      nota="Doble clic en el objeto lo usa: gasta una carga (si tiene cargas máximas) o una unidad, tira los dados de «Efectos» y cura si dice «Recuperas XdY PV». Además puede dar un efecto temporal a quien lo usa."
+    >
+      <label className="check" style={{ gridColumn: 'span 8' }}>
+        <input
+          type="checkbox" checked={!!ef}
+          onChange={(e) => cambiar({ alUsar: e.target.checked ? { nombre: o.nombre || 'Efecto', duracion: { tipo: 'tiempo', segundos: HORA }, modificadores: [] } : undefined })}
+        />
+        Da un efecto temporal a quien lo usa
+      </label>
+      {ef && (
+        <>
+          <Campo label="Nombre del efecto" ancho={4}><input value={ef.nombre} onChange={(e) => fijar({ nombre: e.target.value })} /></Campo>
+          <CamposDuracion valor={ef.duracion} onCambio={(duracion) => fijar({ duracion })} />
+          <EditorModificadores lista={ef.modificadores} onLista={(modificadores) => fijar({ modificadores })} ayuda="Qué cambia mientras dura: FUE 21, +2 CA, resistencia al fuego…" />
+        </>
+      )}
     </Seccion>
   );
 }
@@ -559,15 +647,14 @@ const ATAJOS: [string, Modificador][] = [
   ['Visión en la oscuridad', { objetivo: 'sentido:oscuridad', valor: 18, fijar: true }],
 ];
 
-function EditorModificadores({ o, cambiar }: Sec) {
-  const lista = o.modificadores ?? [];
-  const fijar = (i: number, m: Modificador) => cambiar({ modificadores: lista.map((x, j) => (j === i ? m : x)) });
-  const anadir = (m: Modificador) => cambiar({ modificadores: [...lista, m] });
+export function EditorModificadores({ lista, onLista, ayuda }: { lista: Modificador[]; onLista: (l: Modificador[]) => void; ayuda?: string }) {
+  const fijar = (i: number, m: Modificador) => onLista(lista.map((x, j) => (j === i ? m : x)));
+  const anadir = (m: Modificador) => onLista([...lista, m]);
   return (
     <div className="campo mods" style={{ gridColumn: 'span 8' }}>
       <span className="k">Modificadores</span>
-      {lista.length === 0 && <span className="ayuda">Sin modificadores. Añade los que tenga: +X a una característica, CA, ataque, daño, salvaciones, pasivas, velocidad, resistencias…</span>}
-      {lista.map((m, i) => <FilaMod key={i} m={m} onCambio={(x) => fijar(i, x)} onQuitar={() => cambiar({ modificadores: lista.filter((_, j) => j !== i) })} />)}
+      {lista.length === 0 && <span className="ayuda">{ayuda ?? 'Sin modificadores. Añade los que tenga: +X a una característica, CA, ataque, daño, salvaciones, pasivas, velocidad, resistencias…'}</span>}
+      {lista.map((m, i) => <FilaMod key={i} m={m} onCambio={(x) => fijar(i, x)} onQuitar={() => onLista(lista.filter((_, j) => j !== i))} />)}
       <div className="chips">
         <button type="button" className="chip on anadir-fila" onClick={() => anadir({ objetivo: 'car:fue', valor: 1 })}><Icono d={UI.mas} size={13} />Añadir modificador</button>
         {ATAJOS.map(([t, m]) => <button key={t} type="button" className="chip" onClick={() => anadir(m)}>{t}</button>)}

@@ -9,6 +9,7 @@ import {
   CLASE_RAREZA, conSigno, MAX_SINTONIZADOS, nombreDe, NOMBRE_RANURA, SACIEDAD_MAX, sintonizadosDe,
 } from '../domain/reglas';
 import type { Objeto } from '../domain/tipos';
+import { usable } from '../domain/uso';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
 import { Esquinas, fmt1, fmtNum, Ranura } from './piezas';
@@ -132,6 +133,11 @@ function FichaObjeto({ objeto: o0, left, top }: Pos) {
       )}
       {o.ranuraEquipo && !o.equipadoEn && (
         <div className="tt-fila"><span>Se equipa en</span><span>{NOMBRE_RANURA[o.ranuraEquipo]}</span></div>
+      )}
+      {usable(o) && (
+        <div className="tt-usar">
+          {o.requiereSintonizacion && !o.sintonizado ? 'Doble clic para sintonizar' : o.categoria === 'Comida' ? 'Doble clic para comer' : o.cargasMax ? 'Doble clic para usar · gasta 1 carga' : 'Doble clic para usar · gasta 1'}
+        </div>
       )}
       <div className="tt-pie">
         <span>{dueno ? <>Lo tiene <b>{dueno.nombre}</b></> : <b>{nombreDe(estado, o.propietario)}</b>}</span>

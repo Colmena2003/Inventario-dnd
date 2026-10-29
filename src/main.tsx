@@ -9,6 +9,7 @@ import './styles/monedas.css';
 import './styles/editor.css';
 import './styles/despensa.css';
 import './styles/estadisticas.css';
+import './styles/uso.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

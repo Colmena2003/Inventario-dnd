@@ -8,10 +8,10 @@ import {
 import type { Categoria, Personaje, TipoRanura } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
-import { useSintonia } from './Dialogos';
+import { useDobleClic } from './Dialogos';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
 import { Esquinas, fmt1, fmtNum, Icono, Orla, Ranura } from './piezas';
-import { celdas, DCHA, IZQ, RanuraEquipo, reducirImagen, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { celdas, DCHA, IZQ, RanuraEquipo, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { desglose, tituloAtaque } from './desglose';
 import { useEditor } from './editorCtx';
 
@@ -36,8 +36,8 @@ export function Grupal({ busqueda }: { busqueda: string }) {
 // ── Columna de personaje ──────────────────────────────────────────
 
 function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number; ancho: number; busqueda: string }) {
-  const onDoble = useSintonia();
-  const { estado, validar, cambiarImagen } = useCofre();
+  const onDoble = useDobleClic();
+  const { estado, validar, cambiarImagen, prepararImagen } = useCofre();
   const { arrastre, props, clase } = useInteraccion(busqueda, onDoble);
   const fichero = useRef<HTMLInputElement>(null);
 
@@ -66,7 +66,7 @@ function Columna({ p, indice, ancho, busqueda }: { p: Personaje; indice: number;
 
   const subirImagen = async (f: File | undefined) => {
     if (!f) return;
-    cambiarImagen(p.id, await reducirImagen(f, 600));
+    cambiarImagen(p.id, await prepararImagen(f, 600));
   };
 
   return (

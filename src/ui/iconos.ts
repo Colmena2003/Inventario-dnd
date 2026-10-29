@@ -49,6 +49,8 @@ export const UI = {
   check: 'M5 12.5l4.5 4.5L19 7',
   cruz: 'M6 6l12 12M18 6L6 18',
   flecha: 'M2 10h34M28 3l8 7-8 7',
+  lapiz: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+  enlace: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
 };
 
 export const ESQUINA = 'M2 28V10L10 2h18M6 24V12l6-6h12M2 10h5M10 2v5';

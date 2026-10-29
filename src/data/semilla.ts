@@ -80,8 +80,8 @@ function objetos(): Objeto[] {
     obj(A, 'Anillo de protección', 'ring', 'u', 1, { ...eq('anillo'), ...sint, ...mods({ objetivo: 'ca', valor: 1 }, { objetivo: 'salv:todas', valor: 1 }) }),
     obj(A, 'Escudo de roble y hierro', 'shield', 'u', 1, { ...eq('cuerpoACuerpo', 1), ...escudo }),
     obj(A, 'Jabalinas', 'dagger', 'c', 3, { ...eq('distancia'), tipo: 'arma', tipoArma: 'sencilla', ranuraEquipo: 'distancia', pesoKg: 1, dado: '1d6', tipoDano: 'perforante', propiedades: ['arrojadiza'], rango: '9/36 m' }),
-    obj(A, 'Poción de curación', 'potion', 'c', 4),
-    obj(A, 'Poción de curación mayor', 'potion', 'u', 2, { valorPo: 150 }),
+    obj(A, 'Poción de curación', 'potion', 'c', 4, { efectos: 'Recuperas 2d4+2 PV.' }),
+    obj(A, 'Poción de curación mayor', 'potion', 'u', 2, { valorPo: 150, efectos: 'Recuperas 4d4+4 PV.' }),
     obj(A, 'Pergamino de Revivir', 'scroll', 'r', 1, { valorPo: 300 }),
     obj(A, 'Agua bendita', 'flask', 'u', 3, { valorPo: 25 }),
     obj(A, 'Raciones de viaje', 'bread', 'c', 5, comida('ración', 2)),
@@ -107,7 +107,7 @@ function objetos(): Objeto[] {
     obj(N, 'Pergamino de Bola de fuego', 'scroll', 'u', 2, { valorPo: 200 }),
     obj(N, 'Pergamino de Identificar', 'scroll', 'c', 3),
     obj(N, 'Tinta de pulpo', 'drop', 'c', 2, { valorPo: 10 }),
-    obj(N, 'Poción de curación', 'potion', 'c', 2),
+    obj(N, 'Poción de curación', 'potion', 'c', 2, { efectos: 'Recuperas 2d4+2 PV.' }),
     obj(N, 'Polvo de diamante', 'gem', 'u', 1, { valorPo: 300, categoria: 'Materiales', subtipo: 'reactivo' }),
     obj(N, 'Hierba lunar', 'herb', 'c', 6, { subtipo: 'hierba' }),
     obj(N, 'Seta de las cavernas', 'mushroom', 'u', 3, { subtipo: 'hierba' }),
@@ -128,7 +128,7 @@ function objetos(): Objeto[] {
     { ...o3, tipo: 'pocion' },
     obj(B, 'Lingote de hierro', 'ore', 'c', 6, { subtipo: 'mineral' }),
     obj(B, 'Mineral de mitral', 'ore', 'r', 2, { subtipo: 'mineral', valorPo: 200 }),
-    obj(B, 'Poción de resistencia', 'potion', 'u', 1, { valorPo: 300 }),
+    obj(B, 'Poción de resistencia', 'potion', 'u', 1, { valorPo: 300, efectos: 'Resistencia al fuego durante 1 hora.', alUsar: { nombre: 'Resistencia al fuego', duracion: { tipo: 'tiempo', segundos: 3600 }, modificadores: [{ objetivo: 'resistencia', texto: 'fuego' }] } }),
     obj(B, 'Herramientas de herrero', 'hammer', 'c', 1, { ...noEquipable, categoria: 'Varios', pesoKg: 4, valorPo: 20 }),
     obj(B, 'Hacha de mano', 'axe', 'c', 2, { tipoArma: 'sencilla', dado: '1d6', tipoDano: 'cortante', propiedades: ['ligera', 'arrojadiza'], rango: '6/18 m' }),
     obj(B, 'Cerveza enana', 'flask', 'c', 4, comida('bebida', 1)),
@@ -155,7 +155,7 @@ function objetos(): Objeto[] {
     obj(Y, 'Flechas', 'dagger', 'c', 26, municion),
     obj(Y, 'Cofre de hierro cerrado', 'bag', 'c', 1, { pesoKg: 14, valorPo: 5, descripcion: 'Pesado. Nadie ha conseguido abrirlo todavía.' }),
     obj(Y, 'Candelabro de plata', 'torch', 'c', 2, { pesoKg: 1.5, valorPo: 25 }),
-    obj(Y, 'Poción de invisibilidad', 'potion', 'r', 1, { valorPo: 500 }),
+    obj(Y, 'Poción de invisibilidad', 'potion', 'r', 1, { valorPo: 500, efectos: 'Invisible durante 1 hora o hasta atacar o lanzar un conjuro.', alUsar: { nombre: 'Invisible', duracion: { tipo: 'tiempo', segundos: 3600 }, modificadores: [{ objetivo: 'ventaja', texto: 'tiradas de ataque' }, { objetivo: 'nota', texto: 'Los ataques contra ti tienen desventaja' }] } }),
     obj(Y, 'Veneno básico', 'drop', 'u', 3, { valorPo: 100 }),
     obj(Y, 'Cuerda de seda', 'bag', 'c', 1, { pesoKg: 2.5, valorPo: 10 }),
     obj(Y, 'Daga arrojadiza', 'dagger', 'c', 4, { ranuraEquipo: 'distancia', tipoArma: 'sencilla', dado: '1d4', tipoDano: 'perforante', propiedades: ['sutil', 'arrojadiza'], rango: '6/18 m' }),
@@ -174,8 +174,8 @@ function objetos(): Objeto[] {
     { ...o5, tipo: 'material' },
     { ...o2, tipo: 'equipable', ...mods({ objetivo: 'car:sab', valor: 2 }, { objetivo: 'vel:nadar', valor: 9, fijar: true }, { objetivo: 'resistencia', texto: 'frío' }, { objetivo: 'nota', texto: 'Respiras bajo el agua' }) },
     { ...o4, tipo: 'comida', saciedad: 2 },
-    obj(alijo, 'Poción de curación', 'potion', 'c', 6),
-    obj(alijo, 'Poción de curación superior', 'potion', 'r', 2, { valorPo: 450 }),
+    obj(alijo, 'Poción de curación', 'potion', 'c', 6, { efectos: 'Recuperas 2d4+2 PV.' }),
+    obj(alijo, 'Poción de curación superior', 'potion', 'r', 2, { valorPo: 450, efectos: 'Recuperas 8d4+8 PV.' }),
     obj(alijo, 'Espada larga', 'sword', 'c', 2, { tipoArma: 'marcial', dado: '1d8', dadoVersatil: '1d10', tipoDano: 'cortante', propiedades: ['versatil'] }),
     obj(alijo, 'Arco largo', 'bow', 'c', 1, { tipoArma: 'marcial', valorPo: 50, dado: '1d8', tipoDano: 'perforante', propiedades: ['municion', 'pesada', 'dosManos'], rango: '45/180 m' }),
     obj(alijo, 'Hacha de batalla', 'axe', 'u', 1, { tipoArma: 'marcial', pesoKg: 2, dado: '1d8', dadoVersatil: '1d10', tipoDano: 'cortante', propiedades: ['versatil'] }),
@@ -270,7 +270,7 @@ const EXTRA: Record<string, Partial<Personaje>> = {
 };
 
 /** Versión del modelo; al subirla, el almacén migra lo guardado (src/domain/objetos.ts). */
-export const VERSION = 3;
+export const VERSION = 4;
 
 export function estadoInicial(): Estado {
   n = 0;

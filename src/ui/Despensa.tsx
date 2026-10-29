@@ -51,8 +51,12 @@ export function Despensa({ avisar, busqueda }: { avisar: (texto: string, error?:
   const descanso = (tipo: 'corto' | 'largo') => {
     const r = descansar(todos, tipo);
     const nombres = (ids: string[]) => ids.map((id) => estado.personajes.find((p) => p.id === id)?.nombre.split(' ')[0]).join(', ');
-    if (r.bloqueados.length) avisar(`Sin saciedad para un descanso largo (necesitan ${SACIEDAD_DESCANSO_LARGO}): ${nombres(r.bloqueados)}. Que coman antes.`, true);
-    else avisar(tipo === 'largo' ? `Descanso largo: −${SACIEDAD_DESCANSO_LARGO} de saciedad a todos` : 'Descanso corto: −1 de saciedad a todos');
+    const extra = [
+      r.recargas.length ? `Recuperan: ${r.recargas.join(', ')}` : '',
+      r.terminados.length ? `Se acaba: ${r.terminados.join(', ')}` : '',
+    ].filter(Boolean).join('. ');
+    if (r.bloqueados.length) avisar(`Sin saciedad para un descanso largo (necesitan ${SACIEDAD_DESCANSO_LARGO}): ${nombres(r.bloqueados)}. Que coman antes.${r.hechos.length && extra ? ` ${extra}.` : ''}`, true);
+    else avisar(`${tipo === 'largo' ? `Descanso largo: −${SACIEDAD_DESCANSO_LARGO} de saciedad` : 'Descanso corto: −1 de saciedad'}${extra ? `. ${extra}` : ''}`);
   };
 
   return (

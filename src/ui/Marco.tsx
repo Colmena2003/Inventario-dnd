@@ -3,6 +3,7 @@
 import { cargaMaxDe, estadoSaciedad, pesoPersonajeKg, SACIEDAD_MAX } from '../domain/reglas';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
+import { useEditorPersonaje } from './EditorPersonaje';
 import { UI } from './iconos';
 import { fmt1, fmtNum, iniciales, Icono, Moneda, MONEDAS } from './piezas';
 
@@ -17,13 +18,18 @@ export const PESTANAS: { id: Pestana; label: string; d: string }[] = [
   { id: 'despensa', label: 'Despensa', d: 'M3 11h18a9 9 0 0 1-18 0zM8.5 8c0-1 1-1.2 1-2.2S8.5 4.5 8.5 3.5M12 8c0-1 1-1.2 1-2.2S12 4.5 12 3.5M15.5 8c0-1 1-1.2 1-2.2s-1-1.3-1-2.3' },
 ];
 
-export function Topbar({ activa, onPestana, busqueda, onBusqueda }: {
+const TEXTO_CONEXION = {
+  local: 'Solo en este navegador', conectando: 'Conectando…', sincronizado: 'Sincronizado', guardando: 'Guardando…', 'sin-conexion': 'Sin conexión',
+} as const;
+
+export function Topbar({ activa, onPestana, busqueda, onBusqueda, onParty }: {
   activa: Pestana;
   onPestana: (p: Pestana) => void;
   busqueda: string;
   onBusqueda: (s: string) => void;
+  onParty: () => void;
 }) {
-  const { estado } = useCofre();
+  const { estado, sync } = useCofre();
   return (
     <header className="topbar">
       <div className="marca">
@@ -52,6 +58,10 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda }: {
             <span key={m.k} className="moneda-v"><Moneda {...m} />{fmtNum(estado.party.tesoro[m.k])}</span>
           ))}
         </button>
+        <button type="button" className={`sync ${sync.conexion}`} onClick={onParty} title={TEXTO_CONEXION[sync.conexion]} aria-label={`Party compartida: ${TEXTO_CONEXION[sync.conexion]}${sync.codigo ? `, código ${sync.codigo}` : ''}`}>
+          <span className="sync-punto" aria-hidden="true" />
+          {sync.codigo ?? 'Local'}
+        </button>
         <label className="buscar">
           <span className="sr-only">Buscar objetos</span>
           <Icono d={UI.lupa} />
@@ -73,6 +83,7 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda }: {
 export function Retratos({ activo, onActivo }: { activo: string | null; onActivo: (id: string) => void }) {
   const { estado, validar } = useCofre();
   const { arrastre } = useArrastre();
+  const editorPj = useEditorPersonaje();
   const peso = estado.personajes.reduce((s, p) => s + pesoPersonajeKg(estado, p), 0);
   // Soltar un objeto sobre un retrato se lo da a ese personaje
   const marca = (id: string) => {
@@ -89,6 +100,7 @@ export function Retratos({ activo, onActivo }: { activo: string | null; onActivo
             <button
               type="button" className={`retrato-btn ${marca(p.id)}`} aria-pressed={p.id === activo} data-drop={`pj:${p.id}`}
               aria-label={`${p.nombre}, ${p.pvActual} de ${p.pvMax} PV, ${sac.texto}`} onClick={() => onActivo(p.id)}
+              onContextMenu={(e) => { e.preventDefault(); editorPj.editar(p); }} title="Clic: ver su inventario · clic derecho: editar ficha"
             >
               <svg viewBox="0 0 80 92" width="76" height="88" aria-hidden="true" style={{ display: 'block' }}>
                 <defs>
@@ -116,7 +128,7 @@ export function Retratos({ activo, onActivo }: { activo: string | null; onActivo
           </div>
         );
       })}
-      <button type="button" className="anadir" aria-label="Añadir personaje" aria-disabled="true" title="Próximamente">
+      <button type="button" className="anadir" aria-label="Añadir personaje" title="Añadir personaje" onClick={() => editorPj.nuevo()}>
         <Icono d={UI.mas} />
       </button>
       <div className="carga-lat">
