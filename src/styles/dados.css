@@ -146,8 +146,16 @@
 .dt-quien { display: flex; align-items: center; gap: calc(8px * var(--k)); font: 600 calc(15px * var(--k)) var(--f-titulo); letter-spacing: .1em; text-transform: uppercase; color: var(--texto-2); }
 .dt-quien i { width: calc(10px * var(--k)); height: calc(10px * var(--k)); transform: rotate(45deg); background: var(--c); }
 .dt-formula { font: calc(16px * var(--k)) var(--f-datos); color: var(--texto-3); }
+.dt-motivo { font: 600 calc(17px * var(--k)) var(--f-titulo); letter-spacing: .03em; color: var(--oro-claro); }
+.dt-desglose s { opacity: .45; }
+.dado-valor.descartado { opacity: .4; }
 .dados-total b { font: 700 calc(56px * var(--k))/1.05 var(--f-titulo); color: var(--oro-claro); text-shadow: 0 0 calc(24px * var(--k)) rgb(from var(--c) r g b / .6); }
 .dt-desglose { font: calc(15px * var(--k)) var(--f-datos); color: var(--texto-2); }
 .dt-crit { margin-top: calc(4px * var(--k)); padding: calc(2px * var(--k)) calc(12px * var(--k)); border-radius: calc(12px * var(--k)); font: 700 calc(14px * var(--k)) var(--f-titulo); letter-spacing: .1em; text-transform: uppercase; }
 .dt-crit.exito { color: #0d1a0e; background: var(--ok); }
 .dt-crit.pifia { color: #fff; background: var(--no); }
+
+/* Bono de ataque y daño de las armas: se tiran con un clic */
+.tiro { padding: 1px 4px; margin: -1px -4px; border: 0; border-radius: 4px; background: none; color: inherit; font: inherit; text-align: inherit; cursor: pointer; transition: background .15s, box-shadow .15s; }
+.tiro:hover, .tiro:focus-visible { background: rgb(from var(--t-e2c27a) r g b / .1); box-shadow: 0 0 0 1px rgb(from var(--t-e2c27a) r g b / .45); outline: none; }
+.tiro:hover b, .tiro:hover i, .tiro:hover span { color: var(--oro-claro); }

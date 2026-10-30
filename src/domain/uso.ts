@@ -2,6 +2,7 @@
 // con duración. Como en reglas.ts, funciones puras; las tiradas se hacen al preparar la acción para que
 // repetirla sobre un estado más nuevo (sincronización) no cambie el resultado.
 
+import { azar, formula, parsearFormula, tirar as tirarDados, type TipoDado } from './dados';
 import { hoja } from './hoja';
 import { nuevoId, primerNombre } from './reglas';
 import type { Duracion, EfectoTemporal, Estado, Objeto, PlantillaEfecto } from './tipos';
@@ -33,7 +34,7 @@ const RE_CURA = /recupera\w*\s+(?:\w+\s+){0,2}?(\d*d\d+(?:\s*[+\-−]\s*\d+)?|\d
 /** Se puede usar si tiene cargas, se gasta al usarlo (poción, pergamino, comida) o aplica un efecto. */
 export function usable(o: Objeto): boolean {
   if (o.cargasMax) return true;
-  if (o.alUsar) return true;
+  if (o.alUsar || o.tiradaUso) return true;
   if (o.categoria === 'Comida') return !!o.saciedad;
   return o.tipo === 'pocion' || o.tipo === 'pergamino' || o.categoria === 'Pociones' || o.categoria === 'Pergaminos';
 }
@@ -43,6 +44,8 @@ export interface PlanUso {
   personajeId: string;
   gasta: 'carga' | 'unidad';
   tirada?: Tirada;
+  /** Los dados uno a uno, para verlos caer en la mesa 3D antes de aplicar el efecto. */
+  dados?: { dados: { tipo: TipoDado; valor: number }[]; modificador: number };
   /** PV que recupera, ya tirados. */
   cura?: number;
   efecto?: EfectoTemporal;
@@ -73,17 +76,18 @@ export function prepararUso(e: Estado, objetoId: string, personajeId?: string, r
   const plan: PlanUso = { objetoId: o.id, personajeId: p.id, gasta };
   const partes: string[] = [];
   const texto = o.efectos?.trim() ?? '';
-  const cura = RE_CURA.exec(texto);
+  // Los dados del objeto, o los que diga el texto de sus efectos
+  const curaTexto = o.tiradaUso ? null : RE_CURA.exec(texto);
+  const cura = o.tiradaUso ? o.tiradaUso.efecto === 'curacion' : !!curaTexto;
+  const t = tirarExpr(o.tiradaUso?.formula ?? curaTexto?.[1] ?? texto, rng);
+  if (t) { plan.tirada = t.tirada; if (t.dados) plan.dados = t.dados; }
   if (cura) {
-    const t = tirar(cura[1], rng);
-    plan.cura = t ? t.total : Number(cura[1]);
-    if (t) plan.tirada = t;
+    plan.cura = t ? t.tirada.total : Number(curaTexto?.[1]) || 0;
     const max = hoja(e, p).pvMax.total;
     const despues = Math.min(max, p.pvActual + plan.cura);
-    partes.push(`recupera ${plan.cura} PV${t ? ` (${t.expr}: ${t.detalle})` : ''} · PV ${p.pvActual} → ${despues}`);
+    partes.push(`recupera ${plan.cura} PV${t ? ` (${t.tirada.expr}: ${t.tirada.detalle})` : ''} · PV ${p.pvActual} → ${despues}`);
   } else {
-    const t = tirar(texto, rng);
-    if (t) { plan.tirada = t; partes.push(`${t.expr} = ${t.total} ${t.detalle}`); }
+    if (t) partes.push(`${t.tirada.expr} = ${t.tirada.total}${o.tiradaUso?.efecto === 'dano' ? ' de daño' : ''} ${t.tirada.detalle}`);
     if (texto) partes.unshift(texto.split(/(?<=\.)\s/)[0].replace(/\.$/, ''));
   }
   if (o.alUsar) {
@@ -94,6 +98,25 @@ export function prepararUso(e: Estado, objetoId: string, personajeId?: string, r
   else if (o.cantidad > 1) partes.push(`quedan ${o.cantidad - 1}`);
 
   return { ok: true, plan, texto: `${primerNombre(p.nombre)} usa ${o.nombre}${partes.length ? `: ${partes.join(' · ')}` : ''}` };
+}
+
+/**
+ * Tira la expresión con los dados de la mesa 3D si se puede («2d4+2», «1d6 + 1d4»); si no (un d3), con
+ * la tirada de texto de siempre, que no se anima.
+ */
+function tirarExpr(expr: string, rng?: () => number): { tirada: Tirada; dados?: PlanUso['dados'] } | null {
+  const f = parsearFormula(expr) ?? parsearFormula(RE_DADOS.exec(expr)?.[0] ?? '');
+  if (!f) { const t = tirar(expr, rng); return t && { tirada: t }; }
+  const dados = tirarDados(f.seleccion, rng ? (caras) => 1 + Math.floor(rng() * caras) : azar);
+  const m = f.modificador;
+  return {
+    tirada: {
+      expr: formula(f.seleccion, m).replace(/ /g, ''),
+      total: Math.max(0, dados.reduce((s, d) => s + d.valor, 0) + m),
+      detalle: `[${dados.map((d) => d.valor).join(', ')}]${m ? (m > 0 ? ' + ' : ' − ') + Math.abs(m) : ''}`,
+    },
+    dados: { dados, modificador: m },
+  };
 }
 
 /** Aplica un uso preparado. Lanza un error si ya no se puede (otro jugador lo gastó antes). */

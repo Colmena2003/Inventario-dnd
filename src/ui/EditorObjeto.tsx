@@ -6,6 +6,7 @@ import {
   ARMADURAS, ARMAS, CARACTERISTICAS, CONDICIONES, DADOS, DEF_OBJETIVO, DES_MAX_POR_TIPO, HABILIDADES, NOMBRE_TIPO_ARMADURA,
   OBJETIVOS, ORDEN_PROPIEDADES, PROPIEDADES, TIPOS_DANO, TIPOS_OBJETO,
 } from '../domain/catalogo';
+import { parsearFormula, rango } from '../domain/dados';
 import { describirMod } from '../domain/describir';
 import { hoja, type Hoja, type Valor } from '../domain/hoja';
 import { inferirTipo } from '../domain/objetos';
@@ -15,9 +16,10 @@ import {
 import { HORA, MINUTO, RONDA, usable } from '../domain/uso';
 import type {
   Categoria, DanoExtra, Duracion, Estado, Modificador, Objeto, ObjetivoMod, Personaje, PlantillaEfecto, PropiedadArma, Propietario,
-  DatosArmadura, TipoObjeto, TipoRanura,
+  DatosArmadura, EfectoTirada, TiradaUso, TipoObjeto, TipoRanura,
 } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
+import { avisarUso } from './avisos';
 import { useEscape } from './Dialogos';
 import { CtxEditor, type ApiEditor } from './editorCtx';
 import { claseDe, ICONOS, NOMBRE_ICONO, UI, type ClaveIcono } from './iconos';
@@ -172,7 +174,7 @@ function Editor({ peticion, onCerrar, onAviso }: { peticion: Peticion; onCerrar:
               onUsar={(pid) => {
                 const r = usar(peticion.objeto!.id, pid);
                 if (!r.ok) { setError(r.motivo); return; }
-                onAviso(r.texto);
+                avisarUso(onAviso, r);
                 onCerrar();
               }}
             />
@@ -643,14 +645,64 @@ export function CamposDuracion({ valor, onCambio }: { valor: Duracion; onCambio:
   );
 }
 
+const EFECTOS_TIRADA: { id: EfectoTirada; texto: string }[] = [
+  { id: 'curacion', texto: 'Cura a quien lo usa' },
+  { id: 'dano', texto: 'Hace daño' },
+  { id: 'otro', texto: 'Solo tirar' },
+];
+
+/** [5e] Pociones de curación del Manual del Jugador. */
+const POCIONES: [string, string][] = [['Curación', '2d4+2'], ['Mayor', '4d4+4'], ['Superior', '8d4+8'], ['Suprema', '10d4+20']];
+
+/** Los dados que tira al usarlo y qué hace con el resultado; enseña el rango para ver que se ha entendido. */
+function CamposTirada({ o, cambiar }: Sec) {
+  const t = o.tiradaUso;
+  const fijar = (c: Partial<TiradaUso>) => {
+    const nueva = { formula: '', efecto: (o.tipo === 'pocion' ? 'curacion' : 'otro') as EfectoTirada, ...t, ...c };
+    cambiar({ tiradaUso: nueva.formula ? nueva : undefined });
+  };
+  const f = t?.formula ? parsearFormula(t.formula) : null;
+  const r = f && rango(f.seleccion, f.modificador);
+  return (
+    <>
+      <Campo label="Dados al usarlo" ancho={2} ayuda="2d4+2, 1d6 + 1d4…">
+        <input value={t?.formula ?? ''} placeholder="2d4+2" onChange={(e) => fijar({ formula: e.target.value })} aria-invalid={!!t?.formula && !f} />
+      </Campo>
+      <Campo label="Con el resultado" ancho={2}>
+        <select value={t?.efecto ?? (o.tipo === 'pocion' ? 'curacion' : 'otro')} onChange={(e) => fijar({ efecto: e.target.value as EfectoTirada })}>
+          {EFECTOS_TIRADA.map((x) => <option key={x.id} value={x.id}>{x.texto}</option>)}
+        </select>
+      </Campo>
+      <div className="campo" style={{ gridColumn: 'span 4' }}>
+        <span className="k">Resultado</span>
+        {r ? (
+          <span className="ayuda tirada-rango">De <b>{r.min}</b> a <b>{r.max}</b> · media <b>{fmtNum(r.media)}</b>{t?.efecto === 'curacion' ? ' PV, sin pasar del máximo' : ''}</span>
+        ) : t?.formula ? (
+          <span className="ayuda mal">No se entiende: usa d4, d6, d8, d10, d12, d20 o d100</span>
+        ) : (
+          <span className="ayuda">Sin dados{o.efectos && /\d*d\d+/.test(o.efectos) ? ': se tirarán los que diga «Efectos»' : ''}</span>
+        )}
+        {o.tipo === 'pocion' && (
+          <div className="chips">
+            {POCIONES.map(([n, x]) => (
+              <button key={n} type="button" className={`chip ${t?.formula === x ? 'on' : ''}`} onClick={() => fijar({ formula: x, efecto: 'curacion' })}>{n} {x}</button>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 function SeccionAlUsar({ o, cambiar }: Sec) {
   const ef = o.alUsar;
   const fijar = (c: Partial<PlantillaEfecto>) => cambiar({ alUsar: { ...ef!, ...c } });
   return (
     <Seccion
       titulo="Al usarlo"
-      nota="Doble clic en el objeto lo usa: gasta una carga (si tiene cargas máximas) o una unidad, tira los dados de «Efectos» y cura si dice «Recuperas XdY PV». Además puede dar un efecto temporal a quien lo usa."
+      nota="Doble clic en el objeto lo usa: gasta una carga (si tiene cargas máximas) o una unidad y tira sus dados en la mesa 3D con el color de quien lo usa. Cuando se paran, aplica el efecto. Además puede dar un efecto temporal a quien lo usa."
     >
+      <CamposTirada o={o} cambiar={cambiar} />
       <label className="check" style={{ gridColumn: 'span 8' }}>
         <input
           type="checkbox" checked={!!ef}

@@ -8,7 +8,7 @@ import {
 import type { Categoria, Caracteristica, IconoRasgo, Personaje } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useDobleClic, useSintonia } from './Dialogos';
-import { claseCambio, desglose, tituloAtaque } from './desglose';
+import { claseCambio, desglose } from './desglose';
 import { ClasesConIcono } from './clases';
 import { BloqueEfectos } from './Efectos';
 import { EspaciosConjuro } from './Espacios';
@@ -19,6 +19,7 @@ import { ICONOS, UI, type ClaveIcono } from './iconos';
 import { baseDe } from './arrastre';
 import { DCHA, IZQ, LADO_RETRATO, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { Esquinas, fmtNum, Icono, IconoObjeto, Moneda, MONEDAS } from './piezas';
+import { TiroAtaque, TiroDano } from './TirarArma';
 
 type Avisar = (texto: string, error?: boolean) => void;
 
@@ -264,7 +265,7 @@ function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string })
         <div>
           <span className="lbl">Cuerpo a cuerpo</span>
           <div className="par">{ranura('cuerpoACuerpo', 0, 'sword', 'Mano principal')}{ranura('cuerpoACuerpo', 1, 'shield', 'Mano secundaria')}</div>
-          <div className="atq" title={atqM ? tituloAtaque(atqM) : undefined}><b className={atqM?.bono.desv?.length ? 'desv' : ''}>{atqM ? conSigno(atqM.bono.total) : '—'}</b><span>{atqM ? `${atqM.dano} ${atqM.tipo ?? ''}` : 'Sin arma'}</span></div>
+          <div className="atq">{atqM ? <><TiroAtaque p={p} a={atqM}><b className={atqM.bono.desv?.length ? 'desv' : ''}>{conSigno(atqM.bono.total)}</b></TiroAtaque><TiroDano p={p} a={atqM}><span>{`${atqM.dano} ${atqM.tipo ?? ''}`}</span></TiroDano></> : <><b>—</b><span>Sin arma</span></>}</div>
         </div>
         <div className="ca grande" aria-label={`Clase de armadura ${h.ca.total}`} title={desglose(h.ca)}>
           <svg viewBox="0 0 76 84" width="96" height="106" aria-hidden="true">
@@ -278,7 +279,7 @@ function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string })
         <div>
           <span className="lbl">A distancia</span>
           <div className="par">{ranura('distancia', 0, 'bow')}{ranura('distancia', 1, 'dagger', 'Mano secundaria')}</div>
-          <div className="atq" title={atqR ? tituloAtaque(atqR) : undefined}><span>{atqR ? `${atqR.dano} ${atqR.tipo ?? ''}` : 'Sin arma'}</span><b className={atqR?.bono.desv?.length ? 'desv' : ''}>{atqR ? conSigno(atqR.bono.total) : '—'}</b></div>
+          <div className="atq">{atqR ? <><TiroDano p={p} a={atqR}><span>{`${atqR.dano} ${atqR.tipo ?? ''}`}</span></TiroDano><TiroAtaque p={p} a={atqR}><b className={atqR.bono.desv?.length ? 'desv' : ''}>{conSigno(atqR.bono.total)}</b></TiroAtaque></> : <><span>Sin arma</span><b>—</b></>}</div>
         </div>
       </div>
     </section>

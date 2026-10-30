@@ -1,7 +1,7 @@
 // Pantalla 1 y 2 del diseño: vista grupal, con arrastre entre personajes, equipo y alijo.
 
 import { useRef, useState, type CSSProperties } from 'react';
-import { hoja } from '../domain/hoja';
+import { hoja, type AtaqueArma } from '../domain/hoja';
 import {
   cargaMaxDe, CLASE_RAREZA, conSigno, equipadoEn, fmtKg, objetosDe, pesoAlijoKg, pesoPersonajeKg, primerNombre, SACIEDAD_MAX,
 } from '../domain/reglas';
@@ -16,9 +16,10 @@ import { useEditorPersonaje } from './EditorPersonaje';
 import { BotonMenu, type OpcionMenu } from './Menu';
 import { Esquinas, fmt1, fmtNum, Icono, IconoObjeto, Orla } from './piezas';
 import { DCHA, IZQ, LADO_RETRATO, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
-import { desglose, tituloAtaque } from './desglose';
+import { desglose } from './desglose';
 import { useEditor } from './editorCtx';
 import { useLienzo } from './lienzo';
+import { TiroAtaque, TiroDano } from './TirarArma';
 
 // ── Pantalla ───────────────────────────────────────────────────────
 
@@ -60,6 +61,13 @@ function Columna({ p, indice, ancho, busqueda, onVerFicha }: { p: Personaje; ind
   const armaCaC = eq('cuerpoACuerpo', 0), armaDist = eq('distancia', 0);
   const atqM = h.ataques.find((a) => a.ranura === 'cuerpoACuerpo' && a.indice === 0);
   const atqR = h.ataques.find((a) => a.ranura === 'distancia' && a.indice === 0);
+  // Bono y daño se tiran con un clic en la mesa de dados
+  const tiros = (a: AtaqueArma | undefined) => (a ? (
+    <>
+      <TiroAtaque p={p} a={a}><b className={a.bono.desv?.length ? 'desv' : ''}>{conSigno(a.bono.total)}</b></TiroAtaque>
+      <TiroDano p={p} a={a}><i>{a.dano}</i></TiroDano>
+    </>
+  ) : <><b>—</b><i>—</i></>);
   const silueta = SILUETA_ARMA[(armaCaC ?? armaDist)?.icono as ClaveIcono];
 
   // Estado de arrastre de esta columna
@@ -147,9 +155,9 @@ function Columna({ p, indice, ancho, busqueda, onVerFicha }: { p: Personaje; ind
         </div>
       </div>
       <div className="ataques">
-        <div title={atqM ? tituloAtaque(atqM) : undefined}><b className={atqM?.bono.desv?.length ? 'desv' : ''}>{atqM ? conSigno(atqM.bono.total) : '—'}</b><i>{atqM?.dano ?? '—'}</i></div>
+        <div>{tiros(atqM)}</div>
         <div><span className="lbl">Bono de ataque</span><span className="lbl">Daño</span></div>
-        <div title={atqR ? tituloAtaque(atqR) : undefined}><b className={atqR?.bono.desv?.length ? 'desv' : ''}>{atqR ? conSigno(atqR.bono.total) : '—'}</b><i>{atqR?.dano ?? '—'}</i></div>
+        <div>{tiros(atqR)}</div>
       </div>
 
       <RejillaObjetos

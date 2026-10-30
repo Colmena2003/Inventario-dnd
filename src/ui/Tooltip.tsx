@@ -122,6 +122,12 @@ function FichaObjeto({ objeto: o0, left, top }: Pos) {
         <p>{restoEfecto.length ? <><b>{titEfecto}</b> {restoEfecto.join(' ')}</> : o.efectos}</p>
       )}
       {o.descripcion && <p>{o.descripcion}</p>}
+      {o.tiradaUso && (
+        <div className="tt-fila">
+          <span>Al usarlo</span>
+          <span style={{ color: 'var(--texto)' }}>{o.tiradaUso.formula}{o.tiradaUso.efecto === 'curacion' ? ' PV de curación' : o.tiradaUso.efecto === 'dano' ? ' de daño' : ''}</span>
+        </div>
+      )}
       {o.categoria === 'Comida' && (
         <div className="tt-fila"><span>Saciedad</span><span>{o.saciedad ? `+${o.saciedad} de ${SACIEDAD_MAX} por unidad` : 'No se come sola'}</span></div>
       )}

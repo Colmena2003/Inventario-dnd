@@ -8,7 +8,7 @@ import { usable } from '../domain/uso';
 import type { Objeto, Personaje, Propietario, TipoRanura } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { baseDe, celdaDe, useArrastre } from './arrastre';
-import { useAvisar } from './avisos';
+import { avisarUso, useAvisar } from './avisos';
 import { useDetalle } from './DetalleObjeto';
 import { useSintonia } from './Dialogos';
 import { useEditor } from './editorCtx';
@@ -50,8 +50,7 @@ function useMenuObjeto() {
         onClick: () => {
           // Lo del alijo lo usa quien maneja la app
           const yo = personajeDelJugador(estado, actor);
-          const r = usar(o.id, yo?.id);
-          avisar(r.ok ? r.texto : r.motivo, !r.ok);
+          avisarUso(avisar, usar(o.id, yo?.id));
         },
       });
     }

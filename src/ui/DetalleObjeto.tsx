@@ -10,6 +10,7 @@ import { capital, CLASE_RAREZA, conSigno, MAX_SINTONIZADOS, NOMBRE_RANURA, nombr
 import { usable } from '../domain/uso';
 import type { FichaObjeto, Objeto, Propietario } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
+import { avisarUso } from './avisos';
 import { useEscape, useSintonia } from './Dialogos';
 import { useEditor } from './editorCtx';
 import { claseDe, UI } from './iconos';
@@ -85,8 +86,7 @@ function Detalle({ abierto, onCerrar, onAviso }: { abierto: Abierto; onCerrar: (
                 <button type="button" className="btn sec" onClick={() => {
                   // Lo del alijo lo usa quien maneja la app
                   const yo = personajeDelJugador(estado, actor);
-                  const r = usar(objeto.id, yo?.id);
-                  onAviso(r.ok ? r.texto : r.motivo, !r.ok);
+                  avisarUso(onAviso, usar(objeto.id, yo?.id));
                 }}>
                   {objeto.categoria === 'Comida' ? 'Comer' : 'Usar'}
                 </button>

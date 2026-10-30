@@ -3,11 +3,12 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import {
-  ACABADOS, CARAS, critico, dadosEnMesa, ESTILO_DM, estiloDe, esEstilo, formula, formulaDe, MAX_MODIFICADOR, NOMBRE_ACABADO, QUIEN_DM,
+  ACABADOS, CARAS, critico, criticoDe, dadosEnMesa, descartados, ESTILO_DM, estiloDe, esEstilo, formula, formulaDe, MAX_MODIFICADOR, NOMBRE_ACABADO, QUIEN_DM,
   tintaPara, tirar, TIPOS_DADO, total, cambiarSeleccion, type Acabado, type EstiloDados, type Seleccion, type TipoDado, type Tirada,
 } from '../domain/dados';
 import { personajeDelJugador, primerNombre } from '../domain/reglas';
 import { useCofre } from '../store/cofre';
+import { propias, tiradaParada } from '../dados/espera';
 import type { Mesa, Reposo } from '../dados/mesa';
 import { UI } from './iconos';
 import { DADOS } from './iconosJuego';
@@ -24,9 +25,6 @@ function leer<T>(clave: string, valido: (x: unknown) => boolean, defecto: T): T 
 function guardar(clave: string, valor: unknown) {
   try { localStorage.setItem(clave, JSON.stringify(valor)); } catch { /* se pierde al recargar */ }
 }
-
-/** Tiradas hechas en este navegador: estas se ven siempre en 3D, las de los demás según la preferencia. */
-const propias = new Set<string>();
 
 const COLORES = ['#8e2420', '#c8403a', '#e0883a', '#c8a24a', '#e8dcc0', '#9cc95e', '#2f6b3a', '#4fc1b5', '#5aa0d8', '#27406e', '#b874ff', '#4a2a5e', '#d88ac4', '#6b6f78', '#1c1a1a'];
 const TINTAS: { nombre: string; color: string | null }[] = [
@@ -84,7 +82,6 @@ export function BandejaDados() {
       id: crypto.randomUUID(), fecha: Date.now(), quien, nombre, estilo,
       dados: tirar(seleccion), modificador, ...(privada ? { privada: true } : {}),
     };
-    propias.add(t.id);
     lanzarDados(t);
   };
 
@@ -205,12 +202,14 @@ export function BandejaDados() {
 }
 
 function FilaTirada({ t }: { t: Tirada }) {
-  const crit = t.dados.map(critico).find(Boolean);
+  const crit = criticoDe(t);
+  const dados = t.dados.map((d) => `${d.tipo}: ${d.valor}`).join(' · ');
   return (
-    <li className={crit ?? ''} style={{ '--c': t.estilo.color } as CSSProperties} title={t.dados.map((d) => `${d.tipo}: ${d.valor}`).join(' · ')}>
+    <li className={crit ?? ''} style={{ '--c': t.estilo.color } as CSSProperties} title={t.motivo ? `${t.motivo}
+${formulaDe(t)} · ${dados}` : dados}>
       <i aria-hidden="true" />
       <span>{t.nombre}{t.privada ? ' (oculta)' : ''}</span>
-      <small>{formulaDe(t)}</small>
+      <small>{t.motivo ?? formulaDe(t)}</small>
       <b>{total(t)}</b>
     </li>
   );
@@ -296,6 +295,7 @@ export function MesaDados() {
       setActual({ t, reposo: null });
       const reposo = await mesa.current.lanzar(t.dados, t.estilo);
       setActual({ t, reposo });
+      tiradaParada(t.id);
       // Se deja ver el resultado; si llega otra tirada, se acorta
       await pausa(cola.current.length ? 1800 : 5000);
       setSaliendo(true);
@@ -303,6 +303,7 @@ export function MesaDados() {
     } catch {
       // Sin WebGL: el resultado sigue en el historial de la bandeja
     } finally {
+      tiradaParada(t.id);
       mesa.current?.limpiar();
       setActual(null);
       setSaliendo(false);
@@ -333,6 +334,8 @@ export function MesaDados() {
   const ancho = anchoLienzo * escala, alto = ALTO * escala;
 
   const t = actual?.t, reposo = actual?.reposo;
+  const fuera = t ? descartados(t) : new Set<number>();
+  const crit = t && criticoDe(t);
   // El total va arriba o abajo, donde no hayan caído los dados
   const totalAbajo = !!reposo?.length && reposo.reduce((s, r) => s + r.y, 0) / reposo.length < alto / 2;
   return (
@@ -342,21 +345,28 @@ export function MesaDados() {
         <>
           {reposo.filter((r) => r.principal).map((r, i) => {
             const d = t.dados[r.indice];
+            const clase = fuera.has(r.indice) ? 'descartado' : critico(d, t.critMin) ?? '';
             return (
-              <span key={i} className={`dado-valor ${critico(d) ?? ''} ${r.y < 70 * escala ? 'debajo' : ''}`} style={{ left: r.x, top: r.y, '--c': t.estilo.color } as CSSProperties}>
+              <span key={i} className={`dado-valor ${clase} ${r.y < 70 * escala ? 'debajo' : ''}`} style={{ left: r.x, top: r.y, '--c': t.estilo.color } as CSSProperties}>
                 {d.valor}
               </span>
             );
           })}
           <div className={`dados-total ${totalAbajo ? 'abajo' : ''}`}style={{ '--c': t.estilo.color } as CSSProperties}>
             <span className="dt-quien"><i aria-hidden="true" />{t.nombre}{t.privada ? ' · oculta' : ''}</span>
-            <span className="dt-formula">{formulaDe(t)}</span>
+            {t.motivo && <span className="dt-motivo">{t.motivo}</span>}
+            <span className="dt-formula">{formulaDe(t)}{t.modo ? ` · con ${t.modo}` : ''}</span>
             <b>{total(t)}</b>
             {t.dados.length > 1 || t.modificador ? (
-              <span className="dt-desglose">{t.dados.map((d) => d.valor).join(' + ')}{t.modificador ? (t.modificador > 0 ? ` + ${t.modificador}` : ` − ${-t.modificador}`) : ''}</span>
+              <span className="dt-desglose">
+                {t.dados.map((d, i) => (
+                  <span key={i}>{i > 0 && (fuera.has(i) || fuera.has(i - 1) ? ' · ' : ' + ')}{fuera.has(i) ? <s>{d.valor}</s> : d.valor}</span>
+                ))}
+                {t.modificador ? (t.modificador > 0 ? ` + ${t.modificador}` : ` − ${-t.modificador}`) : ''}
+              </span>
             ) : null}
-            {t.dados.some((d) => critico(d) === 'exito') && <span className="dt-crit exito">¡Crítico!</span>}
-            {t.dados.some((d) => critico(d) === 'pifia') && <span className="dt-crit pifia">Pifia</span>}
+            {crit === 'exito' && <span className="dt-crit exito">¡Crítico!</span>}
+            {crit === 'pifia' && <span className="dt-crit pifia">Pifia</span>}
           </div>
         </>
       )}

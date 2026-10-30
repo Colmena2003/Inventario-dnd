@@ -133,3 +133,25 @@ describe('PV', () => {
     expect(cambiarPv(e0, 'aldric', -4)).toMatchObject({ antes: pj('aldric').pvActual, despues: pj('aldric').pvActual - 4 });
   });
 });
+
+describe('objetos con tirada al usar', () => {
+  it('tira sus dados (para la mesa 3D), cura sin pasar del máximo y se gasta', () => {
+    const e1: Estado = { ...e0, personajes: e0.personajes.map((p) => (p.id === 'aldric' ? { ...p, pvActual: 1 } : p)) };
+    const base = objeto('Poción de curación', 'aldric', e1);
+    const e2: Estado = { ...e1, objetos: e1.objetos.map((o) => (o.id === base.id ? { ...o, efectos: undefined, tiradaUso: { formula: '2d6+2', efecto: 'curacion' } } : o)) };
+    const r = prepararUso(e2, base.id, undefined, alto);
+    if (!r.ok) throw new Error(r.motivo);
+    expect(r.plan.dados).toEqual({ dados: [{ tipo: 'd6', valor: 6 }, { tipo: 'd6', valor: 6 }], modificador: 2 });
+    expect(r.plan.cura).toBe(14);
+    const e3 = aplicarUso(e2, r.plan);
+    expect(pj('aldric', e3).pvActual).toBe(Math.min(hoja(e3, pj('aldric', e3)).pvMax.total, 15));
+  });
+  it('una tirada de daño no cura', () => {
+    const base = objeto('Poción de curación', 'aldric');
+    const e1: Estado = { ...e0, objetos: e0.objetos.map((o) => (o.id === base.id ? { ...o, tiradaUso: { formula: '1d4', efecto: 'dano' } } : o)) };
+    const r = prepararUso(e1, base.id, undefined, alto);
+    if (!r.ok) throw new Error(r.motivo);
+    expect(r.plan.cura).toBeUndefined();
+    expect(r.texto).toContain('4 de daño');
+  });
+});

@@ -166,6 +166,16 @@ export interface Modificador {
   texto?: string;
 }
 
+/** Qué hace la tirada de un objeto al usarlo: curar a quien lo usa, daño que se anuncia o solo el número. */
+export type EfectoTirada = 'curacion' | 'dano' | 'otro';
+
+/** Dados que tira un objeto al usarlo (Poción de curación: 2d4+2, curación). */
+export interface TiradaUso {
+  /** «2d4+2», «1d6 + 1d4» */
+  formula: string;
+  efecto: EfectoTirada;
+}
+
 export interface Objeto {
   id: string;
   nombre: string;
@@ -210,6 +220,8 @@ export interface Objeto {
   efectos?: string;
   /** Efecto temporal que aplica a quien lo usa (Poción de fuerza de gigante: FUE 21 durante 1 hora). */
   alUsar?: PlantillaEfecto;
+  /** Dados que tira al usarlo; si falta, se buscan en el texto de los efectos («Recuperas 2d4+2 PV»). */
+  tiradaUso?: TiradaUso;
   descripcion?: string;
   notas?: string;
   /** [casera] Puntos de saciedad que da cada unidad de comida (0 = no se come sola). */
@@ -228,7 +240,7 @@ export const CAMPOS_FICHA = [
   'nombre', 'imagenUrl', 'icono', 'tipo', 'categoria', 'subtipo', 'rareza', 'pesoKg', 'valorPo', 'requiereSintonizacion',
   'ranuraEquipo', 'funcionaSinEquipar', 'modificadores', 'tipoArma', 'dado', 'dadoVersatil', 'tipoDano', 'bonoMagico', 'bonoAtaque',
   'bonoDano', 'propiedades', 'otrasPropiedades', 'rango', 'critico', 'danosExtra', 'armadura', 'bonoCa', 'cargasMax', 'recarga',
-  'efectos', 'alUsar', 'descripcion', 'notas', 'saciedad',
+  'efectos', 'alUsar', 'tiradaUso', 'descripcion', 'notas', 'saciedad',
 ] as const;
 
 export type DatosFicha = Pick<Objeto, (typeof CAMPOS_FICHA)[number]>;

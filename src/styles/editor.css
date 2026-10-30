@@ -118,3 +118,6 @@
 .btn.peligro-sec { color: #f08a84; background: transparent; border: 1px solid #6b2a26; }
 .previa-quien .k { white-space: nowrap; }
 .icono-nombre { color: var(--oro-claro); font-weight: 600; letter-spacing: .06em; }
+.ayuda.mal { color: var(--no); }
+.tirada-rango b { color: var(--oro-claro); font-weight: 700; }
+.campo input[aria-invalid="true"] { border-color: var(--no); }

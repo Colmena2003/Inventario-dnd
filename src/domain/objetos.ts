@@ -1,5 +1,6 @@
 // Alta, edición y borrado de objetos, y la migración de lo guardado cuando cambia el modelo.
 
+import { parsearFormula } from './dados';
 import { anotarMovimiento, cargaMaxDe, fmtKg, mismoPropietario, nuevoId, pesoObjeto, pesoPersonajeKg, primerNombre, saciedadDesde100 } from './reglas';
 import type { Estado, Modificador, Objeto, TipoObjeto } from './tipos';
 
@@ -25,6 +26,7 @@ export function validarObjeto(e: Estado, o: Objeto): string | null {
   if (!(o.cantidad >= 1)) return 'La cantidad tiene que ser 1 o más';
   if (o.pesoKg < 0 || o.valorPo < 0) return 'El peso y el valor no pueden ser negativos';
   if (o.categoria === 'Comida' && (o.saciedad == null || o.saciedad < 0)) return 'Indica cuánta saciedad llena';
+  if (o.tiradaUso?.formula.trim() && !parsearFormula(o.tiradaUso.formula)) return 'La tirada al usarlo no se entiende: escribe dados como 2d6+2 (d4, d6, d8, d10, d12, d20 o d100)';
   if (o.propietario.tipo === 'personaje') {
     const pid = o.propietario.id;
     const p = e.personajes.find((x) => x.id === pid);
@@ -51,6 +53,7 @@ export function limpiar(o: Objeto): Objeto {
   if (r.tipo !== 'armadura' || pieza) delete r.armadura;
   if (r.tipo !== 'escudo' && !pieza) delete r.bonoCa;
   if (!r.modificadores?.length) delete r.modificadores;
+  if (r.tiradaUso && !r.tiradaUso.formula.trim()) delete r.tiradaUso;
   if (r.alUsar && !r.alUsar.nombre.trim()) delete r.alUsar;
   if (r.otrasPropiedades) r.otrasPropiedades = r.otrasPropiedades.map((x) => x.trim()).filter(Boolean);
   return r;

@@ -7,7 +7,8 @@ import {
   crearCriatura, editarCriatura, eliminarCriatura, registrarEncuentro, type ResultadoCriatura,
 } from '../domain/bestiario';
 import { cambiarImagenFicha, olvidarFicha, recuperarFicha, registrarEnBiblioteca, sincronizarBiblioteca, type ResultadoFicha } from '../domain/biblioteca';
-import { cambiarEstiloDados, esTirada, type EstiloDados, type Tirada } from '../domain/dados';
+import { cambiarEstiloDados, esTirada, estiloDe, type EstiloDados, type Tirada } from '../domain/dados';
+import { esperarTirada, propias } from '../dados/espera';
 import { descansarEspacios, gastarEspacio, gastarPacto, recuperaEspacios } from '../domain/conjuros';
 import { crearObjeto, editarObjeto, eliminarObjeto, estadoVacio, migrar, validarObjeto } from '../domain/objetos';
 import { cambiarPv, eliminarPersonaje, guardarPersonaje, validarPersonaje } from '../domain/personajes';
@@ -107,7 +108,11 @@ interface Cofre {
   guardarObjeto: (o: Objeto, nuevo: boolean) => string | null;
   eliminarObjeto: (id: string) => void;
   /** Gasta una carga o una unidad y aplica su efecto; devuelve el texto para el aviso. */
-  usar: (objetoId: string, personajeId?: string) => { ok: true; texto: string } | { ok: false; motivo: string };
+  /**
+   * Usa un objeto. Si tira dados, salen en la mesa 3D con el color de quien lo usa y el efecto (curar,
+   * gastarlo) se aplica cuando se paran: `tras` se resuelve entonces.
+   */
+  usar: (objetoId: string, personajeId?: string) => { ok: true; texto: string; tras?: Promise<void> } | { ok: false; motivo: string };
   usarRasgo: (personajeId: string, nombre: string, delta: number) => void;
   comer: (personajeId: string, objetoId: string) => SinEstado<ResultadoComer>;
   cambiarSaciedad: (ids: string[], delta: number) => void;
@@ -305,6 +310,12 @@ export function CofreProvider({ children }: { children: ReactNode }) {
 
   const comer = useCallback((personajeId: string, objetoId: string) => conResultado((e) => comerRegla(e, personajeId, objetoId)), [conResultado]);
 
+  const lanzarDados = useCallback((t: Tirada) => {
+    propias.add(t.id);
+    apuntarTirada(t);
+    if (!t.privada) sala.current?.difundirTirada(t);
+  }, [apuntarTirada]);
+
   const usar = useCallback((objetoId: string, personajeId?: string) => {
     const o = estado.objetos.find((x) => x.id === objetoId);
     // La comida se usa comiéndola: suma saciedad
@@ -317,9 +328,21 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     }
     const r: ResultadoPlan = prepararUso(estado, objetoId, personajeId);
     if (!r.ok) return r;
-    cambiar((e) => aplicarUso(e, r.plan));
-    return { ok: true as const, texto: r.texto };
-  }, [estado, comer, cambiar]);
+    const p = estado.personajes.find((x) => x.id === r.plan.personajeId);
+    if (!r.plan.dados || !p || !o) {
+      cambiar((e) => aplicarUso(e, r.plan));
+      return { ok: true as const, texto: r.texto };
+    }
+    // Los números ya están sacados en el plan: la mesa solo los enseña
+    const t: Tirada = {
+      id: crypto.randomUUID(), fecha: Date.now(), quien: p.id, nombre: primerNombre(p.nombre), estilo: estiloDe(p),
+      dados: r.plan.dados.dados, modificador: r.plan.dados.modificador,
+      motivo: `${o.nombre}${r.plan.cura != null ? ' · curación' : o.tiradaUso?.efecto === 'dano' ? ' · daño' : ''}`,
+    };
+    lanzarDados(t);
+    const tras = esperarTirada(t.id).then(() => cambiar((e) => aplicarUso(e, r.plan)));
+    return { ok: true as const, texto: r.texto, tras };
+  }, [estado, comer, cambiar, lanzarDados]);
 
   const rasgo = useCallback((personajeId: string, nombre: string, delta: number) => cambiar((e) => usarRasgo(e, personajeId, nombre, delta)), [cambiar]);
 
@@ -388,10 +411,6 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     return { ok: true as const, id: r.id };
   }, [estado, quien, cambiar]);
 
-  const lanzarDados = useCallback((t: Tirada) => {
-    apuntarTirada(t);
-    if (!t.privada) sala.current?.difundirTirada(t);
-  }, [apuntarTirada]);
   const estiloDados = useCallback((personajeId: string, estilo: EstiloDados) => cambiar((e) => cambiarEstiloDados(e, personajeId, estilo)), [cambiar]);
 
   const borrarCriatura = useCallback((id: string) => cambiar((e) => eliminarCriatura(e, id)), [cambiar]);

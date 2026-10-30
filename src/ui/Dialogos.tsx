@@ -5,6 +5,7 @@ import { capital, cargaMaxDe, CLASE_RAREZA, type Destino, MAX_SINTONIZADOS, pers
 import type { Objeto } from '../domain/tipos';
 import { usable } from '../domain/uso';
 import { useCofre } from '../store/cofre';
+import { avisarUso } from './avisos';
 import { UI } from './iconos';
 import { Esquinas, fmt1, Icono, iniciales, Ranura } from './piezas';
 
@@ -148,8 +149,7 @@ export function SintoniaProvider({ onAviso, children }: { onAviso: (texto: strin
   const doble = useCallback((o: Objeto) => {
     if (!usable(o) || (o.requiereSintonizacion && !o.sintonizado)) { pedir(o); return; }
     const yo = personajeDelJugador(estado, actor);
-    const r = usar(o.id, yo?.id);
-    onAviso(r.ok ? r.texto : r.motivo, !r.ok);
+    avisarUso(onAviso, usar(o.id, yo?.id));
   }, [pedir, usar, estado.personajes, actor, onAviso]);
 
   return (
