@@ -1,7 +1,7 @@
 /* Vista individual (diseno/Individual.dc.html) y diálogo de límite de sintonización (Estados.dc.html). */
 
 /* Se desplaza si no cabe todo (muchos rasgos, efectos o espacios) */
-.ficha { position: absolute; left: 124px; top: 90px; width: 440px; height: 970px; padding: 18px 26px 14px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--t-8a7040) rgba(0, 0, 0, .25); }
+.ficha { position: absolute; left: 124px; top: 90px; width: calc(440px + var(--extra) / 2); height: 970px; padding: 18px 26px 14px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--t-8a7040) rgba(0, 0, 0, .25); }
 .ficha > * { flex-shrink: 0; }
 .ficha header { display: flex; flex-direction: column; align-items: center; gap: 5px; }
 .ficha h1 { margin: 0; font: 600 28px var(--f-titulo); letter-spacing: .05em; color: var(--t-eedcb0); text-align: center; }
@@ -32,7 +32,7 @@
 .rasgo-n { flex: 1; color: var(--t-e3d9c4); }
 .rasgo-u { color: var(--texto-3); font-size: 15px; }
 
-.equipo { position: absolute; left: 580px; top: 90px; width: 660px; height: 970px; }
+.equipo { position: absolute; left: calc(580px + var(--extra) / 2); top: 90px; width: 660px; height: 970px; }
 .equipo-aura { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 55% at 50% 42%, color-mix(in srgb, var(--tinte) 25%, transparent), transparent 70%); pointer-events: none; }
 .equipo-fig { position: absolute; left: 150px; top: 70px; width: 360px; height: 720px; }
 .sintonia { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 1; }
@@ -63,7 +63,7 @@
 .ca.grande span:nth-of-type(1) { font-size: 15px; }
 .ca.grande span:nth-of-type(2) { font-size: 40px; text-shadow: 0 0 12px rgb(from var(--t-e2c27a) r g b / .4); }
 
-.inventario { position: absolute; left: 1256px; top: 90px; width: 640px; height: 970px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 12px; }
+.inventario { position: absolute; right: 24px; top: 90px; width: calc(640px + var(--extra) / 2); height: 970px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 12px; }
 .inventario > header { display: flex; align-items: center; gap: 10px; }
 .inventario h2 { margin: 0; flex: 1; font: 600 20px var(--f-titulo); letter-spacing: .05em; color: var(--t-eedcb0); }
 .inventario h2 span { font-size: 16px; color: var(--texto-3); }
@@ -73,7 +73,8 @@
 .chip-i svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .chip-i.on { background: var(--t-1d1710); box-shadow: 0 0 10px rgb(from var(--t-e2c27a) r g b / .15); }
 .categorias { display: flex; flex-wrap: wrap; gap: 6px; }
-.rejilla.ind { --slot: 44px; flex: 1; min-height: 0; max-height: none; grid-template-columns: repeat(12, var(--slot)); grid-auto-rows: var(--slot); justify-content: space-between; padding-right: 6px; scrollbar-gutter: stable; }
+/* Las ranuras crecen con el ancho extra: siguen siendo 12 por fila */
+.rejilla.ind { --slot: min(56px, 44px + var(--extra) / 24); flex: 1; min-height: 0; max-height: none; grid-template-columns: repeat(12, var(--slot)); grid-auto-rows: var(--slot); justify-content: space-between; padding-right: 6px; scrollbar-gutter: stable; }
 .rejilla.ind::-webkit-scrollbar { width: 6px; }
 .rejilla.ind::-webkit-scrollbar-thumb { background: linear-gradient(var(--t-8a7040), var(--t-5e4c2c)); border-radius: 3px; }
 .inv-aviso { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); z-index: 3; white-space: nowrap; }
@@ -93,7 +94,7 @@
 .monedas-p .moneda { width: 20px; height: 20px; }
 
 /* Avisos flotantes de la vista individual */
-.avisos-flot { position: absolute; left: 580px; width: 660px; bottom: 150px; display: flex; justify-content: center; z-index: 25; pointer-events: none; }
+.avisos-flot { position: absolute; left: calc(580px + var(--extra) / 2); width: 660px; bottom: 150px; display: flex; justify-content: center; z-index: 25; pointer-events: none; }
 
 /* Retratos como destino de arrastre */
 .retrato-btn.drop-ok { border-color: var(--ok); box-shadow: 0 0 0 1px var(--ok), 0 0 18px rgba(115, 226, 129, .5); }

@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
 import { Icono } from './piezas';
+import { ALTO, useLienzo } from './lienzo';
 
 export type OpcionMenu =
   | { texto: string; icono?: string; onClick: () => void; peligro?: boolean; desactivada?: boolean }
@@ -66,14 +67,15 @@ const ANCHO = 260;
 
 export function MenuProvider({ lienzo, escala, children }: { lienzo: RefObject<HTMLDivElement>; escala: number; children: ReactNode }) {
   const [abierto, setAbierto] = useState<Abierto | null>(null);
+  const anchoLienzo = useLienzo().ancho;
   const abrir = useCallback((e: { clientX: number; clientY: number }, opciones: OpcionMenu[]) => {
     const base = lienzo.current?.getBoundingClientRect();
     if (!base) return;
     const x = (e.clientX - base.left) / escala, y = (e.clientY - base.top) / escala;
-    // Que no se salga del lienzo de 1920×1080
+    // Que no se salga del lienzo
     const alto = opciones.reduce((s, o) => s + (o === 'separador' ? 11 : 'titulo' in (o as object) ? 30 : 36), 12);
-    setAbierto({ opciones, left: Math.min(x, 1920 - ANCHO - 8), top: Math.min(y, 1080 - alto - 8) });
-  }, [lienzo, escala]);
+    setAbierto({ opciones, left: Math.min(x, anchoLienzo - ANCHO - 8), top: Math.min(y, ALTO - alto - 8) });
+  }, [lienzo, escala, anchoLienzo]);
   const cerrar = useCallback(() => setAbierto(null), []);
   return (
     <Ctx.Provider value={abrir}>

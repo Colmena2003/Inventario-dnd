@@ -12,6 +12,7 @@ import type { Objeto } from '../domain/tipos';
 import { usable } from '../domain/uso';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
+import { ALTO, useLienzo } from './lienzo';
 import { claseDe } from './iconos';
 import { Esquinas, fmt1, fmtNum, Ranura } from './piezas';
 
@@ -24,6 +25,7 @@ const ANCHO = 372;
 
 export function TooltipProvider({ lienzo, escala, children }: { lienzo: RefObject<HTMLDivElement>; escala: number; children: ReactNode }) {
   const [pos, setPos] = useState<Pos | null>(null);
+  const anchoLienzo = useLienzo().ancho;
   const { arrastre } = useArrastre();
 
   const mostrar = useCallback((objeto: Objeto, el: Element) => {
@@ -31,9 +33,9 @@ export function TooltipProvider({ lienzo, escala, children }: { lienzo: RefObjec
     if (!base) return;
     const r = el.getBoundingClientRect();
     const x = (r.left - base.left) / escala, y = (r.top - base.top) / escala, w = r.width / escala;
-    const left = x + w + 12 + ANCHO > 1900 ? x - ANCHO - 12 : x + w + 12;
-    setPos({ objeto, left, top: Math.max(84, Math.min(y - 20, 1080 - 470)) });
-  }, [lienzo, escala]);
+    const left = x + w + 12 + ANCHO > anchoLienzo - 20 ? x - ANCHO - 12 : x + w + 12;
+    setPos({ objeto, left, top: Math.max(84, Math.min(y - 20, ALTO - 470)) });
+  }, [lienzo, escala, anchoLienzo]);
 
   const ocultar = useCallback(() => setPos(null), []);
 

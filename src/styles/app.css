@@ -1,8 +1,9 @@
-/* Maquetación de las pantallas. Medidas de diseno/Main.dc.html (lienzo de 1920×1080). */
+/* Maquetación de las pantallas. Medidas de diseno/Main.dc.html (lienzo de 1920×1080). Si la ventana es más
+   apaisada, el lienzo se ensancha (src/ui/lienzo.ts) y --extra dice cuánto: los paneles lo reparten. */
 
 .visor { position: fixed; inset: 0; overflow: hidden; background: #050404; }
 .lienzo {
-  position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0;
+  --extra: 0px; position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0;
   font-family: var(--f-texto); color: var(--texto);
   background: radial-gradient(ellipse 75% 70% at 55% 45%, var(--t-1b1611) 0%, var(--t-0d0b09) 58%, #050404 100%);
 }
@@ -11,7 +12,7 @@
 
 /* ── Barra superior ── */
 .topbar {
-  position: absolute; left: 0; top: 0; width: 1920px; height: 72px; z-index: 3;
+  position: absolute; left: 0; right: 0; top: 0; height: 72px; z-index: 3;
   display: grid; grid-template-columns: 280px 1fr auto; column-gap: 12px; align-items: center; padding: 0 24px;
   background: linear-gradient(180deg, var(--t-110e0b) 0%, #0a0807 100%); border-bottom: 1px solid var(--borde-suave);
   box-shadow: 0 1px 0 var(--t-1c160e), 0 8px 28px rgba(0, 0, 0, .65); font-family: var(--f-datos);
@@ -47,7 +48,7 @@
 .buscar input:focus { border-color: var(--oro); }
 .rbtn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--borde-suave); border-radius: 50%; background: var(--t-0b0907); color: var(--t-c9b88f); cursor: pointer; }
 .rbtn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
-.topbar-orla { position: absolute; left: 660px; bottom: -7px; }
+.topbar-orla { position: absolute; left: calc(50% - 300px); bottom: -7px; }
 [aria-disabled='true'] { cursor: not-allowed !important; opacity: .55; }
 
 /* ── Retratos ── */

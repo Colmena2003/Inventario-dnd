@@ -11,6 +11,7 @@ import { useCofre } from '../store/cofre';
 import type { Mesa, Reposo } from '../dados/mesa';
 import { UI } from './iconos';
 import { DADOS } from './iconosJuego';
+import { ALTO, useLienzo } from './lienzo';
 import { useCerrarFuera } from './Menu';
 import { Esquinas, Icono, iniciales } from './piezas';
 
@@ -265,7 +266,8 @@ function EditorEstilo({ estilo, nombre, compartido, onCambio, onHecho }: {
 // ── Mesa ───────────────────────────────────────────────────────────
 
 /** Capa encima del lienzo de la app (no recibe clics) donde ruedan los dados de cada tirada, una tras otra. */
-export function MesaDados({ escala }: { escala: number }) {
+export function MesaDados() {
+  const { escala, ancho: anchoLienzo } = useLienzo();
   const { tiradas } = useCofre();
   const caja = useRef<HTMLDivElement>(null);
   const mesa = useRef<Mesa | null>(null);
@@ -325,16 +327,16 @@ export function MesaDados({ escala }: { escala: number }) {
     }
   }, [tiradas, siguiente]);
 
-  // Ocupa lo mismo que el lienzo escalado: los dados salen del botón y no caen en las franjas de los lados
-  useEffect(() => { mesa.current?.medir(); }, [escala]);
+  // Ocupa lo mismo que el lienzo escalado: los dados salen del botón y no caen fuera de la app
+  useEffect(() => { mesa.current?.medir(); }, [escala, anchoLienzo]);
   useEffect(() => () => { mesa.current?.destruir(); mesa.current = null; }, []);
-  const ancho = 1920 * escala, alto = 1080 * escala;
+  const ancho = anchoLienzo * escala, alto = ALTO * escala;
 
   const t = actual?.t, reposo = actual?.reposo;
   // El total va arriba o abajo, donde no hayan caído los dados
   const totalAbajo = !!reposo?.length && reposo.reduce((s, r) => s + r.y, 0) / reposo.length < alto / 2;
   return (
-    <div className={`mesa-dados ${actual ? 'activa' : ''} ${saliendo ? 'saliendo' : ''}`} style={{ '--k': escala, left: (window.innerWidth - ancho) / 2, width: ancho, height: alto } as CSSProperties} aria-live="polite">
+    <div className={`mesa-dados ${actual ? 'activa' : ''} ${saliendo ? 'saliendo' : ''}`} style={{ '--k': escala, left: (window.innerWidth - ancho) / 2, top: Math.max(0, (window.innerHeight - alto) / 2), width: ancho, height: alto } as CSSProperties} aria-live="polite">
       <div ref={caja} className="mesa-lienzo" />
       {t && reposo && (
         <>

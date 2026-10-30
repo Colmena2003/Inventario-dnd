@@ -23,7 +23,7 @@
 .rasgo-usos.agotado { color: var(--t-8a7f6c); border-style: dashed; }
 
 /* Diálogo de efecto: un editor más pequeño */
-.editor.dialogo-efecto { left: 410px; top: 110px; width: 1100px; height: 860px; }
+.editor.dialogo-efecto { left: calc(50% - 550px); top: 110px; width: 1100px; height: 860px; }
 .dialogo-efecto .ed-form { flex: 1; }
 
 /* Editor de personajes */

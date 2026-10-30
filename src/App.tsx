@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { Destino } from './domain/reglas';
 import type { Objeto } from './domain/tipos';
 import { useCofre } from './store/cofre';
@@ -20,25 +20,13 @@ import { Individual } from './ui/Individual';
 import { MenuProvider } from './ui/Menu';
 import { PantallaMonedas } from './ui/Monedas';
 import { PESTANAS, Retratos, Topbar, type Pestana } from './ui/Marco';
+import { ALTO, ANCHO_MIN, CtxLienzo, useMedidasLienzo } from './ui/lienzo';
 import { TooltipProvider } from './ui/Tooltip';
-
-const ANCHO = 1920, ALTO = 1080;
-
-/** El diseño es de escritorio a 1920×1080: se escala el lienzo entero para que quepa en la ventana. */
-function useEscala() {
-  const calc = () => Math.min(window.innerWidth / ANCHO, window.innerHeight / ALTO);
-  const [k, setK] = useState(calc);
-  useLayoutEffect(() => {
-    const f = () => setK(calc());
-    window.addEventListener('resize', f);
-    return () => window.removeEventListener('resize', f);
-  }, []);
-  return k;
-}
 
 export default function App() {
   const { estado, actor, mover, comer, sync } = useCofre();
-  const escala = useEscala();
+  const medidas = useMedidasLienzo();
+  const { escala, ancho } = medidas;
   const lienzo = useRef<HTMLDivElement>(null);
   const [pestana, setPestana] = useState<Pestana>('grupal');
   const [activo, setActivo] = useState<string | null>(null);
@@ -97,16 +85,20 @@ export default function App() {
 
   return (
     <div className="visor">
+      <CtxLienzo.Provider value={medidas}>
       <CtxAvisar.Provider value={avisar}>
       <FiltrosProvider>
       <ArrastreProvider escala={escala} onSoltar={soltar}>
-        <div ref={lienzo} className="lienzo" style={{ transform: `scale(${escala})`, left: (window.innerWidth - ANCHO * escala) / 2 }}>
-          <svg className="grano" aria-hidden="true" width={ANCHO} height={ALTO}>
+        <div
+          ref={lienzo} className="lienzo"
+          style={{ transform: `scale(${escala})`, left: (window.innerWidth - ancho * escala) / 2, top: Math.max(0, (window.innerHeight - ALTO * escala) / 2), width: ancho, '--extra': `${ancho - ANCHO_MIN}px` } as CSSProperties}
+        >
+          <svg className="grano" aria-hidden="true" width={ancho} height={ALTO}>
             <filter id="grain">
               <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves={3} stitchTiles="stitch" />
               <feColorMatrix values="0 0 0 0 .55  0 0 0 0 .45  0 0 0 0 .32  0 0 0 .09 0" />
             </filter>
-            <rect width={ANCHO} height={ALTO} filter="url(#grain)" />
+            <rect width={ancho} height={ALTO} filter="url(#grain)" />
           </svg>
           <div className="vineta" aria-hidden="true" />
 
@@ -183,10 +175,11 @@ export default function App() {
           </MenuProvider>
           </TooltipProvider>
         </div>
-        <MesaDados escala={escala} />
+        <MesaDados />
       </ArrastreProvider>
       </FiltrosProvider>
       </CtxAvisar.Provider>
+      </CtxLienzo.Provider>
     </div>
   );
 }

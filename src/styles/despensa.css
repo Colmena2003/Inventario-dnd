@@ -39,7 +39,7 @@
 .reservas { padding-top: 8px; border-top: 1px solid var(--t-2c2419); font: 16px var(--f-datos); color: var(--texto-2); }
 .reservas b { color: #9cc95e; font-size: 17px; }
 
-.despensa { position: absolute; left: 700px; top: 90px; width: 1196px; height: 970px; padding: 24px 28px; display: flex; flex-direction: column; gap: 14px; }
+.despensa { position: absolute; left: 700px; right: 24px; top: 90px; height: 970px; padding: 24px 28px; display: flex; flex-direction: column; gap: 14px; }
 .despensa > header { display: flex; align-items: center; justify-content: space-between; }
 .despensa .filtros { display: flex; gap: 8px; }
 .despensa .filtros .chip { height: 32px; padding: 0 14px; font-size: 15px; display: inline-flex; align-items: center; gap: 6px; }
@@ -47,7 +47,7 @@
 .despensa-cuerpo { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 8px; scrollbar-color: var(--t-5e4c2c) var(--t-0d0b09); }
 .sec-despensa { margin: 0 0 10px; display: flex; align-items: center; gap: 14px; font: 600 17px var(--f-titulo); letter-spacing: .06em; color: var(--t-d8c38f); }
 .sec-despensa::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--t-4d3e25), transparent); }
-.comidas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.comidas { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
 .comida {
   display: flex; align-items: center; gap: 14px; padding: 12px; text-align: left; border: 1px solid var(--t-2f271b);
   background: rgb(from var(--t-0a0806) r g b / .55); color: var(--texto); cursor: pointer; min-width: 0;

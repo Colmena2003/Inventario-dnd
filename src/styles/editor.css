@@ -1,11 +1,11 @@
 /* Alta y edición de objetos (diseno/Objeto-editar.dc.html), en dos pasos. */
 
 .editor {
-  position: absolute; left: 160px; top: 96px; width: 1600px; height: 950px; z-index: 31; padding: 26px 32px 22px;
+  position: absolute; left: calc(50% - 800px); top: 96px; width: 1600px; height: 950px; z-index: 31; padding: 26px 32px 22px;
   display: flex; flex-direction: column; gap: 18px; background: linear-gradient(180deg, var(--t-1b1611) 0%, var(--t-100d0a) 100%);
   box-shadow: inset 0 0 0 3px var(--t-0b0907), inset 0 0 0 4px var(--t-3e321f), 0 30px 90px rgba(0, 0, 0, .9); animation: rise .2s ease-out;
 }
-.editor.tipos-paso { left: 360px; top: 170px; width: 1200px; height: auto; }
+.editor.tipos-paso { left: calc(50% - 600px); top: 170px; width: 1200px; height: auto; }
 .ed-cab { display: flex; align-items: baseline; gap: 18px; }
 .ed-cab h2 { margin: 0; font: 600 30px var(--f-titulo); letter-spacing: .06em; color: var(--t-eedcb0); }
 .ed-paso { display: flex; align-items: baseline; gap: 12px; font: 17px var(--f-datos); color: var(--texto-2); }

@@ -1,6 +1,6 @@
 /* Pantalla de monedas (diseno/Monedas.dc.html) */
 
-.monedas { position: absolute; left: 124px; top: 90px; width: 1772px; height: 970px; display: grid; grid-template-columns: 420px 760px 560px; grid-template-rows: 560px 1fr; gap: 16px; }
+.monedas { position: absolute; left: 124px; right: 24px; top: 90px; height: 970px; display: grid; grid-template-columns: 420fr 760fr 560fr; grid-template-rows: 560px 1fr; gap: 16px; }
 .monedas .h { margin: 0; font: 600 22px var(--f-titulo); letter-spacing: .05em; color: var(--t-eedcb0); }
 .monedas .k, .dialogo .k { font: 600 14px var(--f-datos); letter-spacing: .12em; text-transform: uppercase; color: var(--t-a99d86); }
 .monedas .s { font: 15px var(--f-datos); color: var(--texto-2); }
@@ -86,4 +86,4 @@
 .mon-historial b { color: var(--oro-claro); }
 .mon-historial span { margin-left: auto; padding-left: 16px; color: var(--t-8a7f6c); white-space: nowrap; }
 
-.avisos-flot.abajo { left: 124px; width: 1180px; bottom: 30px; }
+.avisos-flot.abajo { left: 124px; width: calc(1180px + var(--extra) * .68); bottom: 30px; }

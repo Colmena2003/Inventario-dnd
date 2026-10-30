@@ -18,17 +18,19 @@ import { Esquinas, fmt1, fmtNum, Icono, IconoObjeto, Orla } from './piezas';
 import { DCHA, IZQ, LADO_RETRATO, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { desglose, tituloAtaque } from './desglose';
 import { useEditor } from './editorCtx';
+import { useLienzo } from './lienzo';
 
 // ── Pantalla ───────────────────────────────────────────────────────
 
 export function Grupal({ busqueda, onVerFicha }: { busqueda: string; onVerFicha: (personajeId: string) => void }) {
   const { estado } = useCofre();
   const n = estado.personajes.length;
+  const util = useLienzo().ancho - 148;
   // Con pocos personajes las columnas y las ranuras crecen, y el alijo ocupa lo que sobra
   const maxCol = n <= 2 ? 500 : n === 3 ? 420 : 352;
-  const anchoCol = Math.min(maxCol, Math.floor((1772 - 300 - 16 * n) / Math.max(n, 1)));
+  const anchoCol = Math.min(maxCol, Math.floor((util - 300 - 16 * n) / Math.max(n, 1)));
   const slot = Math.min(n <= 2 ? 52 : n === 3 ? 48 : 44, Math.floor((anchoCol - 16 - 4 - 6 * 4) / 7));
-  const anchoAlijo = 1772 - n * (anchoCol + 16);
+  const anchoAlijo = util - n * (anchoCol + 16);
 
   return (
     <main className="grupal" style={{ '--slot': `${slot}px` } as CSSProperties}>
