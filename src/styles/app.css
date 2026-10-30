@@ -145,7 +145,7 @@
 .reparto { display: flex; height: 8px; gap: 2px; }
 
 /* Pie: leyenda y notificaciones */
-.pie { position: absolute; left: 124px; right: 24px; bottom: 12px; height: 34px; display: flex; align-items: center; justify-content: space-between; font-family: var(--f-datos); z-index: 4; }
+.pie { position: absolute; left: 124px; right: 84px; bottom: 12px; height: 34px; display: flex; align-items: center; justify-content: space-between; font-family: var(--f-datos); z-index: 4; }
 .leyenda { display: flex; align-items: center; gap: 18px; font-size: 14px; color: var(--texto-2); }
 .leyenda > span:first-child { font-family: var(--f-titulo); letter-spacing: .08em; color: var(--texto-3); }
 .leyenda .cuadro { width: 12px; height: 12px; border: 1px solid var(--rc); background: var(--rg); box-shadow: 0 0 8px var(--rg); }

@@ -7,6 +7,7 @@ import {
   crearCriatura, editarCriatura, eliminarCriatura, registrarEncuentro, type ResultadoCriatura,
 } from '../domain/bestiario';
 import { cambiarImagenFicha, olvidarFicha, recuperarFicha, registrarEnBiblioteca, sincronizarBiblioteca, type ResultadoFicha } from '../domain/biblioteca';
+import { cambiarEstiloDados, esTirada, type EstiloDados, type Tirada } from '../domain/dados';
 import { descansarEspacios, gastarEspacio, gastarPacto, recuperaEspacios } from '../domain/conjuros';
 import { crearObjeto, editarObjeto, eliminarObjeto, estadoVacio, migrar, validarObjeto } from '../domain/objetos';
 import { cambiarPv, eliminarPersonaje, guardarPersonaje, validarPersonaje } from '../domain/personajes';
@@ -131,6 +132,11 @@ interface Cofre {
   guardarCriatura: (datos: Omit<Criatura, 'id' | 'creada' | 'actualizada'>, id?: string) => SinEstado<ResultadoCriatura>;
   eliminarCriatura: (id: string) => void;
   registrarEncuentro: (id: string, abatida: boolean) => void;
+  /** Últimas tiradas de dados: las de este jugador y las que llegan del resto de la party (no se guardan). */
+  tiradas: Tirada[];
+  /** Apunta una tirada y, si no es privada, se la enseña al resto de la party. */
+  lanzarDados: (t: Tirada) => void;
+  cambiarEstiloDados: (personajeId: string, estilo: EstiloDados) => void;
 }
 
 const Ctx = createContext<Cofre | null>(null);
@@ -159,14 +165,20 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     if (descartado) setDescartes((n) => n + 1);
   }, []);
 
+  const [tiradas, setTiradas] = useState<Tirada[]>([]);
+  const apuntarTirada = useCallback((t: unknown) => {
+    if (esTirada(t)) setTiradas((l) => [t, ...l.filter((x) => x.id !== t.id)].slice(0, 30));
+  }, []);
+
   const entrar = useCallback((s: Sala) => {
     sala.current?.cerrar();
+    s.alTirar = apuntarTirada;
     sala.current = s;
     setCodigo(s.codigo);
     setErrorSync(null);
     guardar(CLAVE_PARTY, s.codigo);
     ponerCodigoEnUrl(s.codigo);
-  }, []);
+  }, [apuntarTirada]);
 
   const unirse = useCallback(async (texto: string) => {
     const c = normalizarCodigo(texto);
@@ -376,6 +388,12 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     return { ok: true as const, id: r.id };
   }, [estado, quien, cambiar]);
 
+  const lanzarDados = useCallback((t: Tirada) => {
+    apuntarTirada(t);
+    if (!t.privada) sala.current?.difundirTirada(t);
+  }, [apuntarTirada]);
+  const estiloDados = useCallback((personajeId: string, estilo: EstiloDados) => cambiar((e) => cambiarEstiloDados(e, personajeId, estilo)), [cambiar]);
+
   const borrarCriatura = useCallback((id: string) => cambiar((e) => eliminarCriatura(e, id)), [cambiar]);
   const encuentro = useCallback((id: string, abatida: boolean) => cambiar((e) => registrarEncuentro(e, id, abatida)), [cambiar]);
 
@@ -391,10 +409,11 @@ export function CofreProvider({ children }: { children: ReactNode }) {
       eliminarObjeto: eliminar, usar, usarRasgo: rasgo, comer, cambiarSaciedad: saciedad, descansar, aplicarEfecto: efecto,
       quitarEfecto: quitar, pasarTiempo: tiempo, guardarPersonaje: guardarPj, eliminarPersonaje: eliminarPj, cambiarPv: pv, gastarEspacio: espacio, ordenar,
       recuperarFicha: recuperar, olvidarFicha: olvidar, cambiarImagenFicha: imagenFicha, guardarCriatura, eliminarCriatura: borrarCriatura,
-      registrarEncuentro: encuentro,
+      registrarEncuentro: encuentro, tiradas, lanzarDados, cambiarEstiloDados: estiloDados,
     }),
     [estado, actor, setActor, sync, validar, mover, sintonizar, monedas, cambiarImagen, prepararImagen, guardarObjeto, eliminar,
-      usar, rasgo, comer, saciedad, descansar, efecto, quitar, tiempo, guardarPj, eliminarPj, pv, espacio, ordenar, recuperar, olvidar, imagenFicha, guardarCriatura, borrarCriatura, encuentro],
+      usar, rasgo, comer, saciedad, descansar, efecto, quitar, tiempo, guardarPj, eliminarPj, pv, espacio, ordenar, recuperar, olvidar, imagenFicha, guardarCriatura, borrarCriatura, encuentro,
+      tiradas, lanzarDados, estiloDados],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }

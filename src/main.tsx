@@ -13,6 +13,7 @@ import './styles/despensa.css';
 import './styles/estadisticas.css';
 import './styles/uso.css';
 import './styles/biblioteca.css';
+import './styles/dados.css';
 
 aplicarTemaGuardado();
 

@@ -6,6 +6,7 @@
 // vuelven a aplicar encima los cambios pendientes: así dos jugadores que mueven objetos a la vez no se
 // pisan, y un movimiento que ya no vale (el objeto lo cogió otro) se descarta. El tiempo real solo avisa
 // de que hay versión nueva; el estado se descarga aparte para no depender del tamaño del mensaje.
+// Por el mismo canal viajan las tiradas de dados, que no se guardan: solo las ve quien está conectado.
 
 import { createClient, type RealtimeChannel, type SupabaseClient } from '@supabase/supabase-js';
 import type { Estado } from '../domain/tipos';
@@ -56,6 +57,8 @@ export class Sala {
   private conexion: Conexion = 'sincronizado';
   private alVolver = () => { if (document.visibilityState === 'visible') void this.recargar(); };
   private limpieza?: ReturnType<typeof setTimeout>;
+  /** Recibe las tiradas de dados de los demás jugadores (sin comprobar: lo hace quien las recibe). */
+  alTirar?: (tirada: unknown) => void;
 
   private constructor(
     readonly codigo: string,
@@ -109,6 +112,11 @@ export class Sala {
     if (this.canal) void sb().removeChannel(this.canal);
   }
 
+  /** Enseña una tirada de dados al resto de la party. */
+  difundirTirada(tirada: unknown) {
+    if (!this.cerrada) void this.canal?.send({ type: 'broadcast', event: 'tirada', payload: tirada });
+  }
+
   private emitirActual(conexion?: Conexion, descartado = false) {
     if (conexion) this.conexion = conexion;
     if (!this.cerrada) this.emitir(this.actual(), this.pendientes.length && this.conexion === 'sincronizado' ? 'guardando' : this.conexion, descartado);
@@ -123,6 +131,7 @@ export class Sala {
         this.ultimaVista = Math.max(this.ultimaVista, v);
         if (!this.enviando) void this.recargar();
       })
+      .on('broadcast', { event: 'tirada' }, ({ payload }) => this.alTirar?.(payload))
       .subscribe((estado) => {
         // Al reconectar puede haberse perdido algún aviso: se comprueba la versión
         if (estado === 'SUBSCRIBED') void this.recargar();

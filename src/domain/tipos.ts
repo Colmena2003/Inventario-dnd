@@ -1,6 +1,7 @@
 // Modelo de datos (HANDOFF §5), con los campos de arma, armadura y modificadores desglosados para que
 // los objetos cambien de verdad las estadísticas del personaje (src/domain/hoja.ts).
 
+import type { EstiloDados } from './dados';
 import type { ClaveIcono } from '../ui/iconos';
 
 export type Monedas = { ppt: number; po: number; pe: number; pp: number; pc: number };
@@ -92,6 +93,8 @@ export interface Personaje {
   /** [casera] Saciedad de 0 a 7 (SACIEDAD_MAX). */
   saciedad: number;
   color: string;
+  /** Cómo son sus dados en las tiradas; si falta, salen de su color (dados.ts). */
+  dados?: EstiloDados;
   // Datos de la ficha que las reglas necesitan; si faltan, se deducen de la clase y la raza (hoja.ts)
   competencias?: { salvaciones?: Caracteristica[]; habilidades?: Habilidad[]; pericia?: Habilidad[] };
   /** Velocidad a pie en pies. */

@@ -6,6 +6,7 @@ import { ArrastreProvider, type Objetivo } from './ui/arrastre';
 import { CtxAvisar } from './ui/avisos';
 import { Bestiario } from './ui/Bestiario';
 import { Biblioteca } from './ui/Biblioteca';
+import { BandejaDados, MesaDados } from './ui/Dados';
 import { Despensa } from './ui/Despensa';
 import { DetalleProvider } from './ui/DetalleObjeto';
 import { DividirPila, QuienEres, SintoniaProvider } from './ui/Dialogos';
@@ -176,11 +177,13 @@ export default function App() {
                 }}
               />
             )}
+            <BandejaDados />
             {quien && <QuienEres onCerrar={() => setQuien(false)} />}
             {party && <DialogoParty onCerrar={() => setParty(false)} avisar={avisar} />}
           </MenuProvider>
           </TooltipProvider>
         </div>
+        <MesaDados escala={escala} />
       </ArrastreProvider>
       </FiltrosProvider>
       </CtxAvisar.Provider>
