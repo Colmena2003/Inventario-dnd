@@ -3,7 +3,7 @@
 
 import { useState, type CSSProperties } from 'react';
 import {
-  EFECTOS_HAMBRE, estadoSaciedad, fmtKg, nombreDe, SACIEDAD_DESCANSO_LARGO, SACIEDAD_MAX,
+  EFECTOS_HAMBRE, estadoSaciedad, fmtKg, nombreDe, primerNombre, SACIEDAD_DESCANSO_LARGO, SACIEDAD_MAX,
 } from '../domain/reglas';
 import type { Objeto, Personaje } from '../domain/tipos';
 import { HORA } from '../domain/uso';
@@ -48,12 +48,12 @@ export function Despensa({ avisar, busqueda }: { avisar: (texto: string, error?:
     if (!sel) { avisar('No queda comida que se pueda comer', true); return; }
     const r = comer(p.id, sel.id);
     if (!r.ok) avisar(r.motivo, true);
-    else avisar(`${p.nombre.split(' ')[0]} come ${sel.nombre.toLowerCase()}: saciedad ${r.antes} → ${r.despues}`);
+    else avisar(r.texto);
   };
 
   const descanso = (tipo: 'corto' | 'largo') => {
     const r = descansar(todos, tipo);
-    const nombres = (ids: string[]) => ids.map((id) => estado.personajes.find((p) => p.id === id)?.nombre.split(' ')[0]).join(', ');
+    const nombres = (ids: string[]) => ids.map((id) => primerNombre(estado.personajes.find((p) => p.id === id)?.nombre ?? '')).join(', ');
     const extra = [
       r.recargas.length ? `Recuperan: ${r.recargas.join(', ')}` : '',
       r.terminados.length ? `Se acaba: ${r.terminados.join(', ')}` : '',

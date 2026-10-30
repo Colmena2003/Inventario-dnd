@@ -2,8 +2,19 @@
 
 import { caracteristica, modsPersonaje } from './efectos';
 import type {
-  Equipado, Estado, Monedas, Movimiento, Objeto, Personaje, Propietario, Rareza, TipoRanura,
+  Categoria, Equipado, Estado, Monedas, Movimiento, Objeto, Personaje, Propietario, Rareza, TipoRanura,
 } from './tipos';
+
+export const RAREZAS: Rareza[] = ['común', 'poco común', 'raro', 'muy raro', 'legendario', 'artefacto'];
+export const CATEGORIAS: Categoria[] = ['Armas', 'Armaduras', 'Pociones', 'Pergaminos', 'Materiales', 'Comida', 'Llaves/misión', 'Varios'];
+
+export const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** «Murdok» de «Murdok el Rojo»: así se llama a cada uno en avisos y botones. */
+export const primerNombre = (nombre: string) => nombre.split(' ')[0];
+
+/** El personaje que lleva el jugador (el nombre que eligió al entrar es el primer nombre de su personaje). */
+export const personajeDelJugador = (e: Estado, actor: string) => e.personajes.find((p) => primerNombre(p.nombre) === actor);
 
 // ── Características ────────────────────────────────────────────────
 
@@ -103,7 +114,7 @@ export function estadoSaciedad(v: number): EstadoSaciedad {
   };
 }
 
-export type ResultadoComer = { ok: true; estado: Estado; antes: number; despues: number } | { ok: false; motivo: string };
+export type ResultadoComer = { ok: true; estado: Estado; antes: number; despues: number; texto: string } | { ok: false; motivo: string };
 
 /** Comer gasta 1 unidad y suma su saciedad hasta el máximo. */
 export function comer(e: Estado, personajeId: string, objetoId: string): ResultadoComer {
@@ -113,13 +124,13 @@ export function comer(e: Estado, personajeId: string, objetoId: string): Resulta
   if (!o || o.cantidad < 1) return { ok: false, motivo: 'Esa comida ya no está' };
   if (o.categoria !== 'Comida') return { ok: false, motivo: `${o.nombre} no se come` };
   if (!o.saciedad) return { ok: false, motivo: `${o.nombre} no se come sola: es un ingrediente` };
-  if (p.saciedad >= SACIEDAD_MAX) return { ok: false, motivo: `${p.nombre.split(' ')[0]} ya está lleno` };
+  if (p.saciedad >= SACIEDAD_MAX) return { ok: false, motivo: `${primerNombre(p.nombre)} ya está lleno` };
   const despues = Math.min(SACIEDAD_MAX, p.saciedad + o.saciedad);
   const objetos = o.cantidad > 1
     ? e.objetos.map((x) => (x.id === o.id ? { ...x, cantidad: x.cantidad - 1 } : x))
     : e.objetos.filter((x) => x.id !== o.id);
   return {
-    ok: true, antes: p.saciedad, despues,
+    ok: true, antes: p.saciedad, despues, texto: `${primerNombre(p.nombre)} come ${o.nombre.toLowerCase()}: saciedad ${p.saciedad} → ${despues}`,
     estado: { ...e, objetos, personajes: e.personajes.map((x) => (x.id === p.id ? { ...x, saciedad: despues } : x)) },
   };
 }
@@ -215,14 +226,15 @@ export type Validacion =
   | { ok: true; pesoNuevo?: number; max?: number }
   | { ok: false; motivo: string; pesoNuevo?: number; max?: number };
 
-const mismoPropietario = (a: Propietario, b: Propietario) =>
+export const mismoPropietario = (a: Propietario, b: Propietario) =>
   a.tipo === b.tipo && (a.tipo === 'alijo' || (b.tipo === 'personaje' && a.id === b.id));
 
 // En es-ES Intl no agrupa los números de 4 cifras por defecto; el diseño escribe «2.400» y «1.248».
 const formato = (decimales: number) =>
   new Intl.NumberFormat('es-ES', { minimumFractionDigits: decimales, maximumFractionDigits: decimales, useGrouping: 'always' } as unknown as Intl.NumberFormatOptions);
-const fmtKg = (n: number) => formato(1).format(n);
-const fmtNum = (n: number) => formato(Number.isInteger(n) ? 0 : 2).format(n);
+const [entero, unDecimal, dosDecimales] = [formato(0), formato(1), formato(2)];
+const fmtKg = (n: number) => unDecimal.format(n);
+const fmtNum = (n: number) => (Number.isInteger(n) ? entero : dosDecimales).format(n);
 
 export function validarMovimiento(e: Estado, objetoId: string, destino: Destino, cantidad?: number): Validacion {
   const o = e.objetos.find((x) => x.id === objetoId);
@@ -267,6 +279,17 @@ const apilables = (a: Objeto, b: Objeto) =>
 
 let contador = 0;
 export const nuevoId = (prefijo: string) => `${prefijo}-${Date.now().toString(36)}-${(contador++).toString(36)}`;
+
+/** Los historiales (movimientos y monedas) guardan las últimas entradas. */
+export const HISTORIAL_MAX = 200;
+
+/** Apunta en el historial que un objeto ha cambiado de manos. */
+export function anotarMovimiento(e: Estado, o: Objeto, cantidad: number, origen: Propietario, destino: Propietario, actor: string): Movimiento[] {
+  const m: Movimiento = {
+    id: nuevoId('m'), objetoId: o.id, objetoNombre: o.nombre, rareza: o.rareza, icono: o.icono, cantidad, origen, destino, actor, fecha: Date.now(),
+  };
+  return [m, ...e.movimientos].slice(0, HISTORIAL_MAX);
+}
 
 // ── Rejilla ────────────────────────────────────────────────────────
 
@@ -367,12 +390,7 @@ export function moverObjeto(e: Estado, objetoId: string, destino: Destino, actor
     objetos = [...objetos, movido];
   }
 
-  const movimientos = cambiaDueno
-    ? [{
-        id: nuevoId('m'), objetoId: pila?.id ?? movido.id, objetoNombre: o.nombre, rareza: o.rareza, icono: o.icono,
-        cantidad: n, origen: o.propietario, destino: destino.propietario, actor, fecha: Date.now(),
-      } satisfies Movimiento, ...e.movimientos].slice(0, 200)
-    : e.movimientos;
+  const movimientos = cambiaDueno ? anotarMovimiento(e, { ...o, id: pila?.id ?? movido.id }, n, o.propietario, destino.propietario, actor) : e.movimientos;
 
   return { ...e, objetos, movimientos };
 }
@@ -383,8 +401,6 @@ export const ORDENES: { id: OrdenInventario; texto: string }[] = [
   { id: 'rareza', texto: 'Rareza' }, { id: 'categoria', texto: 'Tipo' }, { id: 'valor', texto: 'Valor' }, { id: 'peso', texto: 'Peso' }, { id: 'nombre', texto: 'Nombre' },
 ];
 
-const ORDEN_RAREZA: Rareza[] = ['artefacto', 'legendario', 'muy raro', 'raro', 'poco común', 'común'];
-const ORDEN_CATEGORIA = ['Armas', 'Armaduras', 'Pociones', 'Pergaminos', 'Materiales', 'Comida', 'Llaves/misión', 'Varios'];
 
 /** Junta las pilas iguales del inventario (lo no equipado) de un dueño y las coloca en orden desde la primera celda. */
 export function ordenarInventario(e: Estado, p: Propietario, orden: OrdenInventario): Estado {
@@ -395,10 +411,10 @@ export function ordenarInventario(e: Estado, p: Propietario, orden: OrdenInventa
     else pilas.push({ ...o });
   }
   const nombre = (a: Objeto, b: Objeto) => a.nombre.localeCompare(b.nombre, 'es');
-  const rareza = (a: Objeto, b: Objeto) => ORDEN_RAREZA.indexOf(a.rareza) - ORDEN_RAREZA.indexOf(b.rareza);
+  const rareza = (a: Objeto, b: Objeto) => RAREZAS.indexOf(b.rareza) - RAREZAS.indexOf(a.rareza);
   const por: Record<OrdenInventario, (a: Objeto, b: Objeto) => number> = {
     rareza: (a, b) => rareza(a, b) || nombre(a, b),
-    categoria: (a, b) => ORDEN_CATEGORIA.indexOf(a.categoria) - ORDEN_CATEGORIA.indexOf(b.categoria) || rareza(a, b) || nombre(a, b),
+    categoria: (a, b) => CATEGORIAS.indexOf(a.categoria) - CATEGORIAS.indexOf(b.categoria) || rareza(a, b) || nombre(a, b),
     valor: (a, b) => b.valorPo * b.cantidad - a.valorPo * a.cantidad || nombre(a, b),
     peso: (a, b) => b.pesoKg * b.cantidad - a.pesoKg * a.cantidad || nombre(a, b),
     nombre,

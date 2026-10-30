@@ -1,7 +1,7 @@
 // Alta, edición y borrado de objetos, y la migración de lo guardado cuando cambia el modelo.
 
-import { cargaMaxDe, fmtKg, nuevoId, pesoObjeto, pesoPersonajeKg, saciedadDesde100 } from './reglas';
-import type { Estado, Modificador, Movimiento, Objeto, Propietario, TipoObjeto } from './tipos';
+import { anotarMovimiento, cargaMaxDe, fmtKg, mismoPropietario, nuevoId, pesoObjeto, pesoPersonajeKg, primerNombre, saciedadDesde100 } from './reglas';
+import type { Estado, Modificador, Objeto, TipoObjeto } from './tipos';
 
 /** Deduce el tipo de formulario de un objeto antiguo que no lo tiene guardado. */
 export function inferirTipo(o: Objeto): TipoObjeto {
@@ -19,9 +19,6 @@ export function inferirTipo(o: Objeto): TipoObjeto {
   return 'varios';
 }
 
-const mismo = (a: Propietario, b: Propietario) =>
-  a.tipo === b.tipo && (a.tipo === 'alijo' || (b.tipo === 'personaje' && a.id === b.id));
-
 /** Problemas que impiden guardar: nombre, cantidades y la carga de quien lo recibe. */
 export function validarObjeto(e: Estado, o: Objeto): string | null {
   if (!o.nombre.trim()) return 'Ponle un nombre';
@@ -33,10 +30,10 @@ export function validarObjeto(e: Estado, o: Objeto): string | null {
     const p = e.personajes.find((x) => x.id === pid);
     if (!p) return 'El personaje ya no existe';
     const antes = e.objetos.find((x) => x.id === o.id);
-    const yaLoTenia = antes && mismo(antes.propietario, o.propietario) ? pesoObjeto(antes) : 0;
+    const yaLoTenia = antes && mismoPropietario(antes.propietario, o.propietario) ? pesoObjeto(antes) : 0;
     const peso = pesoPersonajeKg(e, p) - yaLoTenia + pesoObjeto(o);
     const max = cargaMaxDe(e, p);
-    if (peso > max + 1e-9) return `Sobrepeso: ${p.nombre.split(' ')[0]} llevaría ${fmtKg(peso)} kg de un máximo de ${max} kg`;
+    if (peso > max + 1e-9) return `Sobrepeso: ${primerNombre(p.nombre)} llevaría ${fmtKg(peso)} kg de un máximo de ${max} kg`;
   }
   return null;
 }
@@ -59,11 +56,6 @@ export function limpiar(o: Objeto): Objeto {
   return r;
 }
 
-const movimiento = (o: Objeto, origen: Propietario, destino: Propietario, actor: string): Movimiento => ({
-  id: nuevoId('m'), objetoId: o.id, objetoNombre: o.nombre, rareza: o.rareza, icono: o.icono,
-  cantidad: o.cantidad, origen, destino, actor, fecha: Date.now(),
-});
-
 export function crearObjeto(e: Estado, datos: Objeto, actor: string): Estado {
   const o = limpiar({ ...datos, id: nuevoId('o'), equipadoEn: null, sintonizado: false, creadoPor: actor });
   return { ...e, objetos: [...e.objetos, o] };
@@ -77,13 +69,13 @@ export function editarObjeto(e: Estado, datos: Objeto, actor: string): Estado {
   const antes = e.objetos.find((x) => x.id === datos.id);
   if (!antes) return e;
   let o = limpiar(datos);
-  const cambiaDueno = !mismo(antes.propietario, o.propietario);
+  const cambiaDueno = !mismoPropietario(antes.propietario, o.propietario);
   if (cambiaDueno || (o.equipadoEn && o.equipadoEn.ranura !== o.ranuraEquipo)) o = { ...o, equipadoEn: null };
   if (cambiaDueno) o = { ...o, sintonizado: false };
   return {
     ...e,
     objetos: e.objetos.map((x) => (x.id === o.id ? o : x)),
-    movimientos: cambiaDueno ? [movimiento(o, antes.propietario, o.propietario, actor), ...e.movimientos].slice(0, 200) : e.movimientos,
+    movimientos: cambiaDueno ? anotarMovimiento(e, o, o.cantidad, antes.propietario, o.propietario, actor) : e.movimientos,
   };
 }
 
@@ -108,36 +100,31 @@ const velocidadEnPies = (e: Estado): Estado => ({
   ...(e.biblioteca ? { biblioteca: e.biblioteca.map(conModsEnPies) } : {}),
 });
 
-/**
- * Pone al día un estado guardado con un modelo anterior. Los objetos y personajes de ejemplo toman los
- * datos nuevos de la semilla (armaduras, modificadores…) y conservan dónde están, cuántos hay y su estado.
- */
-export function migrar(original: Estado, semilla: Estado): Estado {
-  if ((original.version ?? 2) >= (semilla.version ?? 0)) return original;
-  const guardado = (original.version ?? 2) < 5 ? velocidadEnPies(original) : original;
-  const objSemilla = new Map(semilla.objetos.map((o) => [o.id, o]));
-  const pjSemilla = new Map(semilla.personajes.map((p) => [p.id, p]));
-  const viejo = (guardado.version ?? 2) < 3;
+/** Hasta la versión 3 la saciedad iba de 0 a 100. */
+const saciedadDe0a7 = (e: Estado): Estado => ({
+  ...e,
+  personajes: e.personajes.map((p) => ({ ...p, saciedad: saciedadDesde100(p.saciedad) })),
+  objetos: e.objetos.map((o) => (o.saciedad ? { ...o, saciedad: Math.max(1, Math.round(o.saciedad / 10)) } : o)),
+});
+
+/** Versión del modelo de datos; al subirla, `migrar` pone al día lo guardado. */
+export const VERSION_MODELO = 5;
+
+/** Pone al día un estado guardado con un modelo anterior; solo cambia el formato, nunca el contenido. */
+export function migrar(original: Estado): Estado {
+  const version = original.version ?? 2;
+  if (version >= VERSION_MODELO) return original;
+  let e = original;
+  if (version < 3) e = saciedadDe0a7(e);
+  if (version < 5) e = velocidadEnPies(e);
+  return { ...e, version: VERSION_MODELO, objetos: e.objetos.map((o) => ({ ...o, tipo: inferirTipo(o) })) };
+}
+
+/** Una party sin nadie: así empieza un navegador nuevo. */
+export function estadoVacio(): Estado {
   return {
-    ...guardado,
-    version: semilla.version,
-    personajes: guardado.personajes.map((p) => {
-      const s = p.editado ? undefined : pjSemilla.get(p.id);
-      const saciedad = viejo ? saciedadDesde100(p.saciedad) : p.saciedad;
-      const usos = new Map((p.rasgos ?? []).map((r) => [r.nombre, r.usos]));
-      return s
-        ? {
-            ...s, pvActual: p.pvActual, imagenUrl: p.imagenUrl, monedas: p.monedas, saciedad, condiciones: p.condiciones, px: p.px,
-            efectos: p.efectos, rasgos: s.rasgos?.map((r) => (usos.get(r.nombre) != null ? { ...r, usos: usos.get(r.nombre) } : r)),
-          }
-        : { ...p, saciedad };
-    }),
-    objetos: guardado.objetos.map((o) => {
-      const s = objSemilla.get(o.id) ?? semilla.objetos.find((x) => x.nombre === o.nombre && x.rareza === o.rareza);
-      const base = s
-        ? { ...s, id: o.id, cantidad: o.cantidad, propietario: o.propietario, equipadoEn: o.equipadoEn, sintonizado: o.sintonizado, imagenUrl: o.imagenUrl, cargas: o.cargas ?? s.cargas }
-        : { ...o, saciedad: viejo && o.saciedad ? Math.max(1, Math.round(o.saciedad / 10)) : o.saciedad };
-      return { ...base, tipo: inferirTipo(base) };
-    }),
+    version: VERSION_MODELO,
+    party: { id: 'party-1', nombre: 'La Compañía', tesoro: { ppt: 0, po: 0, pe: 0, pp: 0, pc: 0 } },
+    personajes: [], objetos: [], movimientos: [],
   };
 }

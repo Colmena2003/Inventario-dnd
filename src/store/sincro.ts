@@ -183,6 +183,16 @@ export class Sala {
     return true;
   }
 
+  private async recargar() {
+    if (this.enviando || this.cerrada) return;
+    this.enviando = true;
+    try {
+      await this.descargar();
+    } finally {
+      this.enviando = false;
+    }
+    if (this.pendientes.length) void this.bombear();
+  }
 
   /** Tras un rato sin guardar nada, borra las imágenes de la party que ya no usa nadie. */
   private programarLimpieza(ms = 60_000) {
@@ -208,16 +218,6 @@ export class Sala {
       .filter((a) => a.id && !usadas.includes(a.name) && a.created_at && new Date(a.created_at).getTime() < hace1h)
       .map((a) => `${this.codigo}/${a.name}`);
     if (sobran.length) await almacen.remove(sobran);
-  }
-  private async recargar() {
-    if (this.enviando || this.cerrada) return;
-    this.enviando = true;
-    try {
-      await this.descargar();
-    } finally {
-      this.enviando = false;
-    }
-    if (this.pendientes.length) void this.bombear();
   }
 }
 

@@ -75,7 +75,7 @@ export default function App() {
       const p = estado.personajes.find((x) => x.id === objetivo.comer);
       if (objeto.categoria !== 'Comida' || !p) { avisar(`${objeto.nombre} no se come`, true); return; }
       const r = comer(p.id, objeto.id);
-      avisar(r.ok ? `${p.nombre.split(' ')[0]} come ${objeto.nombre.toLowerCase()}: saciedad ${r.antes} → ${r.despues}` : r.motivo, !r.ok);
+      avisar(r.ok ? r.texto : r.motivo, !r.ok);
       return;
     }
     const destino = objetivo.destino!;

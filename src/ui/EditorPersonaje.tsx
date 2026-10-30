@@ -6,7 +6,7 @@ import { CARACTERISTICAS, CONDICIONES, datosClase, HABILIDADES, NOMBRE_CAR, TIPO
 import { espaciosMax, pacto } from '../domain/conjuros';
 import { hoja } from '../domain/hoja';
 import { personajeVacio } from '../domain/personajes';
-import { conSigno, modificador, nivelTotal } from '../domain/reglas';
+import { capital, conSigno, modificador, nivelTotal } from '../domain/reglas';
 import type { Caracteristica, Habilidad, IconoRasgo, Personaje, Rasgo, Tamano } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useEscape } from './Dialogos';
@@ -35,7 +35,6 @@ const ICONOS_RASGO: [IconoRasgo, string][] = [
   ['estrella', 'Estrella'], ['corazon', 'Corazón'], ['rayo', 'Rayo'], ['ojo', 'Ojo'], ['espada', 'Espada'], ['escudo', 'Escudo'], ['libro', 'Libro'], ['mano', 'Mano'],
 ];
 const RECARGAS = ['', 'Descanso corto', 'Descanso largo', 'Al amanecer'];
-const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const alternar = <T,>(lista: T[] | undefined, x: T) => (lista?.includes(x) ? lista.filter((y) => y !== x) : [...(lista ?? []), x]);
 
 function Editor({ inicial, onCerrar, onAviso }: { inicial?: Personaje; onCerrar: () => void; onAviso: (t: string, e?: boolean) => void }) {

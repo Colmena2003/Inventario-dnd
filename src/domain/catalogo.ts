@@ -164,9 +164,9 @@ export const TIPOS_OBJETO: { id: TipoObjeto; nombre: string; detalle: string; ic
 
 // ── Modificadores ─────────────────────────────────────────────────
 
-export type ClaseObjetivo = 'numero' | 'dano' | 'condicion' | 'habilidad' | 'caracteristica' | 'texto' | 'dado';
+type ClaseObjetivo = 'numero' | 'dano' | 'condicion' | 'habilidad' | 'caracteristica' | 'texto' | 'dado';
 
-export type DefObjetivo = { id: ObjetivoMod; nombre: string; clase: ClaseObjetivo; fijable?: boolean; unidad?: string };
+type DefObjetivo = { id: ObjetivoMod; nombre: string; clase: ClaseObjetivo; fijable?: boolean; unidad?: string };
 
 /** Catálogo de lo que un objeto puede modificar, agrupado como se enseña en el formulario. */
 export const OBJETIVOS: { grupo: string; items: DefObjetivo[] }[] = [

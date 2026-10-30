@@ -7,7 +7,7 @@ import { nombreDe, nuevoId } from './reglas';
 import { CAMPOS_FICHA, type DatosFicha, type Estado, type FichaObjeto, type Objeto, type Propietario } from './tipos';
 
 /** La parte del objeto que describe qué es (sin dueño, cantidad ni estado). */
-export function datosFicha(o: Partial<Objeto>): DatosFicha {
+function datosFicha(o: Partial<Objeto>): DatosFicha {
   const r: Record<string, unknown> = {};
   for (const k of CAMPOS_FICHA) if (o[k] !== undefined) r[k] = structuredClone(o[k]);
   return r as unknown as DatosFicha;
@@ -17,7 +17,7 @@ const iguales = (a: Partial<Objeto>, b: Partial<Objeto>) => JSON.stringify(datos
 const clave = (s: string) => s.trim().toLocaleLowerCase('es');
 
 /** Ficha de un objeto: la suya, o una con el mismo nombre y rareza. */
-export function fichaDe(e: Estado, o: Objeto): FichaObjeto | undefined {
+function fichaDe(e: Estado, o: Objeto): FichaObjeto | undefined {
   const lista = e.biblioteca ?? [];
   return (o.fichaId ? lista.find((f) => f.id === o.fichaId) : undefined) ?? lista.find((f) => clave(f.nombre) === clave(o.nombre) && f.rareza === o.rareza);
 }

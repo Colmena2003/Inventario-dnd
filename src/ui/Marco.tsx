@@ -1,15 +1,15 @@
 // Piezas compartidas por todas las pantallas: barra superior y barra lateral de retratos.
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { cuantosFiltros, RASGOS, SIN_FILTROS, type Filtros } from '../domain/filtros';
-import { cargaMaxDe, CLASE_RAREZA, estadoSaciedad, pesoPersonajeKg, SACIEDAD_MAX } from '../domain/reglas';
-import type { Categoria, Rareza } from '../domain/tipos';
+import { capital, cargaMaxDe, CATEGORIAS, CLASE_RAREZA, estadoSaciedad, pesoPersonajeKg, RAREZAS, SACIEDAD_MAX } from '../domain/reglas';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
 import { BotonConfiguracion } from './Configuracion';
 import { useEditorPersonaje } from './EditorPersonaje';
 import { useFiltros } from './filtrosCtx';
 import { UI } from './iconos';
+import { useCerrarFuera } from './Menu';
 import { fmt1, fmtNum, iniciales, Icono, Moneda, MONEDAS } from './piezas';
 
 /** Pestañas de la barra, más «monedas», a la que se llega pulsando el tesoro. */
@@ -87,29 +87,21 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda, onParty }: {
   );
 }
 
-const RAREZAS: Rareza[] = ['común', 'poco común', 'raro', 'muy raro', 'legendario', 'artefacto'];
-const CATEGORIAS: Categoria[] = ['Armas', 'Armaduras', 'Pociones', 'Pergaminos', 'Materiales', 'Comida', 'Llaves/misión', 'Varios'];
 
 /** Embudo de la barra: filtra por rareza, categoría y rasgos. Lo que no cumple se atenúa en todas las pantallas. */
 function BotonFiltros() {
   const { filtros, setFiltros } = useFiltros();
   const [abierto, setAbierto] = useState(false);
-  const panel = useRef<HTMLDivElement>(null);
+  const ancla = useRef<HTMLSpanElement>(null);
   const n = cuantosFiltros(filtros);
-  useEffect(() => {
-    if (!abierto) return;
-    const fuera = (e: PointerEvent) => { if (!panel.current?.parentElement?.contains(e.target as Node)) setAbierto(false); };
-    const tecla = (e: KeyboardEvent) => e.key === 'Escape' && setAbierto(false);
-    window.addEventListener('pointerdown', fuera);
-    window.addEventListener('keydown', tecla);
-    return () => { window.removeEventListener('pointerdown', fuera); window.removeEventListener('keydown', tecla); };
-  }, [abierto]);
+  const cerrar = useCallback(() => setAbierto(false), []);
+  useCerrarFuera(ancla, abierto, cerrar);
   const alternar = <K extends keyof Filtros>(k: K, v: Filtros[K][number]) => {
     const lista = filtros[k] as Filtros[K][number][];
     setFiltros({ ...filtros, [k]: lista.includes(v) ? lista.filter((x) => x !== v) : [...lista, v] });
   };
   return (
-    <span className="filtros-ancla">
+    <span ref={ancla} className="filtros-ancla">
       <button
         type="button" className={`rbtn ${n ? 'activo' : ''}`} aria-label={`Filtros de búsqueda${n ? `: ${n} activos` : ''}`} title="Filtros de búsqueda"
         aria-haspopup="dialog" aria-expanded={abierto} onClick={() => setAbierto((x) => !x)}
@@ -118,12 +110,12 @@ function BotonFiltros() {
         {n > 0 && <span className="filtros-n">{n}</span>}
       </button>
       {abierto && (
-        <div ref={panel} className="panel filtros-panel" role="dialog" aria-label="Filtros de búsqueda">
+        <div className="panel filtros-panel" role="dialog" aria-label="Filtros de búsqueda">
           <span className="k">Rareza</span>
           <div className="chips">
             {RAREZAS.map((r) => (
               <button key={r} type="button" className={`chip rz ${CLASE_RAREZA[r]} ${filtros.rarezas.includes(r) ? 'on' : ''}`} aria-pressed={filtros.rarezas.includes(r)} onClick={() => alternar('rarezas', r)}>
-                {r.charAt(0).toUpperCase() + r.slice(1)}
+                {capital(r)}
               </button>
             ))}
           </div>

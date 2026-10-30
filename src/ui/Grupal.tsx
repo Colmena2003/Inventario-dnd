@@ -3,18 +3,18 @@
 import { useRef, useState, type CSSProperties } from 'react';
 import { hoja } from '../domain/hoja';
 import {
-  cargaMaxDe, CLASE_RAREZA, conSigno, equipadoEn, fmtKg, objetosDe, pesoAlijoKg, pesoPersonajeKg, SACIEDAD_MAX,
+  cargaMaxDe, CLASE_RAREZA, conSigno, equipadoEn, fmtKg, objetosDe, pesoAlijoKg, pesoPersonajeKg, primerNombre, SACIEDAD_MAX,
 } from '../domain/reglas';
 import { ORDENES } from '../domain/reglas';
 import type { Categoria, Personaje, TipoRanura } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
 import { useDobleClic } from './Dialogos';
-import { ICONOS, UI, type ClaveIcono } from './iconos';
+import { UI, type ClaveIcono } from './iconos';
 import { ClasesConIcono } from './clases';
 import { useEditorPersonaje } from './EditorPersonaje';
 import { BotonMenu, type OpcionMenu } from './Menu';
-import { Esquinas, fmt1, fmtNum, Icono, Orla } from './piezas';
+import { Esquinas, fmt1, fmtNum, Icono, IconoObjeto, Orla } from './piezas';
 import { DCHA, IZQ, LADO_RETRATO, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { desglose, tituloAtaque } from './desglose';
 import { useEditor } from './editorCtx';
@@ -93,7 +93,7 @@ function Columna({ p, indice, ancho, busqueda, onVerFicha }: { p: Personaje; ind
           <div className={`insignia ${v.ok ? 'ok' : 'mal'}`}>
             <Icono d={v.ok ? UI.check : UI.cruz} />
             {v.ok
-              ? `${sobre ? `Soltar en ${p.nombre.split(' ')[0]}` : 'Puede recibirlo'} · ${fmt1(v.pesoNuevo ?? peso)} / ${max} kg`
+              ? `${sobre ? `Soltar en ${primerNombre(p.nombre)}` : 'Puede recibirlo'} · ${fmt1(v.pesoNuevo ?? peso)} / ${max} kg`
               : v.motivo}
           </div>
         </>
@@ -106,11 +106,6 @@ function Columna({ p, indice, ancho, busqueda, onVerFicha }: { p: Personaje; ind
       </header>
       <div className="col-sub">
         <span className="col-sub-linea">{p.raza} · <ClasesConIcono clases={p.clases} /> · PV {h.pvActual}/{h.pvMax.total}</span>
-        <div className="saciedad" title={`Saciedad ${p.saciedad}/${SACIEDAD_MAX} · ${sac.efectos.join(' · ') || 'Sin efectos'}`}>
-          <svg viewBox="0 0 24 24" aria-hidden="true" style={{ stroke: sac.color }}><path d={UI.cuenco} /></svg>
-          <div className="pista"><div style={{ height: 6, width: `${(p.saciedad / SACIEDAD_MAX) * 100}%`, background: `linear-gradient(90deg, ${sac.color}99, ${sac.color})` }} /></div>
-          <span style={{ color: sac.color }}>{sac.texto}</span>
-        </div>
       </div>
       <Orla />
 
@@ -160,17 +155,31 @@ function Columna({ p, indice, ancho, busqueda, onVerFicha }: { p: Personaje; ind
         busqueda={busqueda} onDoble={onDoble} porCelda valido={!!v?.ok}
       />
 
-      <footer className="pie-carga">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d={UI.peso} /></svg>
-        <div>
-          <div className="barra-carga" role="meter" aria-valuemin={0} aria-valuemax={max} aria-valuenow={Number(peso.toFixed(1))} aria-label="Carga">
-            <div style={{ height: 8, width: `${Math.min(100, (peso / max) * 100).toFixed(1)}%`, background: `linear-gradient(90deg, ${tramo.color}99, ${tramo.color})`, boxShadow: `0 0 8px ${tramo.color}66` }} />
-            <span className="tic" style={{ left: '33.3%' }} />
-            <span className="tic" style={{ left: '66.6%' }} />
+      <footer className="pie-col">
+        <div className="pie-carga" title={`Saciedad ${p.saciedad}/${SACIEDAD_MAX} · ${sac.efectos.join(' · ') || 'Sin efectos'}`}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" style={{ stroke: sac.color }}><path d={UI.cuenco} /></svg>
+          <div>
+            <div className="barra-carga" role="meter" aria-valuemin={0} aria-valuemax={SACIEDAD_MAX} aria-valuenow={p.saciedad} aria-label="Saciedad">
+              <div style={{ height: 6, width: `${(p.saciedad / SACIEDAD_MAX) * 100}%`, background: `linear-gradient(90deg, ${sac.color}99, ${sac.color})` }} />
+            </div>
+            <div className="txt">
+              <span style={{ color: sac.color, fontWeight: 500 }}>{sac.texto}</span>
+              <span><b>{p.saciedad}</b> / {SACIEDAD_MAX}</span>
+            </div>
           </div>
-          <div className="txt">
-            <span style={{ color: tramo.color, fontWeight: 500 }}>{tramo.texto}</span>
-            <span><b>{fmtKg(peso)}</b> / {max} kg</span>
+        </div>
+        <div className="pie-carga">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={UI.peso} /></svg>
+          <div>
+            <div className="barra-carga" role="meter" aria-valuemin={0} aria-valuemax={max} aria-valuenow={Number(peso.toFixed(1))} aria-label="Carga">
+              <div style={{ height: 8, width: `${Math.min(100, (peso / max) * 100).toFixed(1)}%`, background: `linear-gradient(90deg, ${tramo.color}99, ${tramo.color})`, boxShadow: `0 0 8px ${tramo.color}66` }} />
+              <span className="tic" style={{ left: '33.3%' }} />
+              <span className="tic" style={{ left: '66.6%' }} />
+            </div>
+            <div className="txt">
+              <span style={{ color: tramo.color, fontWeight: 500 }}>{tramo.texto}</span>
+              <span><b>{fmtKg(peso)}</b> / {max} kg</span>
+            </div>
           </div>
         </div>
       </footer>
@@ -292,11 +301,11 @@ export function AvisoActual({ aviso }: { aviso: Aviso | null }) {
   }
   const mov = estado.movimientos.find((m) => m.id === aviso.movId);
   if (!mov) return null;
-  const actorPj = estado.personajes.find((p) => p.nombre === mov.actor || p.nombre.split(' ')[0] === mov.actor);
+  const actorPj = estado.personajes.find((p) => p.nombre === mov.actor || primerNombre(p.nombre) === mov.actor);
   const destino = mov.destino.tipo === 'alijo' ? 'Alijo de la party' : estado.personajes.find((p) => p.id === (mov.destino as { id: string }).id)?.nombre;
   return (
     <div key={aviso.id} className="aviso" role="status">
-      <span className={`slot has ${CLASE_RAREZA[mov.rareza]}`}><Icono d={ICONOS[mov.icono]} /></span>
+      <span className={`slot has ${CLASE_RAREZA[mov.rareza]}`}><IconoObjeto icono={mov.icono} /></span>
       <span>
         <b style={{ color: actorPj?.color ?? 'var(--oro-claro)' }}>{mov.actor}</b> ha movido{' '}
         {mov.cantidad > 1 && `${mov.cantidad} × `}<b className={CLASE_RAREZA[mov.rareza]} style={{ color: 'var(--rc)' }}>{mov.objetoNombre}</b> a{' '}

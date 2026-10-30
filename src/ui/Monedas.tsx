@@ -5,7 +5,7 @@ import {
   aplicarMonedas, cambio, CERO, CLAVES, cuantas, escalar, NOMBRE_MONEDA, repartir, sumar, texto, vacia, VALOR_PC,
   type Cambio, type ClaveMoneda,
 } from '../domain/monedas';
-import { cargaMaxDe, fmtKg, pesoAlijoKg, pesoPersonajeKg, totalEnPo, tramoCarga } from '../domain/reglas';
+import { cargaMaxDe, fmtKg, pesoAlijoKg, pesoPersonajeKg, primerNombre, totalEnPo, tramoCarga } from '../domain/reglas';
 import type { Monedas as TMonedas, Personaje } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { Capa } from './Capa';
@@ -173,7 +173,7 @@ function Botin({ avisar }: { avisar: Avisar }) {
     setBotin({ ...CERO });
   };
   const repartirYa = () =>
-    hecho(monedas(cambiosReparto, `Repartió ${texto(botin)} entre ${elegidos.map((p) => p.nombre.split(' ')[0]).join(', ')}; resto al tesoro: ${texto(resto)}`),
+    hecho(monedas(cambiosReparto, `Repartió ${texto(botin)} entre ${elegidos.map((p) => primerNombre(p.nombre)).join(', ')}; resto al tesoro: ${texto(resto)}`),
       `Botín repartido: ${texto(cada)} para cada uno`);
   const alTesoro = () => hecho(monedas([{ bolsa: 'tesoro', delta: botin }], `Guardó ${texto(botin)} en el tesoro común`), `${texto(botin)} al tesoro común`);
   const alternar = (id: string) => setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
@@ -200,7 +200,7 @@ function Botin({ avisar }: { avisar: Avisar }) {
             return (
               <button key={p.id} type="button" role="checkbox" aria-checked={on} className={`pick ${on ? 'on' : ''}`} onClick={() => alternar(p.id)}>
                 <span className="caja">{on && <Icono d={UI.check} size={14} />}</span>
-                <span className="punto" style={{ background: p.color }} />{p.nombre.split(' ')[0]}
+                <span className="punto" style={{ background: p.color }} />{primerNombre(p.nombre)}
               </button>
             );
           })}
@@ -300,7 +300,7 @@ function AjustePersonaje({ p, modo, avisar, onCerrar }: { p: Personaje; modo: 'i
   const [m, setM] = useState<TMonedas>({ ...CERO });
   const [conTesoro, setConTesoro] = useState(true);
   const signo = modo === 'ingresar' ? 1 : -1;
-  const nombre = p.nombre.split(' ')[0];
+  const nombre = primerNombre(p.nombre);
   const cambios: Cambio[] = [{ bolsa: { personajeId: p.id }, delta: escalar(m, signo) }];
   if (conTesoro) cambios.push({ bolsa: 'tesoro', delta: escalar(m, -signo) });
   const aceptar = () => {

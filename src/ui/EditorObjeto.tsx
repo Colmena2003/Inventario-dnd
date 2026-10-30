@@ -9,17 +9,19 @@ import {
 import { describirMod } from '../domain/describir';
 import { hoja, type Hoja, type Valor } from '../domain/hoja';
 import { inferirTipo } from '../domain/objetos';
-import { CLASE_RAREZA, conSigno, moverObjeto, NOMBRE_RANURA, SACIEDAD_MAX } from '../domain/reglas';
+import {
+  capital, CLASE_RAREZA, conSigno, mismoPropietario, moverObjeto, NOMBRE_RANURA, personajeDelJugador, primerNombre, RAREZAS, SACIEDAD_MAX,
+} from '../domain/reglas';
 import { HORA, MINUTO, RONDA, usable } from '../domain/uso';
 import type {
   Categoria, DanoExtra, Duracion, Estado, Modificador, Objeto, ObjetivoMod, Personaje, PlantillaEfecto, PropiedadArma, Propietario,
-  DatosArmadura, Rareza, TipoObjeto, TipoRanura,
+  DatosArmadura, TipoObjeto, TipoRanura,
 } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useEscape } from './Dialogos';
 import { CtxEditor, type ApiEditor } from './editorCtx';
 import { claseDe, ICONOS, NOMBRE_ICONO, UI, type ClaveIcono } from './iconos';
-import { Esquinas, fmtNum, Icono, Ranura } from './piezas';
+import { Esquinas, fmtNum, Icono, IconoObjeto, Ranura } from './piezas';
 
 // ── Contexto: cualquier pantalla puede abrir el editor ─────────────
 
@@ -62,8 +64,6 @@ const borradorDe = (tipo: TipoObjeto, propietario: Propietario): Objeto => ({
   propietario, equipadoEn: null, tipo, ...BASE[tipo],
 });
 
-const RAREZAS: Rareza[] = ['común', 'poco común', 'raro', 'muy raro', 'legendario', 'artefacto'];
-const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const CON_MAGIA: TipoObjeto[] = ['arma', 'armadura', 'escudo', 'equipable', 'varios', 'mision', 'municion'];
 const CON_USO: TipoObjeto[] = ['pocion', 'pergamino', 'comida', 'varios', 'equipable', 'mision'];
 const RANURAS_EQUIPABLE: TipoRanura[] = ['cabeza', 'capa', 'guantes', 'botas', 'amuleto', 'anillo'];
@@ -102,7 +102,7 @@ function Editor({ peticion, onCerrar, onAviso }: { peticion: Peticion; onCerrar:
           <div className="tipos-rejilla">
             {TIPOS_OBJETO.map((t) => (
               <button key={t.id} type="button" className="tipo-tarjeta" onClick={() => setO(borradorDe(t.id, propietarioInicial))}>
-                <span className="slot has r-c"><Icono d={ICONOS[t.icono as ClaveIcono]} /></span>
+                <span className="slot has r-c"><IconoObjeto icono={t.icono} /></span>
                 <b>{t.nombre}</b>
                 <span>{t.detalle}</span>
               </button>
@@ -190,13 +190,13 @@ function Editor({ peticion, onCerrar, onAviso }: { peticion: Peticion; onCerrar:
 /** «Usar» en el pie del editor. Para lo del alijo, se elige quién lo usa. */
 function BotonUsar({ o, estado, actor, onUsar }: { o: Objeto; estado: Estado; actor: string; onUsar: (personajeId?: string) => void }) {
   const delAlijo = o.propietario.tipo === 'alijo';
-  const [quien, setQuien] = useState(() => estado.personajes.find((p) => p.nombre.split(' ')[0] === actor)?.id ?? estado.personajes[0]?.id);
+  const [quien, setQuien] = useState(() => personajeDelJugador(estado, actor)?.id ?? estado.personajes[0]?.id);
   const sinCargas = !!o.cargasMax && (o.cargas ?? 0) < 1;
   return (
     <span className="ed-usar">
       {delAlijo && (
         <select aria-label="Quién lo usa" value={quien} onChange={(e) => setQuien(e.target.value)}>
-          {estado.personajes.map((p) => <option key={p.id} value={p.id}>{p.nombre.split(' ')[0]}</option>)}
+          {estado.personajes.map((p) => <option key={p.id} value={p.id}>{primerNombre(p.nombre)}</option>)}
         </select>
       )}
       <button type="button" className="btn sec" disabled={sinCargas} title={sinCargas ? 'Sin cargas' : undefined} onClick={() => onUsar(delAlijo ? quien : undefined)}>
@@ -261,10 +261,9 @@ function Identidad({ o, cambiar }: Sec) {
   const { estado, prepararImagen } = useCofre();
   const fichero = useRef<HTMLInputElement>(null);
   const duenos: { p: Propietario; nombre: string; color?: string }[] = [
-    ...estado.personajes.map((p) => ({ p: { tipo: 'personaje' as const, id: p.id }, nombre: p.nombre.split(' ')[0], color: p.color })),
+    ...estado.personajes.map((p) => ({ p: { tipo: 'personaje' as const, id: p.id }, nombre: primerNombre(p.nombre), color: p.color })),
     { p: { tipo: 'alijo' }, nombre: 'Alijo de la party' },
   ];
-  const mismo = (a: Propietario, b: Propietario) => JSON.stringify(a) === JSON.stringify(b);
   return (
     <Seccion titulo="Objeto">
       <Campo label="Nombre" ancho={4}>
@@ -291,7 +290,7 @@ function Identidad({ o, cambiar }: Sec) {
           <div className="iconos" role="radiogroup" aria-label="Icono">
             {(Object.keys(ICONOS) as ClaveIcono[]).map((k) => (
               <button key={k} type="button" role="radio" aria-checked={o.icono === k} aria-label={NOMBRE_ICONO[k]} title={NOMBRE_ICONO[k]} className={`slot ${o.icono === k ? `has ${CLASE_RAREZA[o.rareza]} on` : ''}`} onClick={() => cambiar({ icono: k, ...ranuraDelIcono(o, k) })}>
-                <Icono d={ICONOS[k]} />
+                <IconoObjeto icono={k} />
               </button>
             ))}
           </div>
@@ -304,7 +303,7 @@ function Identidad({ o, cambiar }: Sec) {
         <span className="k">Lo tiene</span>
         <div className="chips">
           {duenos.map((d) => (
-            <button key={d.nombre} type="button" className={`chip ${mismo(o.propietario, d.p) ? 'on' : ''}`} aria-pressed={mismo(o.propietario, d.p)} onClick={() => cambiar({ propietario: d.p })}>
+            <button key={d.nombre} type="button" className={`chip ${mismoPropietario(o.propietario, d.p) ? 'on' : ''}`} aria-pressed={mismoPropietario(o.propietario, d.p)} onClick={() => cambiar({ propietario: d.p })}>
               {d.color ? <i className="punto" style={{ background: d.color }} /> : <Icono d={UI.cofre} size={13} />}{d.nombre}
             </button>
           ))}

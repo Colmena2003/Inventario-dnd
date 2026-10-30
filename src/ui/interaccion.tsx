@@ -3,7 +3,7 @@
 
 import { useRef, type HTMLAttributes } from 'react';
 import { cumpleFiltros } from '../domain/filtros';
-import { equipadoEn, nombreDe, rejilla } from '../domain/reglas';
+import { equipadoEn, mismoPropietario, nombreDe, personajeDelJugador, rejilla } from '../domain/reglas';
 import { usable } from '../domain/uso';
 import type { Objeto, Personaje, Propietario, TipoRanura } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
@@ -49,7 +49,7 @@ function useMenuObjeto() {
         desactivada: !!o.cargasMax && (o.cargas ?? 0) < 1,
         onClick: () => {
           // Lo del alijo lo usa quien maneja la app
-          const yo = estado.personajes.find((p) => p.nombre.split(' ')[0] === actor);
+          const yo = personajeDelJugador(estado, actor);
           const r = usar(o.id, yo?.id);
           avisar(r.ok ? r.texto : r.motivo, !r.ok);
         },
@@ -139,7 +139,7 @@ export function RejillaObjetos({ objetos, dueno, minimo, porFila, busqueda, onDo
   const objetivo = arrastre?.objetivo;
   if (arrastre && objetivo && baseDe(objetivo.clave) === base) {
     const celda = celdaDe(objetivo.clave);
-    const mismoDueno = JSON.stringify(arrastre.objeto.propietario) === JSON.stringify(dueno);
+    const mismoDueno = mismoPropietario(arrastre.objeto.propietario, dueno);
     if (porCelda && celda !== undefined) destacada = celda;
     else if (!(mismoDueno && !arrastre.objeto.equipadoEn)) {
       const a = arrastre.objeto;

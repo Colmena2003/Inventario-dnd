@@ -9,15 +9,18 @@ import { ABREV_CAR, CARACTERISTICAS, HABILIDADES, MOVIMIENTOS } from '../domain/
 import { describirMod } from '../domain/describir';
 import { objetoActivo } from '../domain/efectos';
 import { hoja, type AtaqueArma, type Hoja, type Valor } from '../domain/hoja';
-import { CLASE_RAREZA, COLOR_RAREZA, conSigno, fmtKg, fmtNum, MAX_SINTONIZADOS, objetosDe, SACIEDAD_MAX, sintonizadosDe } from '../domain/reglas';
-import type { Caracteristica, Objeto, Rareza } from '../domain/tipos';
+import {
+  capital, CLASE_RAREZA, primerNombre, COLOR_RAREZA, conSigno, fmtKg, fmtNum, MAX_SINTONIZADOS, objetosDe, RAREZAS, SACIEDAD_MAX,
+  sintonizadosDe,
+} from '../domain/reglas';
+import type { Caracteristica, Objeto } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { ClasesConIcono } from './clases';
 import { useDetalle } from './DetalleObjeto';
 import { claseCambio, desglose, tituloAtaque } from './desglose';
 import { useEditor } from './editorCtx';
-import { ICONOS, UI } from './iconos';
-import { Esquinas, iniciales, Icono } from './piezas';
+import { UI } from './iconos';
+import { Esquinas, iniciales, Icono, ImagenObjeto } from './piezas';
 
 type Vista = 'resumen' | 'quien' | 'equipo' | 'desglose';
 
@@ -28,9 +31,7 @@ const VISTAS: { id: Vista; texto: string; icono: string; ayuda: string }[] = [
   { id: 'desglose', texto: 'Desglose', icono: UI.lupa, ayuda: 'De dónde sale cada número de un personaje' },
 ];
 
-const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const m = (n: number) => fmtKg(n).replace(',0', '');
-const corto = (nombre: string) => nombre.split(' ')[0];
 
 export function Estadisticas() {
   const { estado } = useCofre();
@@ -256,7 +257,7 @@ function Comparativa({ hojas }: { hojas: Hoja[] }) {
                 const ancho = v === null ? 0 : max === min ? 100 : ((v - min) / (max - min)) * 88 + 12;
                 return (
                   <div key={h.p.id} className={`cmp-barra ${v !== null && v === max ? 'mejor' : ''}`} title={`${h.p.nombre}: ${f.titulo?.(h) ?? ''}`}>
-                    <span className="cmp-quien">{corto(h.p.nombre)}</span>
+                    <span className="cmp-quien">{primerNombre(h.p.nombre)}</span>
                     <span className="cmp-pista"><span style={{ width: `${ancho}%`, background: h.p.color }} /></span>
                     <b>{v === null ? '—' : f.fmt ? f.fmt(v) : v}</b>
                   </div>
@@ -276,7 +277,7 @@ function TablaBonos({ hojas, filas }: { hojas: Hoja[]; filas: { k: string; t: Re
   return (
     <table className="est-tabla">
       <thead>
-        <tr><th />{hojas.map((h) => <th key={h.p.id} style={{ color: h.p.color }}>{corto(h.p.nombre)}</th>)}</tr>
+        <tr><th />{hojas.map((h) => <th key={h.p.id} style={{ color: h.p.color }}>{primerNombre(h.p.nombre)}</th>)}</tr>
       </thead>
       <tbody>
         {filas.map((f) => {
@@ -329,7 +330,6 @@ function QuienTira({ hojas }: { hojas: Hoja[] }) {
 
 // ── Equipo y riqueza ──────────────────────────────────────────────
 
-const ORDEN_RAREZA: Rareza[] = ['común', 'poco común', 'raro', 'muy raro', 'legendario', 'artefacto'];
 const esMagico = (o: Objeto) => o.rareza !== 'común' || !!o.bonoMagico || !!o.modificadores?.length || !!o.requiereSintonizacion;
 
 /** Motivo por el que un objeto mágico de alguien no le está haciendo efecto, o null si funciona. */
@@ -355,7 +355,7 @@ function EquipoRiqueza({ hojas }: { hojas: Hoja[] }) {
   const linea = (o: Objeto, extra: ReactNode) => (
     <li key={o.id}>
       <button type="button" className={`enlace-obj ${CLASE_RAREZA[o.rareza]}`} onClick={() => ver(o)}>
-        <span className="mini-ic">{o.imagenUrl ? <img src={o.imagenUrl} alt="" /> : <Icono d={ICONOS[o.icono]} />}</span>
+        <span className="mini-ic"><ImagenObjeto o={o} /></span>
         <b>{o.nombre}</b>
       </button>
       <span>{extra}</span>
@@ -368,7 +368,7 @@ function EquipoRiqueza({ hojas }: { hojas: Hoja[] }) {
         <div className="eq-filas">
           {duenos.map((d) => {
             const v = valor(d.objetos);
-            const rarezas = ORDEN_RAREZA.map((r) => ({ r, n: d.objetos.filter((o) => o.rareza === r).reduce((s, o) => s + o.cantidad, 0) })).filter((x) => x.n);
+            const rarezas = RAREZAS.map((r) => ({ r, n: d.objetos.filter((o) => o.rareza === r).reduce((s, o) => s + o.cantidad, 0) })).filter((x) => x.n);
             const total = rarezas.reduce((s, x) => s + x.n, 0);
             return (
               <div key={d.id} className="eq-fila">
@@ -388,19 +388,19 @@ function EquipoRiqueza({ hojas }: { hojas: Hoja[] }) {
         </div>
         <div className="eq-leyenda" aria-label="Colores de rareza">
           <span>Barra fina: objetos por rareza</span>
-          {ORDEN_RAREZA.map((r) => <span key={r}><i style={{ background: COLOR_RAREZA[r] }} />{capital(r)}</span>)}
+          {RAREZAS.map((r) => <span key={r}><i style={{ background: COLOR_RAREZA[r] }} />{capital(r)}</span>)}
         </div>
       </Panel>
       <div className="est-col">
         <Panel titulo="Lo más valioso" ayuda="Pulsa uno para ver su ficha">
           <ul className="influyen">
-            {valiosos.map((o) => linea(o, <>{fmtNum(o.valorPo)} PO · {o.propietario.tipo === 'alijo' ? 'Alijo' : corto(estado.personajes.find((p) => p.id === (o.propietario as { id: string }).id)?.nombre ?? '')}</>))}
+            {valiosos.map((o) => linea(o, <>{fmtNum(o.valorPo)} PO · {o.propietario.tipo === 'alijo' ? 'Alijo' : primerNombre(estado.personajes.find((p) => p.id === (o.propietario as { id: string }).id)?.nombre ?? '')}</>))}
             {!valiosos.length && <li className="vacio">No hay objetos.</li>}
           </ul>
         </Panel>
         <Panel titulo="¿Se os olvida algo?" ayuda="Magia que no está haciendo efecto y cargas gastadas">
           <ul className="influyen">
-            {olvidos.map(({ o, motivo }) => linea(o, <span className="aviso-olvido">{corto(estado.personajes.find((p) => p.id === (o.propietario as { id: string }).id)?.nombre ?? '')} lo tiene {motivo}</span>))}
+            {olvidos.map(({ o, motivo }) => linea(o, <span className="aviso-olvido">{primerNombre(estado.personajes.find((p) => p.id === (o.propietario as { id: string }).id)?.nombre ?? '')} lo tiene {motivo}</span>))}
             {cargas.map((o) => linea(o, <>{o.cargas ?? 0}/{o.cargasMax} cargas{o.recarga ? ` · ${o.recarga.toLowerCase()}` : ''}</>))}
             {!olvidos.length && !cargas.length && <li className="vacio">Todo en orden: la magia hace efecto y las cargas están llenas.</li>}
           </ul>
@@ -499,7 +499,7 @@ function ObjetoInfluye({ o, inactivo, onEditar }: { o: Objeto; inactivo?: boolea
   return (
     <li className={`${CLASE_RAREZA[o.rareza]} ${inactivo ? 'inactivo' : ''}`}>
       <button type="button" className="enlace-obj" onClick={onEditar} title="Editar objeto">
-        <span className="mini-ic">{o.imagenUrl ? <img src={o.imagenUrl} alt="" /> : <Icono d={ICONOS[o.icono]} />}</span>
+        <span className="mini-ic"><ImagenObjeto o={o} /></span>
         <b>{o.nombre}</b>{inactivo && <small> · {motivo}</small>}
       </button>
       {lineas.length > 0 && <span>{lineas.map(capital).join(' · ')}</span>}

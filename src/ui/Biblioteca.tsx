@@ -4,18 +4,17 @@
 import { useState } from 'react';
 import { objetosDeFicha } from '../domain/biblioteca';
 import { cumpleFiltros } from '../domain/filtros';
-import { CLASE_RAREZA, nombreDe } from '../domain/reglas';
+import { CATEGORIAS, CLASE_RAREZA, nombreDe, primerNombre } from '../domain/reglas';
 import type { Categoria, FichaObjeto, Objeto, Rareza } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useDetalle } from './DetalleObjeto';
 import { useFiltros } from './filtrosCtx';
-import { ICONOS, UI } from './iconos';
-import { Esquinas, Icono } from './piezas';
+import { claseDe, UI } from './iconos';
+import { Esquinas, Icono, ImagenObjeto } from './piezas';
 
 type Quien = 'todos' | 'party' | 'nadie';
 type Orden = 'recientes' | 'nombre' | 'rareza';
 
-const CATEGORIAS: Categoria[] = ['Armas', 'Armaduras', 'Pociones', 'Pergaminos', 'Materiales', 'Comida', 'Llaves/misión', 'Varios'];
 const ORDEN_RAREZA: Rareza[] = ['artefacto', 'legendario', 'muy raro', 'raro', 'poco común', 'común'];
 
 export function Biblioteca({ busqueda }: { busqueda: string }) {
@@ -79,20 +78,20 @@ export function Biblioteca({ busqueda }: { busqueda: string }) {
         <ul className="bib-rejilla" aria-label="Objetos de la biblioteca">
           {visibles.map((f) => {
             const quienes = tienen(f);
-            const nombres = [...new Set(quienes.map((o) => nombreDe(estado, o.propietario).split(' ')[0]))];
+            const nombres = [...new Set(quienes.map((o) => primerNombre(nombreDe(estado, o.propietario))))];
             return (
               <li key={f.id}>
                 <button type="button" className={`bib-carta ${CLASE_RAREZA[f.rareza]} ${quienes.length ? '' : 'perdida'}`} onClick={() => detalle.verFicha(f)}>
                   <span className="bib-arte">
-                    {f.imagenUrl ? <img src={f.imagenUrl} alt="" /> : <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONOS[f.icono]} /></svg>}
+                    <ImagenObjeto o={f} />
                     {f.requiereSintonizacion && <span className="attm" title="Requiere sintonización" />}
                   </span>
                   <span className="bib-nombre">{f.nombre}</span>
-                  <span className="bib-sub">{f.categoria} · <span style={{ color: 'var(--rc)' }}>{f.rareza}</span></span>
+                  <span className="bib-sub">{claseDe(f)} · <span style={{ color: 'var(--rc)' }}>{f.rareza}</span></span>
                   <span className="bib-resumen">{f.efectos ?? f.descripcion ?? ''}</span>
                   <span className={`bib-estado ${quienes.length ? 'en-party' : ''}`}>
                     <Icono d={quienes.length ? UI.persona : UI.cofre} size={14} />
-                    {quienes.length ? nombres.join(', ') : `Nadie lo tiene${f.ultimoDueno ? ` · lo tuvo ${f.ultimoDueno.split(' ')[0]}` : ''}`}
+                    {quienes.length ? nombres.join(', ') : `Nadie lo tiene${f.ultimoDueno ? ` · lo tuvo ${primerNombre(f.ultimoDueno)}` : ''}`}
                   </span>
                 </button>
               </li>

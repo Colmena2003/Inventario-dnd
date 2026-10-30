@@ -1,6 +1,6 @@
 // Monedas (HANDOFF §6): valores [5e], reparto de botín, cambio y movimientos de monedas.
 
-import { cargaMaxDe, fmtKg, nuevoId, pesoPersonajeKg } from './reglas';
+import { cargaMaxDe, fmtKg, HISTORIAL_MAX, nuevoId, pesoPersonajeKg } from './reglas';
 import type { Estado, Monedas } from './tipos';
 
 export type ClaveMoneda = keyof Monedas;
@@ -67,7 +67,7 @@ export function cambio(cantidad: number, de: ClaveMoneda, a: ClaveMoneda): numbe
 export type Bolsa = 'tesoro' | { personajeId: string };
 export type Cambio = { bolsa: Bolsa; delta: Monedas };
 
-export interface RegistroMonedas {
+interface RegistroMonedas {
   id: string;
   fecha: number;
   actor: string;
@@ -107,7 +107,7 @@ export function aplicarMonedas(e: Estado, cambios: Cambio[], actor: string, desc
     }
   }
   const registro: RegistroMonedas = { id: nuevoId('rm'), fecha: Date.now(), actor, texto: descripcion };
-  return { ok: true, estado: { ...siguiente, registroMonedas: [registro, ...(e.registroMonedas ?? [])].slice(0, 200) } };
+  return { ok: true, estado: { ...siguiente, registroMonedas: [registro, ...(e.registroMonedas ?? [])].slice(0, HISTORIAL_MAX) } };
 }
 
 export { nombreBolsa };

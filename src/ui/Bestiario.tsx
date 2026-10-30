@@ -15,7 +15,7 @@ import { useDetalle } from './DetalleObjeto';
 import { useEscape } from './Dialogos';
 import { Campo, Numero, Seccion } from './EditorObjeto';
 import { ICONOS, UI } from './iconos';
-import { Esquinas, Icono } from './piezas';
+import { Esquinas, Icono, ImagenObjeto } from './piezas';
 
 type Datos = Omit<Criatura, 'id' | 'creada' | 'actualizada'>;
 type Orden = 'recientes' | 'nombre' | 'desafio' | 'encuentros';
@@ -118,7 +118,7 @@ function Carta({ c, onAbrir }: { c: Criatura; onAbrir: () => void }) {
         {c.botin.map((b, i) => {
           const f = fichaDeBotin(estado, b);
           return f
-            ? <span key={i} className={`slot has ${CLASE_RAREZA[f.rareza]}`} title={f.nombre}>{f.imagenUrl ? <img src={f.imagenUrl} alt="" /> : <Icono d={ICONOS[f.icono]} />}</span>
+            ? <span key={i} className={`slot has ${CLASE_RAREZA[f.rareza]}`} title={f.nombre}><ImagenObjeto o={f} /></span>
             : <span key={i} className="slot has r-c" title={b.nombre}><Icono d={ICONOS.bag} /></span>;
         })}
       </span>
@@ -248,7 +248,7 @@ function FichaCriatura({ c, onCerrar, onEditar }: { c: Criatura; onCerrar: () =>
                     const contenido = (
                       <>
                         <span className={`slot has ${f ? CLASE_RAREZA[f.rareza] : 'r-c'}`}>
-                          {f?.imagenUrl ? <img src={f.imagenUrl} alt="" /> : <Icono d={ICONOS[f?.icono ?? 'bag']} />}
+                          <ImagenObjeto o={f} />
                           {b.cantidad && <span className="qty">{b.cantidad}</span>}
                         </span>
                         <span className="cr-botin-txt">
@@ -393,7 +393,7 @@ function EditorCriatura({ inicial, onCerrar, onGuardada, onEliminada }: {
                   const f = fichaDeBotin(estado, b);
                   return (
                     <div key={i} className="botin-crf">
-                      <span className={`slot has ${f ? CLASE_RAREZA[f.rareza] : 'r-c'}`}>{f?.imagenUrl ? <img src={f.imagenUrl} alt="" /> : <Icono d={ICONOS[f?.icono ?? 'bag']} />}</span>
+                      <span className={`slot has ${f ? CLASE_RAREZA[f.rareza] : 'r-c'}`}><ImagenObjeto o={f} /></span>
                       <input
                         list="biblioteca-nombres" aria-label="Objeto" placeholder="Busca en la biblioteca o escribe" value={f?.nombre ?? b.nombre ?? ''}
                         onChange={(e) => {

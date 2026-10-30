@@ -102,7 +102,7 @@
 .desconocida{--act: var(--t-b9ab90);--act-g: rgb(from var(--t-b9ab90) r g b / .18)}
 .bestiario{position:absolute;left:124px;top:90px;width:1772px;height:970px;display:flex;flex-direction:column;gap:16px}
 .cr-nueva{height:40px!important;padding:0 18px!important;font-size:14px!important;border-radius:20px!important;display:inline-flex;align-items:center;gap:8px}
-.cr-nueva svg,.crf-anadir svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.cr-nueva svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .cr-rejilla{flex:1;min-height:0;margin:0;padding:4px 8px 12px 2px;list-style:none;overflow-y:auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:520px;gap:18px;scrollbar-width:thin;scrollbar-color:var(--t-4d3e25) transparent}
 .cr-carta{width:100%;height:100%;padding:0 0 14px;display:flex;flex-direction:column;gap:8px;text-align:left;cursor:pointer;color:var(--texto);font:inherit;background:linear-gradient(180deg,var(--t-16120e),var(--t-0d0b09));border:1px solid color-mix(in srgb,var(--act) 40%,var(--t-2b241b));box-shadow:inset 0 0 0 2px var(--t-0b0907),0 12px 30px #0009;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
 .cr-carta:hover,.cr-carta:focus-visible{transform:translateY(-3px);border-color:var(--act);box-shadow:inset 0 0 0 2px var(--t-0b0907),0 0 0 1px var(--act),0 0 30px var(--act-g),0 16px 34px #000000b3}
@@ -174,7 +174,6 @@
 .cr-hab.hueco b{font-style:normal;color:var(--t-9d917b)}
 .cr-hab.hueco p{font:15px var(--f-datos);color:var(--t-7d725f)}
 .cr-interrogante{width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;border:1px dashed var(--t-8a7040);border-radius:50%;font:700 18px var(--f-titulo);color:var(--oro-claro)}
-.cr-interrogante.mini-q{width:18px;height:18px;font-size:13px}
 .cr-botin ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
 .cr-botin-item{width:100%;display:flex;align-items:center;gap:14px;padding:10px 12px;text-align:left;font:inherit;color:inherit;border:1px solid var(--t-2c2419);background:#0000004d}
 button.cr-botin-item{cursor:pointer}

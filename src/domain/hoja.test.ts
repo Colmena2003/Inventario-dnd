@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { estadoInicial, VERSION } from '../data/semilla';
+import { estadoInicial } from '../data/semilla';
 import { hoja } from './hoja';
-import { crearObjeto, editarObjeto, migrar } from './objetos';
+import { crearObjeto, editarObjeto, migrar, VERSION_MODELO } from './objetos';
 import { comer, descansar, moverObjeto, validarMovimiento } from './reglas';
 import type { Estado, Objeto } from './tipos';
 
@@ -148,21 +148,26 @@ describe('objetos', () => {
     expect(objeto('Anillo de protección', e1)).toMatchObject({ equipadoEn: null, sintonizado: false });
     expect(e1.movimientos[0].objetoNombre).toBe('Anillo de protección');
   });
-  it('migra un estado antiguo conservando dónde está cada cosa', () => {
+  it('migra la saciedad antigua de 0–100 sin tocar nada más', () => {
     const viejo = { ...e0, version: 2, personajes: e0.personajes.map((p) => ({ ...p, saciedad: 58 })) } as Estado;
-    const m = migrar(viejo, e0);
-    expect(m.version).toBe(VERSION);
+    const m = migrar(viejo);
+    expect(m.version).toBe(VERSION_MODELO);
     expect(pj('nerys', m).saciedad).toBe(4);
+    expect(m.objetos.map((o) => [o.id, o.propietario, o.cantidad])).toEqual(e0.objetos.map((o) => [o.id, o.propietario, o.cantidad]));
+  });
+  it('un objeto propio con el nombre de uno de ejemplo no se pisa al migrar', () => {
+    const daga = { ...objeto('Daga'), id: 'o-propia', descripcion: 'La de mi abuela', dado: '1d6' };
+    const m = migrar({ ...e0, version: 4, objetos: [daga] } as Estado);
+    expect(m.objetos[0]).toMatchObject({ descripcion: 'La de mi abuela', dado: '1d6' });
   });
   it('pasa la velocidad guardada en metros a pies', () => {
     const viejo = {
       ...e0, version: 4,
-      personajes: e0.personajes.map((p) => (p.id === 'brom' ? { ...p, velocidad: 7.5, editado: true } : p)),
-      objetos: [...e0.objetos, { ...objeto('Anillo de protección'), id: 'propio', nombre: 'Anillo veloz', modificadores: [{ objetivo: 'vel:caminar', valor: 3 }] }],
+      personajes: e0.personajes.map((p) => (p.id === 'brom' ? { ...p, velocidad: 7.5 } : p)),
+      objetos: [{ ...objeto('Anillo de protección'), id: 'propio', nombre: 'Anillo veloz', modificadores: [{ objetivo: 'vel:caminar', valor: 3 }] }],
     } as Estado;
-    const m = migrar(viejo, e0);
+    const m = migrar(viejo);
     expect(pj('brom', m).velocidad).toBe(25);
-    expect(m.objetos.find((o) => o.id === 'propio')!.modificadores).toEqual([{ objetivo: 'vel:caminar', valor: 10 }]);
-    expect(hoja(m, pj('ysolde', m)).velocidad.caminar.fuentes.find((f) => f.fijado)?.valor).toBe(30);
+    expect(m.objetos[0].modificadores).toEqual([{ objetivo: 'vel:caminar', valor: 10 }]);
   });
 });

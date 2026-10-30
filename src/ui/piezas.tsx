@@ -13,6 +13,16 @@ export function Icono({ d, size }: { d: string; size?: number }) {
   );
 }
 
+/** El icono de un tipo de objeto. Todos los iconos de objeto se pintan aquí. */
+export function IconoObjeto({ icono, size }: { icono?: string; size?: number }) {
+  return <Icono d={ICONOS[(icono ?? 'bag') as ClaveIcono] ?? ICONOS.bag} size={size} />;
+}
+
+/** El dibujo de un objeto: su imagen si la tiene; si no, su icono. */
+export function ImagenObjeto({ o, alt = '' }: { o?: { imagenUrl?: string; icono?: string }; alt?: string }) {
+  return o?.imagenUrl ? <img src={o.imagenUrl} alt={alt} /> : <IconoObjeto icono={o?.icono} />;
+}
+
 export function Esquinas({ solo }: { solo?: 'arriba' }) {
   const pos = solo === 'arriba' ? ['tl', 'tr'] : ['tl', 'tr', 'bl', 'br'];
   return (
@@ -50,7 +60,7 @@ export function Ranura({ objeto, fantasma, extra = '', etiqueta, children, ...re
   if (!objeto) {
     return (
       <div className={`slot ${fantasma ? 'ghost' : ''} ${extra}`} aria-label={etiqueta ?? 'Ranura vacía'} {...resto}>
-        {fantasma && <Icono d={ICONOS[fantasma]} />}
+        {fantasma && <IconoObjeto icono={fantasma} />}
         {children}
       </div>
     );
@@ -58,7 +68,7 @@ export function Ranura({ objeto, fantasma, extra = '', etiqueta, children, ...re
   const nombre = objeto.nombre + (objeto.cantidad > 1 ? ` ×${objeto.cantidad}` : '');
   return (
     <div className={`slot has ${CLASE_RAREZA[objeto.rareza]} ${extra}`} aria-label={etiqueta ?? nombre} {...resto}>
-      {objeto.imagenUrl ? <img src={objeto.imagenUrl} alt="" /> : <Icono d={ICONOS[objeto.icono]} />}
+      <ImagenObjeto o={objeto} />
       {objeto.cantidad > 1 && <span className="qty">{objeto.cantidad}</span>}
       {objeto.requiereSintonizacion && <span className="attm" title={objeto.sintonizado ? 'Sintonizado' : 'Requiere sintonización'} />}
       {children}

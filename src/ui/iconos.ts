@@ -1,5 +1,7 @@
 // Trazos SVG (viewBox 24×24) extraídos del objeto IC de diseno/Main.dc.html y Topbar.dc.html.
 
+import { capital } from '../domain/reglas';
+
 export const ICONOS = {
   sword: 'M20 4l-1.5 5.5L9 19l-4-4 9.5-9.5zM6 14l4 4M4.5 19.5L3 21M7.5 16.5L5 19',
   axe: 'M5 21L16 10M13 4.5c3.5-1.5 7 .5 7.5 4-2 2.5-5 3.5-7.5 3l-1.5-1.5c-.5-2.5.5-4 1.5-5.5z',
@@ -46,8 +48,7 @@ export const NOMBRE_ICONO: Record<ClaveIcono, string> = {
 
 /** «Casco», «Ración»…: la clase del objeto si la tiene; si no, lo que dice su icono. */
 export const claseDe = (o: { subtipo?: string; icono?: string; categoria?: string }) => {
-  const t = o.subtipo || NOMBRE_ICONO[o.icono as ClaveIcono] || o.categoria || '';
-  return t.charAt(0).toUpperCase() + t.slice(1);
+  return capital(o.subtipo || NOMBRE_ICONO[o.icono as ClaveIcono] || o.categoria || '');
 };
 
 // Iconos de interfaz

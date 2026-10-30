@@ -3,17 +3,16 @@
 // usan useCofre(): todos los cambios pasan por `cambiar`, que recibe una función pura del estado.
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { estadoInicial, estadoVacio } from '../data/semilla';
 import {
   crearCriatura, editarCriatura, eliminarCriatura, registrarEncuentro, type ResultadoCriatura,
 } from '../domain/bestiario';
 import { cambiarImagenFicha, olvidarFicha, recuperarFicha, registrarEnBiblioteca, sincronizarBiblioteca, type ResultadoFicha } from '../domain/biblioteca';
 import { descansarEspacios, gastarEspacio, gastarPacto, recuperaEspacios } from '../domain/conjuros';
-import { crearObjeto, editarObjeto, eliminarObjeto, migrar, validarObjeto } from '../domain/objetos';
+import { crearObjeto, editarObjeto, eliminarObjeto, estadoVacio, migrar, validarObjeto } from '../domain/objetos';
 import { cambiarPv, eliminarPersonaje, guardarPersonaje, validarPersonaje } from '../domain/personajes';
 import {
-  alternarSintonia, cambiarSaciedad, comer as comerRegla, descansar as descansarRegla, moverObjeto, ordenarInventario, validarMovimiento,
-  type Destino, type OrdenInventario, type ResultadoComer, type ResultadoSintonia, type Validacion,
+  alternarSintonia, cambiarSaciedad, comer as comerRegla, descansar as descansarRegla, type Destino, moverObjeto, ordenarInventario,
+  type OrdenInventario, primerNombre, type ResultadoComer, type ResultadoSintonia, type Validacion, validarMovimiento,
 } from '../domain/reglas';
 import { aplicarMonedas, type Cambio, type ResultadoMonedas } from '../domain/monedas';
 import {
@@ -50,7 +49,7 @@ function guardar(clave: string, valor: unknown) {
 }
 
 /** Pone al día lo guardado con un modelo anterior y da ficha de biblioteca a los objetos que no la tengan. */
-const migrarSemilla = (e: Estado) => sincronizarBiblioteca(migrar(e, estadoInicial()));
+const migrarGuardado = (e: Estado) => sincronizarBiblioteca(migrar(e));
 
 /** Si un cambio ya no vale (lanza un error), el estado se queda como estaba. */
 const probar = (op: Op) => (e: Estado) => { try { return op(e); } catch { return e; } };
@@ -83,7 +82,7 @@ export interface Sincronizacion {
   error: string | null;
   /** Cuántos cambios de este jugador se han descartado porque otro guardó antes algo incompatible. */
   descartes: number;
-  /** Sube la party de este navegador y devuelve su código. */
+  /** Sube la party de este navegador como una party compartida nueva y entra en ella. */
   crear: () => Promise<void>;
   unirse: (codigo: string) => Promise<void>;
   /** Deja la party compartida y vuelve a los datos de este navegador. */
@@ -132,7 +131,6 @@ interface Cofre {
   guardarCriatura: (datos: Omit<Criatura, 'id' | 'creada' | 'actualizada'>, id?: string) => SinEstado<ResultadoCriatura>;
   eliminarCriatura: (id: string) => void;
   registrarEncuentro: (id: string, abatida: boolean) => void;
-  restablecer: () => void;
 }
 
 const Ctx = createContext<Cofre | null>(null);
@@ -140,7 +138,7 @@ const Ctx = createContext<Cofre | null>(null);
 export function CofreProvider({ children }: { children: ReactNode }) {
   const [estado, setEstado] = useState<Estado>(() => {
     const guardado = leer<Estado>(CLAVE);
-    return guardado ? migrarSemilla(guardado) : estadoVacio();
+    return guardado ? migrarGuardado(guardado) : estadoVacio();
   });
   const [actor, setActorState] = useState<string>(() => leer<string>(CLAVE_ACTOR) ?? '');
   const [conexion, setConexion] = useState<Conexion>('local');
@@ -175,7 +173,7 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     if (!c) { setErrorSync('Escribe el código de la party'); return; }
     setConexion('conectando');
     try {
-      const s = await Sala.abrir(c, emitir, migrarSemilla);
+      const s = await Sala.abrir(c, emitir, migrarGuardado);
       if (!s) { setErrorSync(`No hay ninguna party con el código ${c}`); setConexion(sala.current ? 'sincronizado' : 'local'); return; }
       entrar(s);
     } catch (err) {
@@ -187,7 +185,7 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   const crear = useCallback(async () => {
     setConexion('conectando');
     try {
-      entrar(await Sala.crear(local.current, emitir, migrarSemilla));
+      entrar(await Sala.crear(local.current, emitir, migrarGuardado));
     } catch (err) {
       setErrorSync(`No se pudo crear la party: ${(err as Error).message}`);
       setConexion('local');
@@ -225,6 +223,15 @@ export function CofreProvider({ children }: { children: ReactNode }) {
 
   const quien = actor || 'Alguien';
 
+  /** Comprueba un resultado sobre el estado actual y, si vale, repite el cambio sobre el que haya al guardar. */
+  const conResultado = useCallback(<R extends { ok: true; estado: Estado } | { ok: false; motivo: string }>(f: (e: Estado) => R): SinEstado<R> => {
+    const r = f(estado);
+    if (!r.ok) return r as SinEstado<R>;
+    cambiar((e) => { const x = f(e); if (!x.ok) throw new Error(x.motivo); return x.estado; });
+    const { estado: _e, ...resto } = r;
+    return resto as SinEstado<R>;
+  }, [estado, cambiar]);
+
   const validar = useCallback(
     (objetoId: string, destino: Destino, cantidad?: number) => validarMovimiento(estado, objetoId, destino, cantidad),
     [estado],
@@ -249,23 +256,13 @@ export function CofreProvider({ children }: { children: ReactNode }) {
   );
 
   const sintonizar = useCallback(
-    (objetoId: string, sustituir?: string): SinEstado<ResultadoSintonia> => {
-      const r = alternarSintonia(estado, objetoId, sustituir);
-      if (!r.ok) return r;
-      cambiar((e) => { const x = alternarSintonia(e, objetoId, sustituir); if (!x.ok) throw new Error(x.motivo); return x.estado; });
-      return { ok: true };
-    },
-    [estado, cambiar],
+    (objetoId: string, sustituir?: string) => conResultado((e) => alternarSintonia(e, objetoId, sustituir)),
+    [conResultado],
   );
 
   const monedas = useCallback(
-    (cambios: Cambio[], descripcion: string): SinEstado<ResultadoMonedas> => {
-      const r = aplicarMonedas(estado, cambios, quien, descripcion);
-      if (!r.ok) return r;
-      cambiar((e) => { const x = aplicarMonedas(e, cambios, quien, descripcion); if (!x.ok) throw new Error(x.motivo); return x.estado; });
-      return { ok: true };
-    },
-    [estado, quien, cambiar],
+    (cambios: Cambio[], descripcion: string) => conResultado((e) => aplicarMonedas(e, cambios, quien, descripcion)),
+    [conResultado, quien],
   );
 
   const cambiarImagen = useCallback((personajeId: string, url: string) => {
@@ -294,12 +291,7 @@ export function CofreProvider({ children }: { children: ReactNode }) {
 
   const eliminar = useCallback((id: string) => cambiar((e) => eliminarObjeto(e, id)), [cambiar]);
 
-  const comer = useCallback((personajeId: string, objetoId: string): SinEstado<ResultadoComer> => {
-    const r = comerRegla(estado, personajeId, objetoId);
-    if (!r.ok) return r;
-    cambiar((e) => { const x = comerRegla(e, personajeId, objetoId); if (!x.ok) throw new Error(x.motivo); return x.estado; });
-    return { ok: true, antes: r.antes, despues: r.despues };
-  }, [estado, cambiar]);
+  const comer = useCallback((personajeId: string, objetoId: string) => conResultado((e) => comerRegla(e, personajeId, objetoId)), [conResultado]);
 
   const usar = useCallback((objetoId: string, personajeId?: string) => {
     const o = estado.objetos.find((x) => x.id === objetoId);
@@ -309,7 +301,7 @@ export function CofreProvider({ children }: { children: ReactNode }) {
       const p = estado.personajes.find((x) => x.id === pid);
       if (!p) return { ok: false as const, motivo: `Dale ${o.nombre} a un personaje para comerlo` };
       const r = comer(p.id, o.id);
-      return r.ok ? { ok: true as const, texto: `${p.nombre.split(' ')[0]} come ${o.nombre.toLowerCase()}: saciedad ${r.antes} → ${r.despues}` } : r;
+      return r.ok ? { ok: true as const, texto: r.texto } : r;
     }
     const r: ResultadoPlan = prepararUso(estado, objetoId, personajeId);
     if (!r.ok) return r;
@@ -326,7 +318,7 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     // Quien no puede hacer el descanso largo por hambre tampoco recupera
     const recarga = prepararRecarga(estado, r.hechos, tipo);
     const efectos = descansarEfectos(estado, r.hechos, tipo);
-    const espacios = estado.personajes.filter((p) => r.hechos.includes(p.id) && recuperaEspacios(p, tipo)).map((p) => `${p.nombre.split(' ')[0]}: espacios de conjuro`);
+    const espacios = estado.personajes.filter((p) => r.hechos.includes(p.id) && recuperaEspacios(p, tipo)).map((p) => `${primerNombre(p.nombre)}: espacios de conjuro`);
     cambiar((e) => descansarEspacios(descansarEfectos(aplicarRecarga(descansarRegla(e, r.hechos, tipo).estado, recarga), r.hechos, tipo).estado, r.hechos, tipo));
     return { hechos: r.hechos, bloqueados: r.bloqueados, recargas: [...recarga.textos, ...espacios], terminados: efectos.terminados };
   }, [estado, cambiar]);
@@ -366,15 +358,6 @@ export function CofreProvider({ children }: { children: ReactNode }) {
 
   const ordenar = useCallback((p: Propietario, orden: OrdenInventario) => cambiar((e) => ordenarInventario(e, p, orden)), [cambiar]);
 
-  /** Comprueba un resultado sobre el estado actual y, si vale, repite el cambio sobre el que haya al guardar. */
-  const conResultado = useCallback(<R extends { ok: true; estado: Estado } | { ok: false; motivo: string }>(f: (e: Estado) => R): SinEstado<R> => {
-    const r = f(estado);
-    if (!r.ok) return r as SinEstado<R>;
-    cambiar((e) => { const x = f(e); if (!x.ok) throw new Error(x.motivo); return x.estado; });
-    const { estado: _e, ...resto } = r;
-    return resto as SinEstado<R>;
-  }, [estado, cambiar]);
-
   const recuperar = useCallback((fichaId: string, p: Propietario, n: number) => conResultado((e) => recuperarFicha(e, fichaId, p, n, quien)), [conResultado, quien]);
   const olvidar = useCallback((fichaId: string) => conResultado((e) => olvidarFicha(e, fichaId)), [conResultado]);
   const imagenFicha = useCallback((fichaId: string, url: string | undefined) => cambiar((e) => cambiarImagenFicha(e, fichaId, url)), [cambiar]);
@@ -384,16 +367,18 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     const r = id ? editarCriatura(estado, id, datos) : crearCriatura(estado, datos, quien);
     if (!r.ok) return r;
     const nueva = r.estado.bestiario!.find((c) => c.id === r.id)!;
-    cambiar((e) => (id
-      ? (() => { const x = editarCriatura(e, id, datos); if (!x.ok) throw new Error(x.motivo); return x.estado; })()
-      : { ...e, bestiario: [...(e.bestiario ?? []), nueva] }));
+    cambiar((e) => {
+      if (!id) return { ...e, bestiario: [...(e.bestiario ?? []), nueva] };
+      const x = editarCriatura(e, id, datos);
+      if (!x.ok) throw new Error(x.motivo);
+      return x.estado;
+    });
     return { ok: true as const, id: r.id };
   }, [estado, quien, cambiar]);
 
   const borrarCriatura = useCallback((id: string) => cambiar((e) => eliminarCriatura(e, id)), [cambiar]);
   const encuentro = useCallback((id: string, abatida: boolean) => cambiar((e) => registrarEncuentro(e, id, abatida)), [cambiar]);
 
-  const restablecer = useCallback(() => cambiar(() => estadoVacio()), [cambiar]);
 
   const sync = useMemo<Sincronizacion>(
     () => ({ disponible: supabaseDisponible, conexion, codigo, error: errorSync, descartes, crear, unirse, salir }),
@@ -406,10 +391,10 @@ export function CofreProvider({ children }: { children: ReactNode }) {
       eliminarObjeto: eliminar, usar, usarRasgo: rasgo, comer, cambiarSaciedad: saciedad, descansar, aplicarEfecto: efecto,
       quitarEfecto: quitar, pasarTiempo: tiempo, guardarPersonaje: guardarPj, eliminarPersonaje: eliminarPj, cambiarPv: pv, gastarEspacio: espacio, ordenar,
       recuperarFicha: recuperar, olvidarFicha: olvidar, cambiarImagenFicha: imagenFicha, guardarCriatura, eliminarCriatura: borrarCriatura,
-      registrarEncuentro: encuentro, restablecer,
+      registrarEncuentro: encuentro,
     }),
     [estado, actor, setActor, sync, validar, mover, sintonizar, monedas, cambiarImagen, prepararImagen, guardarObjeto, eliminar,
-      usar, rasgo, comer, saciedad, descansar, efecto, quitar, tiempo, guardarPj, eliminarPj, pv, espacio, ordenar, recuperar, olvidar, imagenFicha, guardarCriatura, borrarCriatura, encuentro, restablecer],
+      usar, rasgo, comer, saciedad, descansar, efecto, quitar, tiempo, guardarPj, eliminarPj, pv, espacio, ordenar, recuperar, olvidar, imagenFicha, guardarCriatura, borrarCriatura, encuentro],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }

@@ -3,8 +3,7 @@
 import { useRef, useState, type CSSProperties } from 'react';
 import { hoja, type Hoja } from '../domain/hoja';
 import {
-  CLASE_RAREZA, conSigno, equipadoEn, fmtKg, MAX_SINTONIZADOS, nivelTotal, objetosDe, ORDENES,
-  pxNivelActual, pxSiguienteNivel, sintonizadosDe,
+  capital, CLASE_RAREZA, conSigno, equipadoEn, fmtKg, MAX_SINTONIZADOS, nivelTotal, objetosDe, ORDENES, primerNombre, pxNivelActual, pxSiguienteNivel, sintonizadosDe,
 } from '../domain/reglas';
 import type { Categoria, Caracteristica, IconoRasgo, Personaje } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
@@ -19,7 +18,7 @@ import { useEditorPersonaje } from './EditorPersonaje';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
 import { baseDe } from './arrastre';
 import { DCHA, IZQ, LADO_RETRATO, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
-import { Esquinas, fmtNum, Icono, Moneda, MONEDAS } from './piezas';
+import { Esquinas, fmtNum, Icono, IconoObjeto, Moneda, MONEDAS } from './piezas';
 
 type Avisar = (texto: string, error?: boolean) => void;
 
@@ -179,7 +178,7 @@ function PuntosDeGolpe({ p, h, avisar }: { p: Personaje; h: Hoja; avisar: Avisar
     if (!valor) return;
     const r = cambiarPv(p.id, signo * valor);
     if (!r) return;
-    const quien = p.nombre.split(' ')[0];
+    const quien = primerNombre(p.nombre);
     avisar(signo < 0 ? `${quien} recibe ${valor} de daño: PV ${r.antes} → ${r.despues}${r.despues === 0 ? ' · ¡inconsciente!' : ''}` : `${quien} se cura ${r.despues - r.antes}: PV ${r.antes} → ${r.despues}`, signo < 0 && r.despues === 0);
     setCantidad('');
   };
@@ -206,7 +205,6 @@ function PuntosDeGolpe({ p, h, avisar }: { p: Personaje; h: Hoja; avisar: Avisar
 
 // ── Equipo ─────────────────────────────────────────────────────────
 
-const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const claseVel = (h: Hoja) => (h.velocidad.caminar.total < h.velocidad.caminar.base ? 'baja' : h.velocidad.caminar.total > h.velocidad.caminar.base ? 'sube' : '');
 
 function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string }) {
@@ -242,7 +240,7 @@ function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string })
             const o = sint[i];
             return o ? (
               <div key={o.id} className={`slot has rombo-s ${CLASE_RAREZA[o.rareza]}`} aria-label={`Sintonizado: ${o.nombre}. Doble clic para desintonizar`} {...props(o)} onPointerDown={undefined}>
-                <Icono d={ICONOS[o.icono]} />
+                <IconoObjeto icono={o.icono} />
               </div>
             ) : (
               <div key={`l${i}`} className="slot ghost rombo-s" aria-label="Ranura de sintonización libre"><Icono d={ESTRELLA} /></div>

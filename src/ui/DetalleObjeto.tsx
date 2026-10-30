@@ -6,14 +6,14 @@ import { DES_MAX_POR_TIPO, NOMBRE_TIPO_ARMADURA } from '../domain/catalogo';
 import { describirMod, nombrePropiedad } from '../domain/describir';
 import { objetosDeFicha } from '../domain/biblioteca';
 import { ataqueDeObjeto } from '../domain/hoja';
-import { CLASE_RAREZA, conSigno, MAX_SINTONIZADOS, nombreDe, NOMBRE_RANURA, sintonizadosDe } from '../domain/reglas';
+import { capital, CLASE_RAREZA, conSigno, MAX_SINTONIZADOS, NOMBRE_RANURA, nombreDe, personajeDelJugador, primerNombre, sintonizadosDe } from '../domain/reglas';
 import { usable } from '../domain/uso';
 import type { FichaObjeto, Objeto, Propietario } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useEscape, useSintonia } from './Dialogos';
 import { useEditor } from './editorCtx';
-import { claseDe, ICONOS, UI } from './iconos';
-import { Esquinas, fmt1, fmtNum, Icono } from './piezas';
+import { claseDe, UI } from './iconos';
+import { Esquinas, fmt1, fmtNum, Icono, ImagenObjeto } from './piezas';
 
 type Abierto = { objetoId: string } | { fichaId: string };
 type Api = { verObjeto: (o: Objeto) => void; verFicha: (f: FichaObjeto) => void };
@@ -32,7 +32,6 @@ export function DetalleProvider({ onAviso, children }: { onAviso: (t: string, er
   );
 }
 
-const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function Detalle({ abierto, onCerrar, onAviso }: { abierto: Abierto; onCerrar: () => void; onAviso: (t: string, error?: boolean) => void }) {
   const { estado, actor, guardarObjeto, cambiarImagenFicha, prepararImagen, usar } = useCofre();
@@ -65,7 +64,7 @@ function Detalle({ abierto, onCerrar, onAviso }: { abierto: Abierto; onCerrar: (
         <button type="button" className="ibtn vo-cerrar" aria-label="Cerrar" onClick={onCerrar}><Icono d={UI.cruz} /></button>
         <div className="vo-arte">
           <div className={`vo-imagen ${datos.imagenUrl ? 'con-imagen' : ''}`}>
-            {datos.imagenUrl ? <img src={datos.imagenUrl} alt={datos.nombre} /> : <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONOS[datos.icono ?? 'bag']} /></svg>}
+            <ImagenObjeto o={datos} alt={datos.nombre} />
             {objeto && objeto.cantidad > 1 && <span className="vo-cantidad">×{objeto.cantidad}</span>}
           </div>
           <div className="vo-imagen-acc">
@@ -85,7 +84,7 @@ function Detalle({ abierto, onCerrar, onAviso }: { abierto: Abierto; onCerrar: (
               {usable(objeto) && (
                 <button type="button" className="btn sec" onClick={() => {
                   // Lo del alijo lo usa quien maneja la app
-                  const yo = estado.personajes.find((p) => p.nombre.split(' ')[0] === actor);
+                  const yo = personajeDelJugador(estado, actor);
                   const r = usar(objeto.id, yo?.id);
                   onAviso(r.ok ? r.texto : r.motivo, !r.ok);
                 }}>
@@ -171,7 +170,7 @@ function Recuperar({ ficha, onAviso, onHecho }: { ficha: FichaObjeto; onAviso: (
   const [error, setError] = useState<string | null>(null);
   const tienen = objetosDeFicha(estado, ficha.id);
   const opciones: { p: Propietario; texto: string; color?: string }[] = [
-    ...estado.personajes.map((p) => ({ p: { tipo: 'personaje' as const, id: p.id }, texto: p.nombre.split(' ')[0], color: p.color })),
+    ...estado.personajes.map((p) => ({ p: { tipo: 'personaje' as const, id: p.id }, texto: primerNombre(p.nombre), color: p.color })),
     { p: { tipo: 'alijo' }, texto: 'Alijo' },
   ];
   const es = (p: Propietario) => JSON.stringify(p) === JSON.stringify(para);

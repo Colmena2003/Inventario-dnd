@@ -1,7 +1,7 @@
 // Diálogos: dividir pila (pantalla 3 del diseño), límite de sintonización (Estados) y elegir quién usa la app.
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { cargaMaxDe, CLASE_RAREZA, MAX_SINTONIZADOS, pesoPersonajeKg, type Destino } from '../domain/reglas';
+import { capital, cargaMaxDe, CLASE_RAREZA, type Destino, MAX_SINTONIZADOS, personajeDelJugador, pesoPersonajeKg, primerNombre } from '../domain/reglas';
 import type { Objeto } from '../domain/tipos';
 import { usable } from '../domain/uso';
 import { useCofre } from '../store/cofre';
@@ -43,7 +43,7 @@ export function DividirPila({ objeto, destino, onCancelar, onMover }: {
   const base = pj ? pesoPersonajeKg(estado, pj) : 0;
   const cap = pj ? cargaMaxDe(estado, pj) : 0;
   const origenPj = objeto.propietario.tipo === 'personaje' ? estado.personajes.find((p) => p.id === (objeto.propietario as { id: string }).id) : undefined;
-  const nombreOrigen = origenPj ? origenPj.nombre.split(' ')[0] : 'alijo';
+  const nombreOrigen = origenPj ? primerNombre(origenPj.nombre) : 'alijo';
 
   return (
     <>
@@ -92,7 +92,7 @@ export function DividirPila({ objeto, destino, onCancelar, onMover }: {
         {pj && (
           <div className="dp-carga">
             <div>
-              <span style={{ color: 'var(--texto-2)' }}>Carga de {pj.nombre.split(' ')[0]} tras mover</span>
+              <span style={{ color: 'var(--texto-2)' }}>Carga de {primerNombre(pj.nombre)} tras mover</span>
               <span>
                 <b>{fmt1(base + anade)}</b> / {cap} kg{' '}
                 <span style={{ color: v.ok ? '#9cc95e' : 'var(--no)' }}>(+{fmt1(anade)} kg)</span>
@@ -147,7 +147,7 @@ export function SintoniaProvider({ onAviso, children }: { onAviso: (texto: strin
 
   const doble = useCallback((o: Objeto) => {
     if (!usable(o) || (o.requiereSintonizacion && !o.sintonizado)) { pedir(o); return; }
-    const yo = estado.personajes.find((p) => p.nombre.split(' ')[0] === actor);
+    const yo = personajeDelJugador(estado, actor);
     const r = usar(o.id, yo?.id);
     onAviso(r.ok ? r.texto : r.motivo, !r.ok);
   }, [pedir, usar, estado.personajes, actor, onAviso]);
@@ -189,7 +189,7 @@ function LimiteSintonia({ objeto, actuales, onCancelar, onSustituir }: {
         <div className="ls-objeto">
           <Ranura objeto={{ ...objeto, cantidad: 1 }} aria-hidden="true" style={{ width: 72, height: 72, cursor: 'default' }} />
           <span className={`ls-nombre ${CLASE_RAREZA[objeto.rareza]}`}>{objeto.nombre}</span>
-          <span className="ls-sub">{objeto.rareza.charAt(0).toUpperCase() + objeto.rareza.slice(1)} · requiere sintonización</span>
+          <span className="ls-sub">{capital(objeto.rareza)} · requiere sintonización</span>
           <span className="ls-rombos" aria-hidden="true">
             {actuales.map((a) => <i key={a.id} className={CLASE_RAREZA[a.rareza]} />)}
             <i className="nuevo" />
@@ -206,7 +206,7 @@ function LimiteSintonia({ objeto, actuales, onCancelar, onSustituir }: {
             <label key={a.id} className={`ls-opcion ${elegido === a.id ? 'on' : ''}`}>
               <input type="radio" name="ls" checked={elegido === a.id} onChange={() => setElegido(a.id)} />
               <Ranura objeto={{ ...a, cantidad: 1, requiereSintonizacion: false }} aria-hidden="true" style={{ width: 36, height: 36, cursor: 'default' }} />
-              <span>{a.nombre} · <span className={CLASE_RAREZA[a.rareza]} style={{ color: 'var(--rc)' }}>{a.rareza.charAt(0).toUpperCase() + a.rareza.slice(1)}</span></span>
+              <span>{a.nombre} · <span className={CLASE_RAREZA[a.rareza]} style={{ color: 'var(--rc)' }}>{capital(a.rareza)}</span></span>
             </label>
           ))}
           <div className="acciones">
@@ -240,7 +240,7 @@ export function QuienEres({ onCerrar }: { onCerrar: () => void }) {
         <p>Tu nombre aparecerá en el historial cuando muevas objetos. No hace falta cuenta.</p>
         <div className="quien">
           {estado.personajes.map((p) => (
-            <button key={p.id} type="button" className={`chip ${actor === p.nombre.split(' ')[0] ? 'on' : ''}`} style={{ borderColor: p.color }} onClick={() => elegir(p.nombre.split(' ')[0])}>
+            <button key={p.id} type="button" className={`chip ${actor === primerNombre(p.nombre) ? 'on' : ''}`} style={{ borderColor: p.color }} onClick={() => elegir(primerNombre(p.nombre))}>
               {p.nombre}
             </button>
           ))}

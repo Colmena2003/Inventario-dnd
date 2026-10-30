@@ -111,8 +111,6 @@ export interface Personaje {
   espaciosMax?: number[];
   /** Espacios de magia del pacto (brujo) gastados. Se recuperan con un descanso corto. */
   pactoUsados?: number;
-  /** Lo ha cambiado un jugador en el editor: la migración de la semilla ya no lo pisa. */
-  editado?: boolean;
 }
 
 // ── Objetos ────────────────────────────────────────────────────────

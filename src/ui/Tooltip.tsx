@@ -6,7 +6,7 @@ import { describirMod, nombrePropiedad } from '../domain/describir';
 import { objetoActivo } from '../domain/efectos';
 import { ataqueDeObjeto } from '../domain/hoja';
 import {
-  CLASE_RAREZA, conSigno, MAX_SINTONIZADOS, nombreDe, NOMBRE_RANURA, SACIEDAD_MAX, sintonizadosDe,
+  capital, CLASE_RAREZA, conSigno, MAX_SINTONIZADOS, nombreDe, NOMBRE_RANURA, SACIEDAD_MAX, sintonizadosDe,
 } from '../domain/reglas';
 import type { Objeto } from '../domain/tipos';
 import { usable } from '../domain/uso';
@@ -45,7 +45,6 @@ export function TooltipProvider({ lienzo, escala, children }: { lienzo: RefObjec
   );
 }
 
-const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function FichaObjeto({ objeto: o0, left, top }: Pos) {
   // Si con todo su contenido no cabe hasta abajo, sube lo justo

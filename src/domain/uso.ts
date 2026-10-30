@@ -3,8 +3,8 @@
 // repetirla sobre un estado más nuevo (sincronización) no cambie el resultado.
 
 import { hoja } from './hoja';
-import { nuevoId } from './reglas';
-import type { Duracion, EfectoTemporal, Estado, Objeto, Personaje, PlantillaEfecto } from './tipos';
+import { nuevoId, primerNombre } from './reglas';
+import type { Duracion, EfectoTemporal, Estado, Objeto, PlantillaEfecto } from './tipos';
 
 // ── Dados ──────────────────────────────────────────────────────────
 
@@ -50,7 +50,6 @@ export interface PlanUso {
 
 export type ResultadoPlan = { ok: true; plan: PlanUso; texto: string } | { ok: false; motivo: string };
 
-const nombreCorto = (p: Personaje) => p.nombre.split(' ')[0];
 
 /**
  * Prepara el uso: comprueba que quede algo que gastar, tira los dados del efecto y decide qué cambia.
@@ -94,7 +93,7 @@ export function prepararUso(e: Estado, objetoId: string, personajeId?: string, r
   if (gasta === 'carga') partes.push(`quedan ${(o.cargas ?? 0) - 1}/${o.cargasMax} cargas`);
   else if (o.cantidad > 1) partes.push(`quedan ${o.cantidad - 1}`);
 
-  return { ok: true, plan, texto: `${nombreCorto(p)} usa ${o.nombre}${partes.length ? `: ${partes.join(' · ')}` : ''}` };
+  return { ok: true, plan, texto: `${primerNombre(p.nombre)} usa ${o.nombre}${partes.length ? `: ${partes.join(' · ')}` : ''}` };
 }
 
 /** Aplica un uso preparado. Lanza un error si ya no se puede (otro jugador lo gastó antes). */
@@ -164,7 +163,7 @@ export function prepararRecarga(e: Estado, ids: string[], descanso: Descanso, rn
       if (r.usosMax == null || (r.usos ?? r.usosMax) >= r.usosMax) continue;
       if (!tocaRecargar(descansoDeRecarga(r.recarga), descanso)) continue;
       plan.rasgos.push({ personajeId: p.id, nombre: r.nombre });
-      plan.textos.push(`${nombreCorto(p)}: ${r.nombre}`);
+      plan.textos.push(`${primerNombre(p.nombre)}: ${r.nombre}`);
     }
   }
   return plan;
@@ -241,7 +240,7 @@ export function pasarTiempo(e: Estado, ids: string[], segundos: number): { estad
     const efectos = p.efectos.flatMap((ef) => {
       if (ef.duracion.tipo !== 'tiempo') return [ef];
       const quedan = ef.duracion.segundos - segundos;
-      if (quedan <= 0) { terminados.push(`${ef.nombre} (${nombreCorto(p)})`); return []; }
+      if (quedan <= 0) { terminados.push(`${ef.nombre} (${primerNombre(p.nombre)})`); return []; }
       return [{ ...ef, duracion: { tipo: 'tiempo' as const, segundos: quedan } }];
     });
     return { ...p, efectos };
@@ -257,7 +256,7 @@ export function descansarEfectos(e: Estado, ids: string[], descanso: Descanso): 
     if (!ids.includes(p.id) || !p.efectos?.length) return p;
     const efectos = p.efectos.filter((ef) => {
       const acaba = ef.duracion.tipo === 'descanso' && (descanso === 'largo' || ef.duracion.descanso === 'corto');
-      if (acaba) terminados.push(`${ef.nombre} (${nombreCorto(p)})`);
+      if (acaba) terminados.push(`${ef.nombre} (${primerNombre(p.nombre)})`);
       return !acaba;
     });
     return { ...p, efectos };

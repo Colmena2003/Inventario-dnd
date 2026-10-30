@@ -4,7 +4,7 @@
 import ejemplo from '../../datos-ejemplo.json';
 import type { ClaveIcono } from '../ui/iconos';
 import { saciedadDesde100 } from '../domain/reglas';
-import { inferirTipo } from '../domain/objetos';
+import { inferirTipo, VERSION_MODELO } from '../domain/objetos';
 import type { Categoria, Equipado, Estado, Modificador, Objeto, Personaje, Propietario, Rareza, TipoRanura } from '../domain/tipos';
 
 const R: Record<string, Rareza> = { c: 'común', u: 'poco común', r: 'raro', m: 'muy raro', l: 'legendario', a: 'artefacto' };
@@ -269,22 +269,11 @@ const EXTRA: Record<string, Partial<Personaje>> = {
   },
 };
 
-/** Versión del modelo; al subirla, el almacén migra lo guardado (src/domain/objetos.ts). */
-export const VERSION = 5;
-
-/** Una party sin nadie: así empieza un navegador nuevo. Los datos de ejemplo quedan para los tests. */
-export function estadoVacio(): Estado {
-  return {
-    version: VERSION,
-    party: { id: 'party-1', nombre: 'La Compañía', tesoro: { ppt: 0, po: 0, pe: 0, pp: 0, pc: 0 } },
-    personajes: [], objetos: [], movimientos: [],
-  };
-}
-
+/** La party de ejemplo con sus objetos: la usan los tests. La app empieza vacía (estadoVacio). */
 export function estadoInicial(): Estado {
   n = 0;
   return {
-    version: VERSION,
+    version: VERSION_MODELO,
     party: ejemplo.party,
     personajes: ejemplo.personajes.map(({ ca: _ca, ...p }) => ({ ...p, saciedad: saciedadDesde100(p.saciedad), ...EXTRA[p.id] })) as Personaje[],
     objetos: objetos(),

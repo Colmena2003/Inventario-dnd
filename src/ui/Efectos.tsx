@@ -11,6 +11,7 @@ import { useEscape } from './Dialogos';
 import { CamposDuracion, Campo, EditorModificadores, Seccion } from './EditorObjeto';
 import { UI } from './iconos';
 import { Esquinas, Icono } from './piezas';
+import { primerNombre } from '../domain/reglas';
 
 const PASOS: [string, number][] = [['1 ronda', RONDA], ['1 min', MINUTO], ['10 min', 10 * MINUTO], ['1 h', HORA]];
 
@@ -69,7 +70,7 @@ function DialogoEfecto({ p, onCerrar, avisar }: { p: Personaje; onCerrar: () => 
     if (!ef.nombre.trim()) { setError('Ponle un nombre'); return; }
     if (!quienes.length) { setError('Elige a quién se aplica'); return; }
     aplicarEfecto(quienes, { ...ef, nombre: ef.nombre.trim() });
-    const nombres = estado.personajes.filter((x) => quienes.includes(x.id)).map((x) => x.nombre.split(' ')[0]);
+    const nombres = estado.personajes.filter((x) => quienes.includes(x.id)).map((x) => primerNombre(x.nombre));
     avisar(`${ef.nombre.trim()} (${textoDuracion(ef.duracion)}): ${nombres.join(', ')}`);
     onCerrar();
   };

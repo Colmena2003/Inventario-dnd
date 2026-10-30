@@ -1,8 +1,9 @@
 // Configuración de cada jugador: se guarda en su navegador y no viaja a la party, así que lo que cambia
 // aquí solo lo ve él. De momento, el color del tema (src/styles/tema.css).
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useRef, useState, type CSSProperties } from 'react';
 import { UI } from './iconos';
+import { useCerrarFuera } from './Menu';
 import { Icono } from './piezas';
 
 const CLAVE = 'cofre:tema';
@@ -63,15 +64,9 @@ export const aplicarTemaGuardado = () => aplicar(leer());
 export function BotonConfiguracion() {
   const [abierto, setAbierto] = useState(false);
   const [tema, setTema] = useState(leer);
-  const panel = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!abierto) return;
-    const fuera = (e: PointerEvent) => { if (!panel.current?.parentElement?.contains(e.target as Node)) setAbierto(false); };
-    const tecla = (e: KeyboardEvent) => e.key === 'Escape' && setAbierto(false);
-    window.addEventListener('pointerdown', fuera);
-    window.addEventListener('keydown', tecla);
-    return () => { window.removeEventListener('pointerdown', fuera); window.removeEventListener('keydown', tecla); };
-  }, [abierto]);
+  const ancla = useRef<HTMLSpanElement>(null);
+  const cerrar = useCallback(() => setAbierto(false), []);
+  useCerrarFuera(ancla, abierto, cerrar);
 
   const elegir = (t: Tema) => {
     setTema(t);
@@ -80,7 +75,7 @@ export function BotonConfiguracion() {
   };
 
   return (
-    <span className="filtros-ancla">
+    <span ref={ancla} className="filtros-ancla">
       <button
         type="button" className="rbtn" aria-label="Configuración" title="Configuración"
         aria-haspopup="dialog" aria-expanded={abierto} onClick={() => setAbierto((x) => !x)}
@@ -88,7 +83,7 @@ export function BotonConfiguracion() {
         <Icono d={UI.engranaje} />
       </button>
       {abierto && (
-        <div ref={panel} className="panel filtros-panel config-panel" role="dialog" aria-label="Configuración">
+        <div className="panel filtros-panel config-panel" role="dialog" aria-label="Configuración">
           <span className="k">Color del tema</span>
           <div className="temas" role="radiogroup" aria-label="Color del tema">
             {TEMAS.map((t) => (

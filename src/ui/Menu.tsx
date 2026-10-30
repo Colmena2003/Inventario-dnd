@@ -8,17 +8,23 @@ export type OpcionMenu =
   | { titulo: string }
   | 'separador';
 
-function ListaMenu({ opciones, onCerrar, className = '', style }: { opciones: OpcionMenu[]; onCerrar: () => void; className?: string; style?: CSSProperties }) {
-  const ref = useRef<HTMLDivElement>(null);
+/** Cierra un desplegable al pulsar fuera de `ref` o con Escape. */
+export function useCerrarFuera(ref: RefObject<HTMLElement>, abierto: boolean, onCerrar: () => void) {
   useEffect(() => {
+    if (!abierto) return;
     const fuera = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) onCerrar(); };
     const tecla = (e: KeyboardEvent) => e.key === 'Escape' && onCerrar();
     // Se espera un ciclo para que el mismo clic que lo abre no lo cierre
     const t = setTimeout(() => window.addEventListener('pointerdown', fuera));
     window.addEventListener('keydown', tecla);
-    ref.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus();
     return () => { clearTimeout(t); window.removeEventListener('pointerdown', fuera); window.removeEventListener('keydown', tecla); };
-  }, [onCerrar]);
+  }, [ref, abierto, onCerrar]);
+}
+
+function ListaMenu({ opciones, onCerrar, className = '', style }: { opciones: OpcionMenu[]; onCerrar: () => void; className?: string; style?: CSSProperties }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useCerrarFuera(ref, true, onCerrar);
+  useEffect(() => { ref.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus(); }, []);
   return (
     <div ref={ref} role="menu" className={`panel menu ${className}`} style={style}>
       {opciones.map((o, i) => (o === 'separador' ? <hr key={i} />

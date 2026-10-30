@@ -37,7 +37,6 @@ function limpiar(p: Personaje): Personaje {
     resistencias: p.resistencias.map((x) => x.trim()).filter(Boolean),
     rasgos: (p.rasgos ?? []).filter((x) => x.nombre.trim()).map((x) => ({ ...x, nombre: x.nombre.trim() })),
     pvActual: Math.max(0, Math.min(p.pvActual, p.pvMax * 2)),
-    editado: true,
   };
   if (r.competencias && !r.competencias.salvaciones?.length && !r.competencias.habilidades?.length && !r.competencias.pericia?.length) delete r.competencias;
   return r;

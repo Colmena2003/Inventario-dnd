@@ -268,7 +268,7 @@ function ataquesDe(e: Estado, h: Hoja): AtaqueArma[] {
   return r;
 }
 
-export function ataqueCon(h: Hoja, o: Objeto, ranura: 'cuerpoACuerpo' | 'distancia', indice: number, otra?: Objeto): AtaqueArma {
+function ataqueCon(h: Hoja, o: Objeto, ranura: 'cuerpoACuerpo' | 'distancia', indice: number, otra?: Objeto): AtaqueArma {
   const props = new Set(o.propiedades ?? []);
   const armaDist = props.has('municion');
   const lanzada = ranura === 'distancia' && !armaDist && props.has('arrojadiza');
