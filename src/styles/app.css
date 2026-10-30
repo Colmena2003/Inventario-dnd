@@ -117,8 +117,9 @@
 .ataques b { font-size: 17px; font-weight: 700; color: var(--t-f2e6c8); }
 .ataques i { font-style: normal; font-size: 15px; color: var(--t-cfc3aa); }
 
-.rejilla { display: grid; gap: 4px; padding: 0 2px; margin-top: 2px; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--t-4d3e25) transparent; align-content: start; }
-.rejilla.inv { grid-template-columns: repeat(7, var(--slot)); justify-content: space-between; max-height: calc(var(--slot) * 5 + 16px); }
+/* Margen interior para que el borde y el brillo de una casilla resaltada no se corten; el margen negativo lo compensa */
+.rejilla { display: grid; gap: 4px; padding: 5px 4px; margin: -3px -2px 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--t-4d3e25) transparent; align-content: start; }
+.rejilla.inv { grid-template-columns: repeat(7, var(--slot)); justify-content: space-between; max-height: calc(var(--slot) * 5 + 26px); }
 
 .pie-col { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px 8px 2px; }
 .pie-carga { display: flex; align-items: center; gap: 10px; font-family: var(--f-datos); }
