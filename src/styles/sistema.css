@@ -52,6 +52,9 @@ button { font: inherit; }
 .slot img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 .slot.ghost { color: var(--t-4a4034); }
 .slot.ghost svg { opacity: .55; filter: none; }
+/* Iconos de game-icons.net: rellenos, algo más grandes y muy tenues en una ranura de equipo vacía */
+.slot svg.ic-juego { width: 70%; height: 70%; }
+.slot.ghost svg.ic-juego { opacity: .4; }
 .slot.drop-ok { border-color: var(--ok); background: radial-gradient(circle, rgba(115, 226, 129, .28), transparent 75%), #0f1a10; box-shadow: 0 0 0 2px var(--ok), 0 0 22px rgba(115, 226, 129, .55); }
 .slot.drop-no { border-color: var(--no); box-shadow: 0 0 0 2px var(--no), 0 0 18px rgba(239, 90, 85, .45); }
 .slot.origin { border: 1px dashed var(--t-8a7a5a); background: rgba(0, 0, 0, .25); box-shadow: none; }

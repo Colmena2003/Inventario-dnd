@@ -17,7 +17,7 @@ Se abre en http://localhost:5173. Otros comandos: `npm test` (reglas de negocio)
 
 Hecho:
 
-- Sistema visual del diseño (`src/styles/sistema.css`) e iconos (`src/ui/iconos.ts`).
+- Sistema visual del diseño (`src/styles/sistema.css`). Iconos de interfaz de línea (`src/ui/iconos.ts`) e iconos de objetos, clases, bestiario y marca de [game-icons.net](https://game-icons.net) (`src/ui/iconosJuego.ts`), de Lorc, Delapouite y Faithtoken, con licencia [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/); el crédito sale también en la configuración de la app.
 - Vista grupal: una columna por personaje (más anchas con 2 o 3), equipo, CA, ataque y daño calculados, inventario, saciedad y carga al pie, y alijo con filtros.
 - Arrastrar y soltar entre personajes, alijo y ranuras de equipo, con validación de carga y de ranura. Mayús al soltar abre «Dividir pila».
 - Tooltip de objeto, avisos de movimiento, búsqueda que atenúa lo que no coincide e imagen de personaje subida desde el botón de la cámara.

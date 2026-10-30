@@ -9,6 +9,7 @@ import { BotonConfiguracion } from './Configuracion';
 import { useEditorPersonaje } from './EditorPersonaje';
 import { useFiltros } from './filtrosCtx';
 import { UI } from './iconos';
+import { JUEGO } from './iconosJuego';
 import { useCerrarFuera } from './Menu';
 import { fmt1, fmtNum, iniciales, Icono, Moneda, MONEDAS } from './piezas';
 
@@ -44,7 +45,7 @@ export function Topbar({ activa, onPestana, busqueda, onBusqueda, onParty }: {
         <svg viewBox="0 0 40 40" width="38" height="38" aria-hidden="true" style={{ flex: 'none' }}>
           <path d="M20 2l16 9v18l-16 9-16-9V11z" fill="#120f0b" stroke="#a88a4c" strokeWidth="1.2" />
           <path d="M20 7l11 6.3v13.4L20 33 9 26.7V13.3z" fill="none" stroke="#5e4c2b" strokeWidth="1" />
-          <path d="M12 21h16v7H12zM12 21a8 5 0 0 1 16 0M18.6 22.5h2.8v3h-2.8z" fill="none" stroke="#e2c27a" strokeWidth="1.3" strokeLinejoin="round" />
+          <svg x="10.5" y="11" width="19" height="19" viewBox="0 0 512 512" fill="#e2c27a"><path d={JUEGO.cofre} /></svg>
         </svg>
         <div className="marca-t">
           <b>Cofre de la Compañía</b>

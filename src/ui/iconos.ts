@@ -1,41 +1,11 @@
-// Trazos SVG (viewBox 24×24) extraídos del objeto IC de diseno/Main.dc.html y Topbar.dc.html.
+// Iconos de la interfaz: trazos de línea (viewBox 24×24) de diseno/Main.dc.html y Topbar.dc.html. Los de los
+// objetos, las clases y el bestiario son de game-icons.net (iconosJuego.ts).
 
 import { capital } from '../domain/reglas';
 
-export const ICONOS = {
-  sword: 'M20 4l-1.5 5.5L9 19l-4-4 9.5-9.5zM6 14l4 4M4.5 19.5L3 21M7.5 16.5L5 19',
-  axe: 'M5 21L16 10M13 4.5c3.5-1.5 7 .5 7.5 4-2 2.5-5 3.5-7.5 3l-1.5-1.5c-.5-2.5.5-4 1.5-5.5z',
-  bow: 'M5 3c9 1 15 7 16 16M5 3l16 16M5 3v4M5 3h4M3 21l7-7',
-  staff: 'M4 21L15 10M17 9a3 3 0 1 0-2-5 3 3 0 0 0 2 5zM19 2.5l.5 1.5M21.5 5l-1.5.5',
-  dagger: 'M20 4l-9 9-2-2 9-9zM12 14l-2 2-2-2 2-2M8 16l-4 4M7 11l6 6',
-  shield: 'M12 3l7 2.5V12c0 4.2-3 7.3-7 9-4-1.7-7-4.8-7-9V5.5zM12 3v18M5 11h14',
-  helm: 'M5 15a7 7 0 0 1 14 0v4H5zM12 8V4M9.5 19v-4h5v4',
-  armor: 'M8 4h8l3.5 3-2.5 4v9H7v-9L4.5 7zM9 4a3 3 0 0 0 6 0M12 7v13M7 13h10',
-  cloak: 'M9 4h6l1.5 3L20 20H4L7.5 7zM9 4l3 4 3-4M12 8v12',
-  gloves: 'M8 21v-5l-2.5-5V6.5a1 1 0 0 1 2 0V10V4.5a1 1 0 0 1 2 0V10V4a1 1 0 0 1 2 0v6V5a1 1 0 0 1 2 0v8l1.8-1.8a1.2 1.2 0 0 1 1.9 1.5L15 17.5V21z',
-  boots: 'M7 3h5v10l5.5 2.5A3 3 0 0 1 19.5 18.5V21H6v-4.5zM6 17h13.5',
-  amulet: 'M6 3c0 5.5 2.7 8.5 6 8.5S18 8.5 18 3M12 11.5l3 4-3 5-3-5z',
-  ring: 'M12 21a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM9.5 5.5L12 3l2.5 2.5L12 8z',
-  potion: 'M10 3h4M10.5 3v5L6 15a4.2 4.2 0 0 0 3.6 6h4.8a4.2 4.2 0 0 0 3.6-6l-4.5-7V3M7 14.5h10',
-  scroll: 'M7 4h11a2 2 0 0 1 0 4h-1v10a2 2 0 0 1-2 2H5a2 2 0 0 1 0-4h2zM18 8H7M10 11h4M10 14h4',
-  book: 'M5 5.5A1.5 1.5 0 0 1 6.5 4H19v13H6.5A1.5 1.5 0 0 0 5 18.5zM5 18.5A1.5 1.5 0 0 0 6.5 20H19v-3M12 7.5l1.2 2 2.3.3-1.7 1.6.4 2.3-2.2-1.1-2.2 1.1.4-2.3-1.7-1.6 2.3-.3z',
-  key: 'M8 20a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 13l9-9M17 7l2 2M14.5 9.5l2 2',
-  gem: 'M7 4h10l4 5-9 11L3 9zM3 9h18M9 4l3 5 3-5M12 9v11',
-  herb: 'M12 21V10M12 10C12 6 9 3 5 3c0 4 3 7 7 7zM12 15c0-3.5 3-6.5 7-6.5 0 4-3 6.5-7 6.5z',
-  ore: 'M4 16l3-8 6-3 6 4 1 7-6 4-8-1zM7 8l6 4 7-3M13 12l1 8M4 16l9-4',
-  fang: 'M5 4c2 6 3 11 7 16 4-5 5-10 7-16-2 2-4 3-7 3S7 6 5 4zM12 7v8',
-  bread: 'M4 13c0-4 3.6-7 8-7s8 3 8 7v5H4zM8.5 9.5l1 2.5M12 8.5v3M15.5 9.5l-1 2.5',
-  meat: 'M15 3.5a5.5 5.5 0 0 1 0 11c-1.6 0-2.8-.6-3.8-1.6L6.5 17.6a2 2 0 1 1-2.1 2 2 2 0 1 1 2-2.1l4.7-4.7c-1-1-1.6-2.2-1.6-3.8A5.5 5.5 0 0 1 15 3.5z',
-  apple: 'M12 7.5c-3-2-8-1-8 4.5 0 5 3 9 5 9 1 0 2-.5 3-.5s2 .5 3 .5c2 0 5-4 5-9 0-5.5-5-6.5-8-4.5zM12 7.5c0-2 1-3.5 3-4.5',
-  flask: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3M7.5 15h9',
-  hammer: 'M13 4l7 7-2.5 2.5-7-7zM10.5 9.5L3 17l3 3 7.5-7.5',
-  bag: 'M8 8V6a4 4 0 0 1 8 0v2M5 8h14l-1.2 13H6.2zM9 12h6',
-  torch: 'M10 21l-1-10h6l-1 10zM12 11c-2.5-1.5-3-4-1-7 0 2 2 2.5 2 4 1-1 1.5-2 1.5-3 1.5 2 1 5-2.5 6z',
-  drop: 'M12 3c3 4.5 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-6.5 6-11z',
-  mushroom: 'M4 12a8 7 0 0 1 16 0zM10 12v7a2 2 0 0 0 4 0v-7',
-} as const;
+import { ICONOS, type ClaveIcono } from './iconosJuego';
 
-export type ClaveIcono = keyof typeof ICONOS;
+export { ICONOS, type ClaveIcono };
 
 /** Qué es cada icono, en palabras: se ve al elegirlo y en el objeto si no tiene una clase más concreta. */
 export const NOMBRE_ICONO: Record<ClaveIcono, string> = {

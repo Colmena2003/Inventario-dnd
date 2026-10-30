@@ -15,7 +15,7 @@ import { EspaciosConjuro } from './Espacios';
 import { BotonMenu } from './Menu';
 import { useEditor } from './editorCtx';
 import { useEditorPersonaje } from './EditorPersonaje';
-import { ICONOS, UI, type ClaveIcono } from './iconos';
+import { UI, type ClaveIcono } from './iconos';
 import { baseDe } from './arrastre';
 import { DCHA, IZQ, LADO_RETRATO, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { Esquinas, fmtNum, Icono, IconoObjeto, Moneda, MONEDAS } from './piezas';
@@ -44,11 +44,11 @@ const ICONO_RASGO: Record<IconoRasgo, { d: string; c: string }> = {
   corazon: { d: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z', c: '#9cc95e' },
   rayo: { d: 'M13 2L4 14h7l-1 8 9-12h-7z', c: '#f0c86a' },
   ojo: { d: 'M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', c: '#8fc3ff' },
-  espada: { d: ICONOS.sword, c: '#d8ccb3' },
-  escudo: { d: ICONOS.shield, c: '#d8ccb3' },
+  espada: { d: 'M20 4l-1.5 5.5L9 19l-4-4 9.5-9.5zM6 14l4 4M4.5 19.5L3 21M7.5 16.5L5 19', c: '#d8ccb3' },
+  escudo: { d: 'M12 3l7 2.5V12c0 4.2-3 7.3-7 9-4-1.7-7-4.8-7-9V5.5zM12 3v18M5 11h14', c: '#d8ccb3' },
   estrella: { d: 'M12 2.5l2.4 6.1 6.1 2.4-6.1 2.4L12 19.5l-2.4-6.1L3.5 11l6.1-2.4z', c: '#c98dff' },
-  libro: { d: ICONOS.book, c: '#8fc3ff' },
-  mano: { d: ICONOS.gloves, c: '#d8ccb3' },
+  libro: { d: 'M5 5.5A1.5 1.5 0 0 1 6.5 4H19v13H6.5A1.5 1.5 0 0 0 5 18.5zM5 18.5A1.5 1.5 0 0 0 6.5 20H19v-3M12 7.5l1.2 2 2.3.3-1.7 1.6.4 2.3-2.2-1.1-2.2 1.1.4-2.3-1.7-1.6 2.3-.3z', c: '#8fc3ff' },
+  mano: { d: 'M8 21v-5l-2.5-5V6.5a1 1 0 0 1 2 0V10V4.5a1 1 0 0 1 2 0V10V4a1 1 0 0 1 2 0v6V5a1 1 0 0 1 2 0v8l1.8-1.8a1.2 1.2 0 0 1 1.9 1.5L15 17.5V21z', c: '#d8ccb3' },
 };
 
 const ESTRELLA = ICONO_RASGO.estrella.d;
@@ -287,16 +287,18 @@ function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string })
 
 // ── Inventario ─────────────────────────────────────────────────────
 
-const CATEGORIAS: { t: string; cat: Categoria | null; ic: string }[] = [
-  { t: 'Todo', cat: null, ic: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z' },
-  { t: 'Armas', cat: 'Armas', ic: ICONOS.sword },
-  { t: 'Armaduras', cat: 'Armaduras', ic: ICONOS.armor },
-  { t: 'Pociones', cat: 'Pociones', ic: ICONOS.potion },
-  { t: 'Pergaminos', cat: 'Pergaminos', ic: ICONOS.scroll },
-  { t: 'Materiales', cat: 'Materiales', ic: ICONOS.ore },
-  { t: 'Comida', cat: 'Comida', ic: ICONOS.bread },
-  { t: 'Llaves/misión', cat: 'Llaves/misión', ic: ICONOS.key },
-  { t: 'Varios', cat: 'Varios', ic: ICONOS.bag },
+const TODO = 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z';
+
+const CATEGORIAS: { t: string; cat: Categoria | null; ic: ClaveIcono | null }[] = [
+  { t: 'Todo', cat: null, ic: null },
+  { t: 'Armas', cat: 'Armas', ic: 'sword' },
+  { t: 'Armaduras', cat: 'Armaduras', ic: 'armor' },
+  { t: 'Pociones', cat: 'Pociones', ic: 'potion' },
+  { t: 'Pergaminos', cat: 'Pergaminos', ic: 'scroll' },
+  { t: 'Materiales', cat: 'Materiales', ic: 'ore' },
+  { t: 'Comida', cat: 'Comida', ic: 'bread' },
+  { t: 'Llaves/misión', cat: 'Llaves/misión', ic: 'key' },
+  { t: 'Varios', cat: 'Varios', ic: 'bag' },
 ];
 
 function Inventario({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string }) {
@@ -334,7 +336,7 @@ function Inventario({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: strin
       <div className="categorias" role="group" aria-label="Filtrar por categoría">
         {CATEGORIAS.map((c, i) => (
           <button key={c.t} type="button" className={`chip chip-i ${i === cat ? 'on' : ''}`} aria-pressed={i === cat} onClick={() => setCat(i)}>
-            <Icono d={c.ic} />{c.t}
+            {c.ic ? <IconoObjeto icono={c.ic} /> : <Icono d={TODO} />}{c.t}
           </button>
         ))}
       </div>

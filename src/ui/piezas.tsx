@@ -13,10 +13,19 @@ export function Icono({ d, size }: { d: string; size?: number }) {
   );
 }
 
-/** El icono de un tipo de objeto. Todos los iconos de objeto se pintan aquí. */
-export function IconoObjeto({ icono, size }: { icono?: string; size?: number }) {
-  return <Icono d={ICONOS[(icono ?? 'bag') as ClaveIcono] ?? ICONOS.bag} size={size} />;
+/** Un icono de game-icons.net (iconosJuego.ts), relleno con el color del texto. */
+export function IconoJuego({ d, size, className = '' }: { d: string; size?: number; className?: string }) {
+  return (
+    <svg viewBox="0 0 512 512" aria-hidden="true" width={size} height={size} className={`ic-juego ${className}`} style={{ fill: 'currentColor', stroke: 'none' }}>
+      <path d={d} />
+    </svg>
+  );
 }
+
+/** El icono de un tipo de objeto, con el color de su rareza. */
+export const IconoObjeto = ({ icono, size }: { icono?: string; size?: number }) => (
+  <IconoJuego d={ICONOS[(icono ?? 'bag') as ClaveIcono] ?? ICONOS.bag} size={size} />
+);
 
 /** El dibujo de un objeto: su imagen si la tiene; si no, su icono. */
 export function ImagenObjeto({ o, alt = '' }: { o?: { imagenUrl?: string; icono?: string }; alt?: string }) {

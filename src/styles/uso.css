@@ -126,6 +126,8 @@
 
 /* Configuración del jugador */
 .config-panel { width: 460px; }
+.creditos { font: 13px var(--f-datos); color: var(--texto-3); }
+.creditos a { color: var(--texto-2); }
 .temas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .tema { position: relative; height: 40px; padding: 0 12px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--borde-suave); background: var(--t-0b0907); color: var(--texto-2); font: 15px var(--f-datos); text-align: left; cursor: pointer; }
 .tema:hover { border-color: var(--borde); color: var(--texto); }
