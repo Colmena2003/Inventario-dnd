@@ -20,6 +20,14 @@ function equipar(e: Estado, pjId: string, datos: Partial<Objeto>, indice = 0): E
 }
 
 describe('CA', () => {
+  it('un casco de tipo armadura va en la cabeza y suma a la CA sin sustituirla', () => {
+    const libre = e0.personajes.find((p) => !e0.objetos.some((o) => o.propietario.tipo === 'personaje' && o.propietario.id === p.id && o.equipadoEn?.ranura === 'cabeza'))!;
+    const e1 = equipar(e0, libre.id, { tipo: 'armadura', icono: 'helm', ranuraEquipo: 'cabeza', armadura: { tipo: 'ligera', caBase: 11 }, bonoCa: 1, bonoMagico: 1 });
+    const casco = e1.objetos[e1.objetos.length - 1];
+    expect(casco.equipadoEn?.ranura).toBe('cabeza');
+    expect(casco.armadura).toBeUndefined();
+    expect(hoja(e1, pj(libre.id, e1)).ca.total).toBe(hoja(e0, pj(libre.id)).ca.total + 2);
+  });
   it('se calcula con armadura, escudo, objetos y rasgos', () => {
     // Coraza +1 (14 + 1) + escudo 2 + anillo de protección 1 + estilo Defensa 1, DES 10
     expect(hoja(e0, pj('aldric')).ca.total).toBe(19);

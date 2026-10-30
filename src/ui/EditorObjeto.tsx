@@ -13,12 +13,12 @@ import { CLASE_RAREZA, conSigno, moverObjeto, NOMBRE_RANURA, SACIEDAD_MAX } from
 import { HORA, MINUTO, RONDA, usable } from '../domain/uso';
 import type {
   Categoria, DanoExtra, Duracion, Estado, Modificador, Objeto, ObjetivoMod, Personaje, PlantillaEfecto, PropiedadArma, Propietario,
-  Rareza, TipoArmadura, TipoObjeto, TipoRanura,
+  DatosArmadura, Rareza, TipoObjeto, TipoRanura,
 } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useEscape } from './Dialogos';
 import { CtxEditor, type ApiEditor } from './editorCtx';
-import { ICONOS, UI, type ClaveIcono } from './iconos';
+import { claseDe, ICONOS, NOMBRE_ICONO, UI, type ClaveIcono } from './iconos';
 import { Esquinas, fmtNum, Icono, Ranura } from './piezas';
 
 // ── Contexto: cualquier pantalla puede abrir el editor ─────────────
@@ -281,7 +281,7 @@ function Identidad({ o, cambiar }: Sec) {
         </div>
       </div>
       <div className="campo" style={{ gridColumn: 'span 8' }}>
-        <span className="k">Imagen del objeto, o un icono</span>
+        <span className="k">Imagen del objeto, o un icono{NOMBRE_ICONO[o.icono as ClaveIcono] && <b className="icono-nombre"> · {NOMBRE_ICONO[o.icono as ClaveIcono]}</b>}</span>
         <div className="ed-imagen">
           <button type="button" className={`subir ${o.imagenUrl ? 'con' : ''}`} onClick={() => fichero.current?.click()}>
             {o.imagenUrl ? <img src={o.imagenUrl} alt="" /> : <><Icono d="M12 16V4M7 9l5-5 5 5M5 20h14" size={22} /><span>Subir imagen</span></>}
@@ -290,7 +290,7 @@ function Identidad({ o, cambiar }: Sec) {
           <input ref={fichero} type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiar({ imagenUrl: await prepararImagen(f, 256) }); }} />
           <div className="iconos" role="radiogroup" aria-label="Icono">
             {(Object.keys(ICONOS) as ClaveIcono[]).map((k) => (
-              <button key={k} type="button" role="radio" aria-checked={o.icono === k} aria-label={k} className={`slot ${o.icono === k ? `has ${CLASE_RAREZA[o.rareza]} on` : ''}`} onClick={() => cambiar({ icono: k })}>
+              <button key={k} type="button" role="radio" aria-checked={o.icono === k} aria-label={NOMBRE_ICONO[k]} title={NOMBRE_ICONO[k]} className={`slot ${o.icono === k ? `has ${CLASE_RAREZA[o.rareza]} on` : ''}`} onClick={() => cambiar({ icono: k, ...ranuraDelIcono(o, k) })}>
                 <Icono d={ICONOS[k]} />
               </button>
             ))}
@@ -433,8 +433,43 @@ function DanosExtra({ o, cambiar }: Sec) {
 
 // ── Armaduras y escudos ───────────────────────────────────────────
 
+const PIEZAS_ARMADURA: TipoRanura[] = ['armadura', 'cabeza', 'guantes', 'botas'];
+const ICONO_PIEZA: Partial<Record<TipoRanura, ClaveIcono>> = { armadura: 'armor', cabeza: 'helm', guantes: 'gloves', botas: 'boots' };
+const ARMADURA_NUEVA: DatosArmadura = { tipo: 'ligera', caBase: 11 };
+
+/** Cambiar de pieza: la del cuerpo sustituye la CA; casco, guantes o botas suman a la CA como un escudo. */
+const cambiosDePieza = (o: Objeto, r: TipoRanura): Partial<Objeto> => (r === 'armadura'
+  ? { ranuraEquipo: r, armadura: o.armadura ?? ARMADURA_NUEVA, bonoCa: undefined }
+  : { ranuraEquipo: r, armadura: undefined, bonoCa: o.bonoCa ?? 1 });
+
+/** Elegir el icono de un casco, unos guantes, un anillo… lleva el objeto a esa ranura si su tipo se equipa ahí. */
+function ranuraDelIcono(o: Objeto, k: ClaveIcono): Partial<Objeto> {
+  const r = (Object.keys(ICONO_RANURA) as TipoRanura[]).find((x) => ICONO_RANURA[x] === k) ?? (k === 'armor' ? 'armadura' : undefined);
+  if (!r || r === o.ranuraEquipo) return {};
+  if (o.tipo === 'armadura' && PIEZAS_ARMADURA.includes(r)) return cambiosDePieza(o, r);
+  if (o.tipo === 'equipable' && RANURAS_EQUIPABLE.includes(r)) return { ranuraEquipo: r, categoria: CATEGORIA_EQUIPABLE[r] ?? 'Varios' };
+  return {};
+}
+
 function SeccionArmadura({ o, cambiar }: Sec) {
-  const a = o.armadura ?? { tipo: 'ligera' as TipoArmadura, caBase: 11 };
+  const pieza = o.ranuraEquipo && o.ranuraEquipo !== 'armadura' ? o.ranuraEquipo : null;
+  const elegirPieza = (r: TipoRanura) => cambiar({ ...cambiosDePieza(o, r), icono: ICONO_PIEZA[r] ?? o.icono });
+  const donde = (
+    <div className="campo" style={{ gridColumn: 'span 8' }}>
+      <span className="k">Dónde se lleva</span>
+      <Chips opciones={PIEZAS_ARMADURA} valor={o.ranuraEquipo ?? 'armadura'} nombre={(r) => (r === 'armadura' ? 'Cuerpo' : NOMBRE_RANURA[r])} onCambio={elegirPieza} />
+    </div>
+  );
+  if (pieza) {
+    return (
+      <Seccion titulo="Armadura" nota={`Equipada en ${NOMBRE_RANURA[pieza].toLowerCase()} suma su CA a la que ya tengas, como un escudo. Solo la del cuerpo sustituye la CA sin armadura.`}>
+        {donde}
+        <Campo label="CA que suma" ayuda="Lo normal es +1"><Numero valor={o.bonoCa} min={0} onCambio={(n) => cambiar({ bonoCa: n ?? 0 })} /></Campo>
+        <Campo label="Bono mágico" ayuda="+X a la CA"><Numero valor={o.bonoMagico} vacio="+0" onCambio={(n) => cambiar({ bonoMagico: n || undefined })} /></Campo>
+      </Seccion>
+    );
+  }
+  const a = o.armadura ?? ARMADURA_NUEVA;
   const fijar = (c: Partial<typeof a>) => cambiar({ armadura: { ...a, ...c } });
   const tope = a.desMax !== undefined ? a.desMax : DES_MAX_POR_TIPO[a.tipo];
   const plantilla = (nombre: string) => {
@@ -446,7 +481,8 @@ function SeccionArmadura({ o, cambiar }: Sec) {
     });
   };
   return (
-    <Seccion titulo="Armadura" nota="Equipada en la ranura de armadura sustituye a la CA sin armadura: CA base + DES (con el tope de su tipo) + bonos.">
+    <Seccion titulo="Armadura" nota="Equipada en el cuerpo sustituye a la CA sin armadura: CA base + DES (con el tope de su tipo) + bonos.">
+      {donde}
       <Campo label="Partir de una armadura del manual" ancho={3}>
         <select value="" onChange={(e) => plantilla(e.target.value)}>
           <option value="">Elegir plantilla…</option>
@@ -797,7 +833,7 @@ function VistaPrevia({ o }: { o: Objeto }) {
     const sinElObjeto: Estado = { ...estado, objetos: estado.objetos.filter((x) => x.id !== o.id) };
     return cambios(hoja(sinElObjeto, pj), hoja(simular(estado, o, pj), pj));
   }, [estado, o, pj]);
-  const subtitulo = [o.subtipo ? capital(o.subtipo) : o.categoria, capital(o.rareza)];
+  const subtitulo = [claseDe(o), capital(o.rareza)];
   const nombre = o.nombre.trim() || 'Sin nombre';
 
   return (

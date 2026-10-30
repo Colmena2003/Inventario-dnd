@@ -117,3 +117,4 @@
 .btn.peligro { color: #fff; background: linear-gradient(180deg, #c8403a, #8e2420); border: 1px solid #e0534d; }
 .btn.peligro-sec { color: #f08a84; background: transparent; border: 1px solid #6b2a26; }
 .previa-quien .k { white-space: nowrap; }
+.icono-nombre { color: var(--oro-claro); font-weight: 600; letter-spacing: .06em; }

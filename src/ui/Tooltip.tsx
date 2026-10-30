@@ -12,6 +12,7 @@ import type { Objeto } from '../domain/tipos';
 import { usable } from '../domain/uso';
 import { useCofre } from '../store/cofre';
 import { useArrastre } from './arrastre';
+import { claseDe } from './iconos';
 import { Esquinas, fmt1, fmtNum, Ranura } from './piezas';
 
 type Pos = { objeto: Objeto; left: number; top: number };
@@ -64,7 +65,7 @@ function FichaObjeto({ objeto: o0, left, top }: Pos) {
   if (o.tipoArma) props.unshift(o.tipoArma === 'marcial' ? 'Marcial' : 'Sencilla');
   const sint = dueno ? sintonizadosDe(estado, dueno.id).length : 0;
 
-  const sub = [o.subtipo ? capital(o.subtipo) : o.categoria, capital(o.rareza)];
+  const sub = [claseDe(o), capital(o.rareza)];
   if (o.equipadoEn) sub.push('Equipada');
 
   const [titEfecto, ...restoEfecto] = (o.efectos ?? '').split(/(?<=\.)\s/);

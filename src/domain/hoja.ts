@@ -129,7 +129,7 @@ export function hoja(e: Estado, p: Personaje): Hoja {
   if (armadura && magiaActiva(armadura)) ca = sumar(ca, `${armadura.nombre} (mágica)`, armadura.bonoMagico ?? 0);
   for (const o of activos) {
     if (o.bonoCa) ca = sumar(ca, o.nombre, o.bonoCa);
-    if (o.tipo === 'escudo' && o !== armadura && magiaActiva(o)) ca = sumar(ca, `${o.nombre} (mágico)`, o.bonoMagico ?? 0);
+    if ((o.tipo === 'escudo' || (o.tipo === 'armadura' && o.bonoMagico)) && o !== armadura && magiaActiva(o)) ca = sumar(ca, `${o.nombre} (mágico)`, o.bonoMagico ?? 0);
   }
   ca = sumar(ca, 'Rasgos', p.caExtra ?? 0);
   ca = aplicar(ca, mods, ['ca']);

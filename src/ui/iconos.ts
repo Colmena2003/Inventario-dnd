@@ -35,6 +35,21 @@ export const ICONOS = {
 
 export type ClaveIcono = keyof typeof ICONOS;
 
+/** Qué es cada icono, en palabras: se ve al elegirlo y en el objeto si no tiene una clase más concreta. */
+export const NOMBRE_ICONO: Record<ClaveIcono, string> = {
+  sword: 'Espada', axe: 'Hacha', bow: 'Arco', staff: 'Bastón', dagger: 'Daga', shield: 'Escudo',
+  helm: 'Casco', armor: 'Armadura', cloak: 'Capa', gloves: 'Guantes', boots: 'Botas', amulet: 'Amuleto',
+  ring: 'Anillo', potion: 'Poción', scroll: 'Pergamino', book: 'Libro', key: 'Llave', gem: 'Gema',
+  herb: 'Hierba', ore: 'Mineral', fang: 'Colmillo', bread: 'Pan', meat: 'Carne', apple: 'Fruta',
+  flask: 'Frasco', hammer: 'Martillo', bag: 'Bolsa', torch: 'Antorcha', drop: 'Gota', mushroom: 'Seta',
+};
+
+/** «Casco», «Ración»…: la clase del objeto si la tiene; si no, lo que dice su icono. */
+export const claseDe = (o: { subtipo?: string; icono?: string; categoria?: string }) => {
+  const t = o.subtipo || NOMBRE_ICONO[o.icono as ClaveIcono] || o.categoria || '';
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
+
 // Iconos de interfaz
 export const UI = {
   menu: 'M5 7h14M5 12h14M5 17h14',

@@ -49,8 +49,10 @@ export function limpiar(o: Objeto): Objeto {
   if (r.tipo !== 'arma') {
     for (const k of ['tipoArma', 'dado', 'dadoVersatil', 'tipoDano', 'bonoAtaque', 'bonoDano', 'propiedades', 'otrasPropiedades', 'rango', 'critico', 'danosExtra'] as const) delete r[k];
   }
-  if (r.tipo !== 'armadura') delete r.armadura;
-  if (r.tipo !== 'escudo') delete r.bonoCa;
+  // Una armadura en el cuerpo sustituye la CA; un casco, guantes o botas solo suman (bonoCa), como un escudo
+  const pieza = r.tipo === 'armadura' && r.ranuraEquipo !== 'armadura';
+  if (r.tipo !== 'armadura' || pieza) delete r.armadura;
+  if (r.tipo !== 'escudo' && !pieza) delete r.bonoCa;
   if (!r.modificadores?.length) delete r.modificadores;
   if (r.alUsar && !r.alUsar.nombre.trim()) delete r.alUsar;
   if (r.otrasPropiedades) r.otrasPropiedades = r.otrasPropiedades.map((x) => x.trim()).filter(Boolean);

@@ -12,7 +12,7 @@ import type { FichaObjeto, Objeto, Propietario } from '../domain/tipos';
 import { useCofre } from '../store/cofre';
 import { useEscape, useSintonia } from './Dialogos';
 import { useEditor } from './editorCtx';
-import { ICONOS, UI } from './iconos';
+import { claseDe, ICONOS, UI } from './iconos';
 import { Esquinas, fmt1, fmtNum, Icono } from './piezas';
 
 type Abierto = { objetoId: string } | { fichaId: string };
@@ -109,7 +109,7 @@ function Datos({ datos, objeto }: { datos: Partial<Objeto>; objeto?: Objeto }) {
   const dueno = objeto?.propietario.tipo === 'personaje' ? estado.personajes.find((p) => p.id === (objeto.propietario as { id: string }).id) : undefined;
   const atq = dueno && objeto ? ataqueDeObjeto(estado, dueno, objeto) : null;
   const cantidad = objeto?.cantidad ?? 1;
-  const sub = [datos.subtipo ? capital(datos.subtipo) : datos.categoria];
+  const sub = [claseDe(datos)];
   if (objeto?.equipadoEn) sub.push(`Equipado · ${NOMBRE_RANURA[objeto.equipadoEn.ranura]}`);
   const props = [...(datos.propiedades ?? []).map((p) => nombrePropiedad(datos as Objeto, p)), ...(datos.otrasPropiedades ?? [])];
   if (datos.tipoArma) props.unshift(datos.tipoArma === 'marcial' ? 'Marcial' : 'Sencilla');
