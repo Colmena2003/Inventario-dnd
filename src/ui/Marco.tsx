@@ -17,14 +17,14 @@ import { fmt1, fmtNum, iniciales, Icono, Moneda, MONEDAS } from './piezas';
 export type Pestana = 'grupal' | 'individual' | 'estadisticas' | 'biblioteca' | 'bestiario' | 'crafteo' | 'despensa' | 'monedas';
 
 export const PESTANAS: { id: Pestana; label: string; titulo?: string; d: string }[] = [
-  { id: 'grupal', label: 'Grupal', titulo: 'Inventario grupal', d: 'M3 11h18v9H3zM3 11a9 6 0 0 1 18 0M10.5 13h3v3.5h-3z' },
-  { id: 'individual', label: 'Individual', titulo: 'Inventarios individuales', d: 'M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5' },
-  { id: 'estadisticas', label: 'Estadísticas', d: 'M12 3l8 4.6v8.8L12 21l-8-4.6V7.6zM12 8l4 2.3v4.4L12 17l-4-2.3v-4.4z' },
+  { id: 'grupal', label: 'Grupal', titulo: 'Inventario grupal', d: UI.grupal },
+  { id: 'individual', label: 'Individual', titulo: 'Inventarios individuales', d: UI.persona },
+  { id: 'estadisticas', label: 'Estadísticas', d: UI.estadisticas },
   { id: 'biblioteca', label: 'Biblioteca', titulo: 'Biblioteca de objetos', d: UI.biblioteca },
   { id: 'bestiario', label: 'Bestiario', d: UI.calavera },
   // Crafteo vuelve cuando su pantalla esté hecha:
-  // { id: 'crafteo', label: 'Crafteo', d: 'M13 4l7 7-2.5 2.5-7-7zM10.5 9.5L3 17l3 3 7.5-7.5' },
-  { id: 'despensa', label: 'Despensa', d: 'M3 11h18a9 9 0 0 1-18 0zM8.5 8c0-1 1-1.2 1-2.2S8.5 4.5 8.5 3.5M12 8c0-1 1-1.2 1-2.2S12 4.5 12 3.5M15.5 8c0-1 1-1.2 1-2.2s-1-1.3-1-2.3' },
+  // { id: 'crafteo', label: 'Crafteo', d: UI.engranaje },
+  { id: 'despensa', label: 'Despensa', d: UI.despensa },
 ];
 
 const TEXTO_CONEXION = {
@@ -184,7 +184,7 @@ export function Retratos({ activo, onActivo }: { activo: string | null; onActivo
               <div style={{ height: 4, width: `${Math.round((p.pvActual / p.pvMax) * 100)}%`, background: 'linear-gradient(90deg,#8e2420,#c8403a)' }} />
             </div>
             <div className="mini-sac" title={`Saciedad ${p.saciedad}/${SACIEDAD_MAX}: ${sac.texto}`}>
-              <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" style={{ flex: 'none', fill: 'none', stroke: sac.color, strokeWidth: 2, strokeLinecap: 'round' }}><path d={UI.cuenco} /></svg>
+              <Icono d={UI.cuenco} size={13} style={{ flex: 'none', color: sac.color }} />
               <div><div style={{ height: 4, width: `${(p.saciedad / SACIEDAD_MAX) * 100}%`, background: sac.color }} /></div>
             </div>
           </div>

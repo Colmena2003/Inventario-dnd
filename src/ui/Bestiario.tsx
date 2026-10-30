@@ -16,13 +16,13 @@ import { useEscape } from './Dialogos';
 import { Campo, Numero, Seccion } from './EditorObjeto';
 import { UI } from './iconos';
 import { JUEGO } from './iconosJuego';
-import { Esquinas, Icono, IconoJuego, IconoObjeto, ImagenObjeto } from './piezas';
+import { Esquinas, Icono, IconoObjeto, ImagenObjeto } from './piezas';
 
 type Datos = Omit<Criatura, 'id' | 'creada' | 'actualizada'>;
 type Orden = 'recientes' | 'nombre' | 'desafio' | 'encuentros';
 
 const claseActitud = (a: Actitud) => a.replace(' ', '-');
-const ICONO_ACTITUD: Record<Actitud, string> = { agresiva: JUEGO.garra, 'no agresiva': JUEGO.mano, desconocida: JUEGO.desconocida };
+const ICONO_ACTITUD: Record<Actitud, string> = { agresiva: UI.garra, 'no agresiva': JUEGO.mano, desconocida: JUEGO.desconocida };
 const textoActitud = (a: Actitud) => ACTITUDES.find((x) => x.id === a)!.texto;
 const subtitulo = (c: Datos) => [c.tamano, c.tipo, c.alineamiento].filter(Boolean).join(' · ') || 'Tipo y tamaño sin descubrir';
 
@@ -50,7 +50,7 @@ export function Bestiario({ busqueda }: { busqueda: string }) {
       <header className="panel bib-cab">
         <Esquinas />
         <div className="bib-titulo">
-          <IconoJuego d={JUEGO.calavera} />
+          <Icono d={UI.calavera} />
           <div>
             <h1>Bestiario</h1>
             <span>{todas.length} criaturas · {cuenta('agresiva')} agresivas · {cuenta('no agresiva')} no agresivas · lo que no se sabe queda sin descubrir</span>
@@ -104,8 +104,8 @@ function Carta({ c, onAbrir }: { c: Criatura; onAbrir: () => void }) {
   return (
     <button type="button" className={`cr-carta ${claseActitud(c.actitud)}`} onClick={onAbrir}>
       <span className="cr-arte">
-        {c.imagenUrl ? <img src={c.imagenUrl} alt="" /> : <IconoJuego d={JUEGO.calavera} />}
-        <span className="cr-actitud"><IconoJuego d={ICONO_ACTITUD[c.actitud]} size={13} />{textoActitud(c.actitud)}</span>
+        {c.imagenUrl ? <img src={c.imagenUrl} alt="" /> : <Icono d={UI.calavera} />}
+        <span className="cr-actitud"><Icono d={ICONO_ACTITUD[c.actitud]} size={13} />{textoActitud(c.actitud)}</span>
         {c.desafio && <span className="cr-vd">VD {c.desafio}</span>}
       </span>
       <span className="cr-nombre">{c.nombre}</span>
@@ -173,7 +173,7 @@ function FichaCriatura({ c, onCerrar, onEditar }: { c: Criatura; onCerrar: () =>
               </>
             ) : (
               <button type="button" className="cr-imagen-subir" onClick={() => fichero.current?.click()}>
-                <IconoJuego d={JUEGO.calavera} />
+                <Icono d={UI.calavera} />
                 <span>Sube una imagen de la criatura</span>
               </button>
             )}
@@ -195,7 +195,7 @@ function FichaCriatura({ c, onCerrar, onEditar }: { c: Criatura; onCerrar: () =>
           <header className="cr-ficha-cab">
             <h2 id="cr-t">{c.nombre}</h2>
             <span className="cr-ficha-sub">
-              <span className="cr-actitud grande"><IconoJuego d={ICONO_ACTITUD[c.actitud]} size={15} />{textoActitud(c.actitud)}</span>
+              <span className="cr-actitud grande"><Icono d={ICONO_ACTITUD[c.actitud]} size={15} />{textoActitud(c.actitud)}</span>
               {subtitulo(c)}
             </span>
           </header>

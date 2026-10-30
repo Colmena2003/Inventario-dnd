@@ -2,7 +2,7 @@
 
 import type { Personaje } from '../domain/tipos';
 import { ICONO_CLASE } from './iconosJuego';
-import { IconoJuego } from './piezas';
+import { Icono } from './piezas';
 
 const CLASES = ['Bárbaro', 'Bardo', 'Brujo', 'Clérigo', 'Druida', 'Explorador', 'Guerrero', 'Hechicero', 'Mago', 'Monje', 'Paladín', 'Pícaro', 'Artífice'] as const;
 type Clase = (typeof CLASES)[number];
@@ -23,7 +23,7 @@ const claseDe = (nombre: string): Clase | null => ALIAS[normal(nombre)] ?? null;
 export function IconoClase({ clase, tam = 16 }: { clase: string; tam?: number }) {
   const c = claseDe(clase);
   if (!c) return null;
-  return <IconoJuego d={ICONO_CLASE[c]} size={tam} className="icono-clase" />;
+  return <Icono d={ICONO_CLASE[c]} size={tam} className="icono-clase" />;
 }
 
 /** «🪄 Mago 3 / 🗡 Pícaro 2» */

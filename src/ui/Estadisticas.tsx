@@ -25,8 +25,8 @@ import { Esquinas, iniciales, Icono, ImagenObjeto } from './piezas';
 type Vista = 'resumen' | 'quien' | 'equipo' | 'desglose';
 
 const VISTAS: { id: Vista; texto: string; icono: string; ayuda: string }[] = [
-  { id: 'resumen', texto: 'Resumen', icono: 'M12 3l8 4.6v8.8L12 21l-8-4.6V7.6zM12 8l4 2.3v4.4L12 17l-4-2.3v-4.4z', ayuda: 'Tarjetas, características y combate comparado' },
-  { id: 'quien', texto: '¿Quién tira?', icono: 'M12 3l8 5v8l-8 5-8-5V8zM12 3v18M4 8l16 8M20 8L4 16', ayuda: 'El mejor bono de la party en cada prueba' },
+  { id: 'resumen', texto: 'Resumen', icono: UI.radar, ayuda: 'Tarjetas, características y combate comparado' },
+  { id: 'quien', texto: '¿Quién tira?', icono: UI.dado, ayuda: 'El mejor bono de la party en cada prueba' },
   { id: 'equipo', texto: 'Equipo y riqueza', icono: UI.cofre, ayuda: 'Valor del equipo, objetos mágicos y sintonización' },
   { id: 'desglose', texto: 'Desglose', icono: UI.lupa, ayuda: 'De dónde sale cada número de un personaje' },
 ];

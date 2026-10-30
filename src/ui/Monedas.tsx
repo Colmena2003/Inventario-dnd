@@ -182,7 +182,7 @@ function Botin({ avisar }: { avisar: Avisar }) {
     <section className="panel mon-botin" aria-label="Repartir botín">
       <Esquinas />
       <header>
-        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M4 8c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 8v4c0 1.7 3.6 3 8 3s8-1.3 8-3V8M4 12v4c0 1.7 3.6 3 8 3s8-1.3 8-3v-4" /></svg>
+        <Icono d={UI.monedas} size={30} />
         <div>
           <h2 className="h">Repartir botín</h2>
           <span className="s">Divide a partes iguales entre quien elijas</span>
@@ -356,7 +356,7 @@ function CambiarMonedas({ avisar, onCerrar }: { avisar: Avisar; onCerrar: () => 
       <div className="mon-cambio">
         <input className="inp" inputMode="numeric" aria-label="Cantidad" value={n || ''} onChange={(e) => setN(parseInt(e.target.value.replace(/\D/g, ''), 10) || 0)} />
         {selector(de, setDe, 'Moneda que entregas')}
-        <svg viewBox="0 0 40 20" width="40" height="20" aria-hidden="true"><path d={UI.flecha} fill="none" stroke="#b89a55" strokeWidth="1.6" /></svg>
+        <Icono d={UI.flecha} size={30} style={{ color: 'var(--oro)' }} />
         <b>{recibe ?? '—'}</b>
         {selector(a, setA, 'Moneda que recibes')}
       </div>

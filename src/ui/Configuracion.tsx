@@ -105,7 +105,7 @@ export function BotonConfiguracion() {
             <span>Solo cambia en este navegador: el resto de la party sigue viendo el suyo.</span>
           </footer>
           <span className="creditos">
-            Iconos de <a href="https://game-icons.net" target="_blank" rel="noreferrer">game-icons.net</a>, de Lorc, Delapouite y Faithtoken
+            Iconos de <a href="https://game-icons.net" target="_blank" rel="noreferrer">game-icons.net</a>, de Lorc, Delapouite, Faithtoken, Skoll, Sbed y Badges
             · <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer">CC BY 3.0</a>
           </span>
         </div>

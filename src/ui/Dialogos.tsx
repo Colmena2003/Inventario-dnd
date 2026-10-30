@@ -62,7 +62,7 @@ export function DividirPila({ objeto, destino, onCancelar, onMover }: {
               <span>{objeto.propietario.tipo === 'alijo' ? 'Del ' : 'De '}<b style={{ color: origenPj?.color }}>{nombreOrigen}</b> · quedan {max - n}</span>
             </div>
           </div>
-          <svg viewBox="0 0 40 20" width="40" height="20" aria-hidden="true"><path d={UI.flecha} fill="none" stroke="#b89a55" strokeWidth="1.6" /></svg>
+          <Icono d={UI.flecha} size={30} style={{ color: 'var(--oro)' }} />
           <div>
             <div className="info">
               <span>{pj?.nombre ?? 'Alijo de la party'}</span>

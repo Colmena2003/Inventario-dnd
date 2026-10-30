@@ -1,22 +1,14 @@
 // Piezas comunes del sistema visual: icono, esquinas de panel, orla, ranura y monedas.
 
-import type { HTMLAttributes, ReactNode } from 'react';
+import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 import { CLASE_RAREZA } from '../domain/reglas';
 import type { Monedas, Objeto } from '../domain/tipos';
 import { ESQUINA, ICONOS, type ClaveIcono } from './iconos';
 
-export function Icono({ d, size }: { d: string; size?: number }) {
+/** Un icono de game-icons.net (viewBox 512×512), relleno con el color del texto. */
+export function Icono({ d, size, className = '', style }: { d: string; size?: number; className?: string; style?: CSSProperties }) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" width={size} height={size}>
-      <path d={d} />
-    </svg>
-  );
-}
-
-/** Un icono de game-icons.net (iconosJuego.ts), relleno con el color del texto. */
-export function IconoJuego({ d, size, className = '' }: { d: string; size?: number; className?: string }) {
-  return (
-    <svg viewBox="0 0 512 512" aria-hidden="true" width={size} height={size} className={`ic-juego ${className}`} style={{ fill: 'currentColor', stroke: 'none' }}>
+    <svg viewBox="0 0 512 512" aria-hidden="true" width={size} height={size} className={`ic-juego ${className}`} style={{ ...style, fill: 'currentColor', stroke: 'none' }}>
       <path d={d} />
     </svg>
   );
@@ -24,7 +16,7 @@ export function IconoJuego({ d, size, className = '' }: { d: string; size?: numb
 
 /** El icono de un tipo de objeto, con el color de su rareza. */
 export const IconoObjeto = ({ icono, size }: { icono?: string; size?: number }) => (
-  <IconoJuego d={ICONOS[(icono ?? 'bag') as ClaveIcono] ?? ICONOS.bag} size={size} />
+  <Icono d={ICONOS[(icono ?? 'bag') as ClaveIcono] ?? ICONOS.bag} size={size} />
 );
 
 /** El dibujo de un objeto: su imagen si la tiene; si no, su icono. */

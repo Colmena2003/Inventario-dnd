@@ -15,7 +15,7 @@ import { EspaciosConjuro } from './Espacios';
 import { BotonMenu } from './Menu';
 import { useEditor } from './editorCtx';
 import { useEditorPersonaje } from './EditorPersonaje';
-import { UI, type ClaveIcono } from './iconos';
+import { ICONOS, UI, type ClaveIcono } from './iconos';
 import { baseDe } from './arrastre';
 import { DCHA, IZQ, LADO_RETRATO, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { Esquinas, fmtNum, Icono, IconoObjeto, Moneda, MONEDAS } from './piezas';
@@ -41,18 +41,18 @@ export function Individual({ personajeId, busqueda, avisar }: { personajeId: str
 const CARACTERISTICAS: [Caracteristica, string][] = [['fue', 'FUE'], ['des', 'DES'], ['con', 'CON'], ['int', 'INT'], ['sab', 'SAB'], ['car', 'CAR']];
 
 const ICONO_RASGO: Record<IconoRasgo, { d: string; c: string }> = {
-  corazon: { d: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z', c: '#9cc95e' },
-  rayo: { d: 'M13 2L4 14h7l-1 8 9-12h-7z', c: '#f0c86a' },
-  ojo: { d: 'M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', c: '#8fc3ff' },
-  espada: { d: 'M20 4l-1.5 5.5L9 19l-4-4 9.5-9.5zM6 14l4 4M4.5 19.5L3 21M7.5 16.5L5 19', c: '#d8ccb3' },
-  escudo: { d: 'M12 3l7 2.5V12c0 4.2-3 7.3-7 9-4-1.7-7-4.8-7-9V5.5zM12 3v18M5 11h14', c: '#d8ccb3' },
-  estrella: { d: 'M12 2.5l2.4 6.1 6.1 2.4-6.1 2.4L12 19.5l-2.4-6.1L3.5 11l6.1-2.4z', c: '#c98dff' },
-  libro: { d: 'M5 5.5A1.5 1.5 0 0 1 6.5 4H19v13H6.5A1.5 1.5 0 0 0 5 18.5zM5 18.5A1.5 1.5 0 0 0 6.5 20H19v-3M12 7.5l1.2 2 2.3.3-1.7 1.6.4 2.3-2.2-1.1-2.2 1.1.4-2.3-1.7-1.6 2.3-.3z', c: '#8fc3ff' },
-  mano: { d: 'M8 21v-5l-2.5-5V6.5a1 1 0 0 1 2 0V10V4.5a1 1 0 0 1 2 0V10V4a1 1 0 0 1 2 0v6V5a1 1 0 0 1 2 0v8l1.8-1.8a1.2 1.2 0 0 1 1.9 1.5L15 17.5V21z', c: '#d8ccb3' },
+  corazon: { d: UI.corazon, c: '#9cc95e' },
+  rayo: { d: UI.rayo, c: '#f0c86a' },
+  ojo: { d: UI.ojo, c: '#8fc3ff' },
+  espada: { d: ICONOS.sword, c: '#d8ccb3' },
+  escudo: { d: ICONOS.shield, c: '#d8ccb3' },
+  estrella: { d: UI.estrella, c: '#c98dff' },
+  libro: { d: ICONOS.book, c: '#8fc3ff' },
+  mano: { d: UI.mano, c: '#d8ccb3' },
 };
 
 const ESTRELLA = ICONO_RASGO.estrella.d;
-const ALERTA = 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v6M12 16v.01';
+const ALERTA = UI.alerta;
 /** [5e] Condiciones que perjudican; el resto se muestran como efectos favorables. */
 const CONDICION_MALA = /agotamiento|envenenad|asustad|cegad|aturdid|paralizad|derribad|apresad|incapacitad|petrificad|ensordecid|hechizad|inconsciente|restringid|maldit/i;
 
@@ -287,8 +287,6 @@ function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string })
 
 // ── Inventario ─────────────────────────────────────────────────────
 
-const TODO = 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z';
-
 const CATEGORIAS: { t: string; cat: Categoria | null; ic: ClaveIcono | null }[] = [
   { t: 'Todo', cat: null, ic: null },
   { t: 'Armas', cat: 'Armas', ic: 'sword' },
@@ -336,7 +334,7 @@ function Inventario({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: strin
       <div className="categorias" role="group" aria-label="Filtrar por categoría">
         {CATEGORIAS.map((c, i) => (
           <button key={c.t} type="button" className={`chip chip-i ${i === cat ? 'on' : ''}`} aria-pressed={i === cat} onClick={() => setCat(i)}>
-            {c.ic ? <IconoObjeto icono={c.ic} /> : <Icono d={TODO} />}{c.t}
+            {c.ic ? <IconoObjeto icono={c.ic} /> : <Icono d={UI.todo} />}{c.t}
           </button>
         ))}
       </div>
@@ -348,7 +346,7 @@ function Inventario({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: strin
 
       <footer>
         <div className="carga-tramos">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={UI.peso} /></svg>
+          <Icono d={UI.peso} />
           <div>
             <div className="tramos">
               <div style={{ background: 'rgb(from var(--t-c9a65a) r g b / .14)', borderColor: 'var(--t-4d3e25)' }} />

@@ -42,7 +42,7 @@ export function Biblioteca({ busqueda }: { busqueda: string }) {
       <header className="panel bib-cab">
         <Esquinas />
         <div className="bib-titulo">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={UI.biblioteca} /></svg>
+          <Icono d={UI.biblioteca} />
           <div>
             <h1>Biblioteca de objetos</h1>
             <span>{fichas.length} objetos conocidos · {perdidas} que ya no tiene nadie · se guardan solos al crearlos o editarlos</span>

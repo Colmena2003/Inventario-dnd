@@ -283,7 +283,7 @@ function Identidad({ o, cambiar }: Sec) {
         <span className="k">Imagen del objeto, o un icono{NOMBRE_ICONO[o.icono as ClaveIcono] && <b className="icono-nombre"> · {NOMBRE_ICONO[o.icono as ClaveIcono]}</b>}</span>
         <div className="ed-imagen">
           <button type="button" className={`subir ${o.imagenUrl ? 'con' : ''}`} onClick={() => fichero.current?.click()}>
-            {o.imagenUrl ? <img src={o.imagenUrl} alt="" /> : <><Icono d="M12 16V4M7 9l5-5 5 5M5 20h14" size={22} /><span>Subir imagen</span></>}
+            {o.imagenUrl ? <img src={o.imagenUrl} alt="" /> : <><Icono d={UI.camara} size={22} /><span>Subir imagen</span></>}
           </button>
           {o.imagenUrl && <button type="button" className="enlace" onClick={() => cambiar({ imagenUrl: undefined })}>Quitar imagen</button>}
           <input ref={fichero} type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiar({ imagenUrl: await prepararImagen(f, 256) }); }} />

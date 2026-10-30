@@ -157,7 +157,7 @@ function Columna({ p, indice, ancho, busqueda, onVerFicha }: { p: Personaje; ind
 
       <footer className="pie-col">
         <div className="pie-carga" title={`Saciedad ${p.saciedad}/${SACIEDAD_MAX} · ${sac.efectos.join(' · ') || 'Sin efectos'}`}>
-          <svg viewBox="0 0 24 24" aria-hidden="true" style={{ stroke: sac.color }}><path d={UI.cuenco} /></svg>
+          <Icono d={UI.cuenco} style={{ color: sac.color }} />
           <div>
             <div className="barra-carga" role="meter" aria-valuemin={0} aria-valuemax={SACIEDAD_MAX} aria-valuenow={p.saciedad} aria-label="Saciedad">
               <div style={{ height: 6, width: `${(p.saciedad / SACIEDAD_MAX) * 100}%`, background: `linear-gradient(90deg, ${sac.color}99, ${sac.color})` }} />
@@ -169,7 +169,7 @@ function Columna({ p, indice, ancho, busqueda, onVerFicha }: { p: Personaje; ind
           </div>
         </div>
         <div className="pie-carga">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={UI.peso} /></svg>
+          <Icono d={UI.peso} />
           <div>
             <div className="barra-carga" role="meter" aria-valuemin={0} aria-valuemax={max} aria-valuenow={Number(peso.toFixed(1))} aria-label="Carga">
               <div style={{ height: 8, width: `${Math.min(100, (peso / max) * 100).toFixed(1)}%`, background: `linear-gradient(90deg, ${tramo.color}99, ${tramo.color})`, boxShadow: `0 0 8px ${tramo.color}66` }} />
@@ -226,7 +226,7 @@ function Alijo({ busqueda, ancho, slot }: { busqueda: string; ancho: number; slo
       )}
       <header>
         <div>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={UI.cofre} /></svg>
+          <Icono d={UI.cofre} />
           <h2>Alijo de la party</h2>
         </div>
         <span>Cofre común · cualquiera puede dejar o tomar</span>
