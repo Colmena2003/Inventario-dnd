@@ -18,7 +18,7 @@ Se abre en http://localhost:5173. Otros comandos: `npm test` (reglas de negocio)
 Hecho:
 
 - Sistema visual del diseño (`src/styles/sistema.css`) e iconos (`src/ui/iconos.ts`).
-- Vista grupal: columnas de 3 a 5 personajes, equipo, CA, ataque y daño calculados, inventario, carga y alijo con filtros.
+- Vista grupal: una columna por personaje (más anchas con 2 o 3), equipo, CA, ataque y daño calculados, inventario, saciedad y carga al pie, y alijo con filtros.
 - Arrastrar y soltar entre personajes, alijo y ranuras de equipo, con validación de carga y de ranura. Mayús al soltar abre «Dividir pila».
 - Tooltip de objeto, avisos de movimiento, búsqueda que atenúa lo que no coincide e imagen de personaje subida desde el botón de la cámara.
 - Vista individual: ficha (características, PX, condiciones, resistencias y rasgos), equipo grande con indicador de sintonización e inventario con filtros por categoría y orden por rareza, peso, valor o reciente. Se elige el personaje en los retratos.
@@ -29,8 +29,8 @@ Hecho:
 
 - Objetos con efecto real (`src/domain/hoja.ts`): características, CA, ataque y daño, salvaciones, habilidades, pasivas, iniciativa, velocidades, PV máximos, CD y ataque de conjuros, sentidos, carga, resistencias, inmunidades, ventajas y desventajas. Cada objeto lleva una lista de modificadores (sumar o «pasa a ser al menos», como el Amuleto de la salud) que se aplican mientras está equipado y, si lo pide, sintonizado. Pasando el ratón por un valor se ve de dónde sale.
 - Armas con las propiedades de 5e programadas: sutil (mejor de FUE y DES), arrojadiza, munición (DES), versátil (dado mayor con la otra mano libre), a dos manos (libera la mano secundaria y no deja equipar nada en ella), ligera (ataque con la mano secundaria sin modificador al daño), pesada (desventaja si eres Pequeño), alcance, recarga, plateada y adamantina. Bonos mágicos, daño adicional y rango de crítico. Sin sintonizar, un arma que lo pide no suma su magia.
-- Armaduras con CA base, tope de DES por tipo (la pesada no suma DES), FUE mínima (−3 m) y desventaja en Sigilo; escudos; defensa sin armadura de bárbaro y monje.
-- Añadir objeto en dos pasos: primero el tipo (arma, armadura, escudo, prenda o accesorio, poción, pergamino, comida, material, munición, misión, varios) y después un formulario a medida, con plantillas de las armas y armaduras del manual y una vista previa de cómo cambia al personaje. Clic derecho en cualquier objeto para editarlo o eliminarlo.
+- Armaduras con CA base, tope de DES por tipo (la pesada no suma DES), FUE mínima (−10 pies) y desventaja en Sigilo. También pueden ir en la cabeza, las manos o los pies: entonces suman su CA como un escudo. Escudos; defensa sin armadura de bárbaro y monje.
+- Añadir objeto en dos pasos: primero el tipo (arma, armadura, escudo, prenda o accesorio, poción, pergamino, comida, material, munición, misión, varios) y después un formulario a medida, con plantillas de las armas y armaduras del manual y una vista previa de cómo cambia al personaje. Cada icono dice qué es (Casco, Espada…) y elegirlo lleva la armadura o el accesorio a su ranura. Clic derecho en cualquier objeto para editarlo o eliminarlo.
 - Despensa con el hambre de mazmorra (ver Supuestos), comer, paso del tiempo y descansos. La comida enseña su imagen.
 - Estadísticas en cuatro vistas: Resumen (tarjetas, hexágono de características con leyenda para ocultar personajes y combate comparado: CA, PV, mejor ataque, daño medio, iniciativa, percepción, velocidad y CD), ¿Quién tira? (el mejor bono de la party en cada habilidad, salvación y pasiva), Equipo y riqueza (valor del equipo por dueño, rarezas, sintonización, lo más valioso y la magia que no está haciendo efecto) y Desglose (de dónde sale cada número).
 
@@ -47,12 +47,16 @@ Hecho:
 - Despensa: arrastrar comida sobre un personaje se la da de comer.
 - Espacios de conjuro en la ficha, calculados con las tablas de 5e (multiclase incluida) y la magia del pacto del brujo; se gastan con un clic y vuelven con los descansos (el corto, solo los del pacto). Se pueden ajustar a mano en el editor para subclases lanzadoras.
 - Filtros de búsqueda (embudo de la barra): rareza, categoría, mágicos, con sintonización, equipados, usables y con cargas. Lo que no cumple se atenúa en todas las pantallas.
+- Configuración de cada jugador (engranaje de la barra): color del tema (Oro, Esmeralda, Zafiro, Amatista, Carmesí, Plata u otro). Se guarda en su navegador y no cambia lo que ven los demás.
+- Las imágenes que ya no usa nadie (retratos cambiados, subidas canceladas) se borran solas del almacenamiento pasada una hora.
 
 Pendiente: crafteo.
 
 ## Datos
 
-Sin party compartida, todo vive en el navegador (`localStorage`), empezando por los datos de ejemplo de `src/data/semilla.ts`, que amplían `datos-ejemplo.json` con los objetos del diseño. Para volver a empezar, borra los datos del sitio en el navegador.
+Sin party compartida, todo vive en el navegador (`localStorage`) y se empieza con la party vacía. La party de ejemplo de `src/data/semilla.ts` (que amplía `datos-ejemplo.json` con los objetos del diseño) solo la usan los tests. Para volver a empezar, borra los datos del sitio en el navegador.
+
+Cuando cambia el formato de los datos se sube `VERSION_MODELO` (`src/domain/objetos.ts`) y `migrar` pone al día lo guardado (por ejemplo, la velocidad de metros a pies). La migración solo cambia el formato, nunca el contenido.
 
 ### Sincronizar entre jugadores (Supabase)
 
@@ -68,6 +72,6 @@ Las reglas están en `src/domain/` como funciones puras (`reglas.ts`, `hoja.ts`,
 
 - Todos los personajes son competentes con sus armas y armaduras equipadas.
 - Hambre de mazmorra [casera]: saciedad de 0 a 7. Baja 1 cada 30–90 min (botón «Pasa el tiempo», lo decide el DM), 1 con un descanso corto y 4 con uno largo, que solo se puede empezar con 4 o más. Efectos acumulados: con 3, desventaja en pruebas de característica (−5 a las pasivas); con 2, velocidad a la mitad; con 1, desventaja en ataques y salvaciones; con 0, PV máximos a la mitad. Cada comida dice cuántos puntos llena.
-- Las salvaciones competentes y la característica de conjuros salen de la clase; las razas Pequeñas (mediana, gnomo) van a 7,5 m y las de visión en la oscuridad la tienen a 18 m.
+- Las salvaciones competentes y la característica de conjuros salen de la clase; la velocidad va en pies: 30, o 25 para enanos, medianos y gnomos. Las razas con visión en la oscuridad la tienen a 18 m.
 - Las armas arrojadizas en la ranura «A distancia» usan FUE; las sutiles, la mejor de FUE y DES.
 - Las dos ranuras «Cuerpo a cuerpo» son mano principal y secundaria (escudo).

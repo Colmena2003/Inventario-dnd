@@ -46,7 +46,6 @@
 .pick .caja { width: 20px; height: 20px; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 3px; border: 1px solid var(--t-6b5631); }
 .pick.on .caja { background: var(--oro-claro); border-color: var(--t-f6e2a8); }
 .pick .caja svg { fill: none; stroke: var(--t-1a1206); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.punto { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .mon-recibe { display: flex; flex-direction: column; gap: 10px; padding: 16px; background: rgba(0, 0, 0, .3); border: 1px solid var(--t-2c2419); }
 .mon-cifras { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; font: 600 22px var(--f-titulo); }
 .mon-cifras small { font-size: 15px; }
@@ -88,5 +87,3 @@
 .mon-historial span { margin-left: auto; padding-left: 16px; color: var(--t-8a7f6c); white-space: nowrap; }
 
 .avisos-flot.abajo { left: 124px; width: 1180px; bottom: 30px; }
-.tesoro { cursor: pointer; color: inherit; font: inherit; }
-.tesoro:hover, .tesoro[aria-current='page'] { border-color: var(--oro); }

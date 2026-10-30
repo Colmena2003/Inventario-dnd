@@ -1,6 +1,5 @@
 /* Usar objetos, efectos temporales, editor de personajes y party compartida. */
 
-.anadir { cursor: pointer; }
 .anadir:hover { border-color: var(--oro); color: var(--oro-claro); }
 
 /* Tooltip y editor de objetos */
@@ -111,10 +110,6 @@
 .esp-rombo:hover { border-color: var(--t-e2c27a); }
 .esp-quedan { color: var(--texto-3); font-size: 14px; }
 
-/* La ficha se desplaza si no cabe (muchos rasgos, efectos o espacios) */
-.ficha { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--t-4d3e25) transparent; }
-.ficha > * { flex-shrink: 0; }
-
 /* Formulario de criatura (estilo de los editores) */
 .editor.editor-criatura .ed-cuerpo { grid-template-columns: 1fr 420px; }
 .editor-criatura .cr-carta { height: 520px; pointer-events: none; }
@@ -127,23 +122,7 @@
 .botin-crf .ayuda { grid-column: 2 / -1; margin-top: -4px; }
 .cr-botin-mini .slot img, .cr-botin-item .slot img, .botin-crf .slot img { width: 100%; height: 100%; object-fit: cover; }
 
-/* Despensa: soltar comida sobre un personaje */
-.fila-hambre.drop-ok { border-color: var(--ok) !important; box-shadow: 0 0 0 1px var(--ok), 0 0 18px rgba(115, 226, 129, .35); }
-.fila-hambre.drop-no { border-color: var(--no) !important; box-shadow: 0 0 0 1px var(--no), 0 0 18px rgba(239, 90, 85, .35); }
 .espacios-pj { grid-template-columns: repeat(9, 1fr); }
-
-/* El cuerpo de los editores nunca crece más que la ventana: el pie (Guardar, Cancelar) siempre se ve */
-.ed-cuerpo { grid-template-rows: minmax(0, 1fr); }
-
-/* Ficha más compacta, con la barra de desplazamiento a la vista si no cabe todo */
-.ficha { gap: 10px; padding-top: 18px; padding-bottom: 14px; scrollbar-color: var(--t-8a7040) rgba(0, 0, 0, .25); }
-.ficha header { gap: 5px; }
-.ficha .ficha-bloque { gap: 7px; }
-.ficha .rasgos { gap: 7px; }
-
-/* Botón «Nueva criatura»: icono a su tamaño y texto en una línea */
-.cr-nueva { white-space: nowrap; }
-.cr-nueva svg { width: 16px; height: 16px; flex: none; }
 
 /* Configuración del jugador */
 .config-panel { width: 460px; }

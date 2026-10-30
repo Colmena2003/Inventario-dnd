@@ -8,7 +8,8 @@
 .hambre-lista { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .fila-hambre { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid var(--t-2f271b); background: rgb(from var(--t-0a0806) r g b / .55); }
 .fila-hambre.grave { border-color: #5a2321; background: rgba(224, 83, 77, .06); }
-.fila-hambre.drop-ok { border-color: var(--ok); }
+.fila-hambre.drop-ok { border-color: var(--ok); box-shadow: 0 0 0 1px var(--ok), 0 0 18px rgba(115, 226, 129, .35); }
+.fila-hambre.drop-no { border-color: var(--no); box-shadow: 0 0 0 1px var(--no), 0 0 18px rgba(239, 90, 85, .35); }
 .fh-retrato {
   width: 60px; height: 60px; flex: none; display: flex; align-items: center; justify-content: center; overflow: hidden;
   border: 1px solid var(--pj); background: linear-gradient(180deg, color-mix(in srgb, var(--pj) 45%, var(--t-0b0907)), var(--t-0b0907));

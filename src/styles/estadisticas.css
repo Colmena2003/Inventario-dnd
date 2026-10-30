@@ -4,7 +4,6 @@
 .estadisticas .k { font: 600 13px var(--f-datos); letter-spacing: .12em; text-transform: uppercase; color: var(--t-a99d86); }
 .estadisticas .sec { margin: 6px 0 2px; display: flex; align-items: center; gap: 12px; font: 600 17px var(--f-titulo); letter-spacing: .06em; color: var(--t-d8c38f); }
 .estadisticas .sec::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--t-4d3e25), transparent); }
-.estadisticas .punto { width: 10px; height: 10px; border-radius: 50%; flex: none; display: inline-block; }
 
 /* Pestañas de vista */
 .est-vistas { flex: none; display: flex; align-items: center; gap: 10px; }
