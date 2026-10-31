@@ -17,7 +17,7 @@ import { useEditor } from './editorCtx';
 import { useEditorPersonaje } from './EditorPersonaje';
 import { ICONOS, UI, type ClaveIcono } from './iconos';
 import { baseDe } from './arrastre';
-import { DCHA, IZQ, LADO_RETRATO, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { DCHA, IZQ, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { Esquinas, fmtNum, Icono, IconoObjeto, Moneda, MONEDAS } from './piezas';
 import { TiroAtaque, TiroDano } from './TirarArma';
 
@@ -255,7 +255,7 @@ function Equipo({ p, h, busqueda }: { p: Personaje; h: Hoja; busqueda: string })
       </button>
       <input
         ref={fichero} type="file" accept="image/*" hidden
-        onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiarImagen(p.id, await prepararImagen(f, LADO_RETRATO)); }}
+        onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiarImagen(p.id, await prepararImagen(f)); }}
       />
 
       <div className="equipo-izq">{IZQ.map(([r, ic]) => ranura(r, 0, ic))}</div>

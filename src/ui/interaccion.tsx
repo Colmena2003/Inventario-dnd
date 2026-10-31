@@ -229,8 +229,8 @@ export function Silueta({ tinte, id, arma, className, aura = true }: { tinte: st
   );
 }
 
-/** Lado mayor de un retrato: el mismo se suba desde donde se suba, porque se ve en grande en la ficha. */
-export const LADO_RETRATO = 900;
+/** Lado mayor de cualquier imagen subida (retratos, objetos, criaturas): la misma calidad se suba desde donde se suba, porque todas se ven en grande en su ficha. */
+export const LADO_IMAGEN = 900;
 
 /** Reduce la imagen subida para que quepa en el almacenamiento local. */
 export function reducirImagen(f: File, lado: number): Promise<string> {

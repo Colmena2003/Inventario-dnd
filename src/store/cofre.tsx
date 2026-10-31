@@ -22,7 +22,7 @@ import {
   type ResultadoPlan,
 } from '../domain/uso';
 import type { Criatura, Estado, Objeto, Personaje, PlantillaEfecto, Propietario } from '../domain/tipos';
-import { reducirImagen } from '../ui/interaccion';
+import { LADO_IMAGEN, reducirImagen } from '../ui/interaccion';
 import { PARTY_POR_DEFECTO } from '../config';
 import { normalizarCodigo, Sala, subirImagen, supabaseDisponible, type Conexion, type Op } from './sincro';
 
@@ -103,7 +103,7 @@ interface Cofre {
   monedas: (cambios: Cambio[], descripcion: string) => SinEstado<ResultadoMonedas>;
   cambiarImagen: (personajeId: string, url: string) => void;
   /** Reduce una imagen subida y, con party compartida, la guarda en el almacenamiento; devuelve su URL. */
-  prepararImagen: (f: File, lado: number) => Promise<string>;
+  prepararImagen: (f: File, lado?: number) => Promise<string>;
   /** Crea (sin id) o guarda (con id) un objeto; devuelve el motivo si no se puede. */
   guardarObjeto: (o: Objeto, nuevo: boolean) => string | null;
   eliminarObjeto: (id: string) => void;
@@ -286,7 +286,7 @@ export function CofreProvider({ children }: { children: ReactNode }) {
     cambiar((e) => ({ ...e, personajes: e.personajes.map((p) => (p.id === personajeId ? { ...p, imagenUrl: url } : p)) }));
   }, [cambiar]);
 
-  const prepararImagen = useCallback(async (f: File, lado: number) => {
+  const prepararImagen = useCallback(async (f: File, lado = LADO_IMAGEN) => {
     const dataUrl = await reducirImagen(f, lado);
     if (!codigo) return dataUrl;
     try {

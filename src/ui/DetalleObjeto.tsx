@@ -48,7 +48,7 @@ function Detalle({ abierto, onCerrar, onAviso }: { abierto: Abierto; onCerrar: (
 
   const imagen = async (f: File | undefined) => {
     if (!f) return;
-    const url = await prepararImagen(f, 900);
+    const url = await prepararImagen(f);
     ponerImagen(url);
   };
   const ponerImagen = (url: string | undefined) => {

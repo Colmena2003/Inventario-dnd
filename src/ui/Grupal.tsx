@@ -15,7 +15,7 @@ import { ClasesConIcono } from './clases';
 import { useEditorPersonaje } from './EditorPersonaje';
 import { BotonMenu, type OpcionMenu } from './Menu';
 import { Esquinas, fmt1, fmtNum, Icono, IconoObjeto, Orla } from './piezas';
-import { DCHA, IZQ, LADO_RETRATO, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
+import { DCHA, IZQ, RanuraEquipo, RejillaObjetos, Silueta, SILUETA_ARMA, useInteraccion } from './interaccion';
 import { desglose } from './desglose';
 import { useEditor } from './editorCtx';
 import { useLienzo } from './lienzo';
@@ -79,7 +79,7 @@ function Columna({ p, indice, ancho, busqueda, onVerFicha }: { p: Personaje; ind
 
   const subirImagen = async (f: File | undefined) => {
     if (!f) return;
-    cambiarImagen(p.id, await prepararImagen(f, LADO_RETRATO));
+    cambiarImagen(p.id, await prepararImagen(f));
   };
 
   const opciones: OpcionMenu[] = [

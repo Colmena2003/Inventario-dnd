@@ -144,7 +144,7 @@ function FichaCriatura({ c, onCerrar, onEditar }: { c: Criatura; onCerrar: () =>
 
   const imagen = async (f: File | undefined) => {
     if (!f) return;
-    const r = guardarCriatura({ ...c, imagenUrl: await prepararImagen(f, 900) }, c.id);
+    const r = guardarCriatura({ ...c, imagenUrl: await prepararImagen(f) }, c.id);
     if (!r.ok) avisar(r.motivo, true);
   };
   const px = c.px ?? pxPorDesafio(c.desafio);
@@ -429,7 +429,7 @@ function EditorCriatura({ inicial, onCerrar, onGuardada, onEliminada }: {
               {c.imagenUrl ? <img src={c.imagenUrl} alt="" /> : <><Icono d={UI.camara} size={28} />Subir imagen</>}
             </button>
             {c.imagenUrl && <button type="button" className="enlace" onClick={() => cambiar({ imagenUrl: undefined })}>Quitar imagen</button>}
-            <input ref={fichero} type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiar({ imagenUrl: await prepararImagen(f, 900) }); }} />
+            <input ref={fichero} type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiar({ imagenUrl: await prepararImagen(f) }); }} />
             <span className="k">Así se verá</span>
             <Carta c={{ ...c, nombre: c.nombre || 'Sin nombre', id: inicial?.id ?? '', creada: 0, actualizada: 0 }} onAbrir={() => {}} />
           </aside>

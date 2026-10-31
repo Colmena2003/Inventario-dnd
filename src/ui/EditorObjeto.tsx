@@ -288,7 +288,7 @@ function Identidad({ o, cambiar }: Sec) {
             {o.imagenUrl ? <img src={o.imagenUrl} alt="" /> : <><Icono d={UI.camara} size={22} /><span>Subir imagen</span></>}
           </button>
           {o.imagenUrl && <button type="button" className="enlace" onClick={() => cambiar({ imagenUrl: undefined })}>Quitar imagen</button>}
-          <input ref={fichero} type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiar({ imagenUrl: await prepararImagen(f, 256) }); }} />
+          <input ref={fichero} type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) cambiar({ imagenUrl: await prepararImagen(f) }); }} />
           <div className="iconos" role="radiogroup" aria-label="Icono">
             {(Object.keys(ICONOS) as ClaveIcono[]).map((k) => (
               <button key={k} type="button" role="radio" aria-checked={o.icono === k} aria-label={NOMBRE_ICONO[k]} title={NOMBRE_ICONO[k]} className={`slot ${o.icono === k ? `has ${CLASE_RAREZA[o.rareza]} on` : ''}`} onClick={() => cambiar({ icono: k, ...ranuraDelIcono(o, k) })}>
